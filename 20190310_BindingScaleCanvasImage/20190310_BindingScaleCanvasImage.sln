@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.421
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "20190310_BindingScaleCanvasImage", "20190310_BindingScaleCanvasImage\20190310_BindingScaleCanvasImage.csproj", "{BC332B2C-72B2-46F6-8A8E-419ED8A0E60F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BC332B2C-72B2-46F6-8A8E-419ED8A0E60F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC332B2C-72B2-46F6-8A8E-419ED8A0E60F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC332B2C-72B2-46F6-8A8E-419ED8A0E60F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC332B2C-72B2-46F6-8A8E-419ED8A0E60F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7481FEC1-319F-44D1-ABE6-04095C4E000A}
+	EndGlobalSection
+EndGlobal
