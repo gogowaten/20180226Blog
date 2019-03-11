@@ -7,7 +7,6 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
   <Window.Resources>
-    <local:MyConverter x:Key="myValueConverter"/>
     <local:MyMulti x:Key="myMultiConverter"/>
   </Window.Resources>
 
@@ -26,7 +25,7 @@
               IsMoveToPointEnabled="False" IsSnapToTickEnabled="True"
               Width="100"/>
       </StackPanel>
-
+      <!--#region 確認用なので不必要-->
       <StackPanel Orientation="Horizontal">
         <TextBlock Text="MyCanvas1"/>
         <TextBlock Text="{Binding ElementName=MyCanvas1,Path=ActualWidth, StringFormat=ActualWidth : 0}" Margin="4,1"/>
@@ -53,12 +52,25 @@
         <TextBlock Text="{Binding ElementName=MyScroll1, Path=ContentHorizontalOffset, StringFormat=ContentHorizontalOffset : 0}" Margin="4,1"/>
         <TextBlock Text="{Binding ElementName=MyScroll1, Path=ContentVerticalOffset, StringFormat=ContentVerticalOffset : 0}" Margin="4,1"/>
       </StackPanel>
-
+      <!--#endregion-->
     </StackPanel>
 
     <ScrollViewer Name="MyScroll1" Grid.Row="1" UseLayoutRounding="True"
                   VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
       <Canvas Name="MyCanvas1" >
+
+        <Canvas.Width>
+          <MultiBinding Converter="{StaticResource myMultiConverter}">
+            <Binding ElementName="SliderScale" Path="Value"/>
+            <Binding Path="ActualWidth" ElementName="MyImage1"/>
+          </MultiBinding>
+        </Canvas.Width>
+        <Canvas.Height>
+          <MultiBinding Converter="{StaticResource myMultiConverter}">
+            <Binding ElementName="SliderScale" Path="Value"/>
+            <Binding Path="ActualHeight" ElementName="MyImage1"/>
+          </MultiBinding>
+        </Canvas.Height>
 
         <Image Name="MyImage1" Stretch="None" Canvas.Top="0" Canvas.Left="0" RenderOptions.BitmapScalingMode="NearestNeighbor">
           <Image.RenderTransform>
