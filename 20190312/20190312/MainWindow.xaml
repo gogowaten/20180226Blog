@@ -8,9 +8,11 @@
         Title="MainWindow" Height="450" Width="800">
   <Grid Margin="5,30,5,5">
     <ScrollViewer Name="MyScroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-      <StackPanel Name="MyStackPanel">
+      <StackPanel Name="MyStackPanel" UseLayoutRounding="True">
         <Button Name="MyButton1" Content="button1"/>
         <Button Name="MyButton2" Content="button2"/>
+        <Button Name="MyButton3" Content="button3"/>
+        <Button Name="MyButton4" Content="button4"/>
       </StackPanel>
     </ScrollViewer>
   </Grid>

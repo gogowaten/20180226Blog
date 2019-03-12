@@ -18,14 +18,10 @@ using System.Globalization;
 
 //色リストがあって、パレットのBorderとBinding
 
-    //動作
-    //Button1、先頭要素の色をWhite
-    //Button2、先頭要素の色をRedだけどBindingが外れて動作しない失敗例
-    //TextBlockクリックでCyanに変更
-
-    //リスト自体をBindingしたいけど、そうするとListboxとかを使うことになる、そうすると
-    //見た目の変更をXAMLですることになって要素クリックで、どの要素がクリックされたのか、その要素の
-    //親リストの取得の方法がわからないのでムリ
+//動作
+//色リストを渡して、パレット作成
+//色リストと表示用BorderがBinding、クリックでCyanに
+//色リスト変更で表示も一括変更
 
 namespace _20190312
 {
@@ -37,6 +33,7 @@ namespace _20190312
         static int ColorCount = 20;
         List<MyData> myData = new List<MyData>();
         MyDatas myDataList;
+        Palette Palette1;
 
         public MainWindow()
         {
@@ -47,12 +44,25 @@ namespace _20190312
             {
                 myData[0].Color = Colors.White;//おk
                 myDataList.MyDatasList[0].Color = Colors.White;//おk
+                Palette1.PaletteColors[0] = Colors.White;
             };
 
             MyButton2.Click += (s, e) =>
             {
                 myData[0] = new MyData() { Color = Colors.Red };//Bindingが外れる
                 myDataList.MyDatasList[0] = new MyData() { Color = Colors.Red };//Bindingが外れる
+            };
+
+            MyButton3.Click += (s, e) =>
+            {
+                myData[0].Color = Colors.Lime;//おk
+                myDataList.MyDatasList[0].Color = Colors.LightBlue;//おk
+                Palette1.PaletteColors[0] = Colors.LimeGreen;
+            };
+
+            MyButton4.Click += (s, e) =>
+            {
+                Palette1.ChangeColors(MakeColorList(ColorCount));
             };
         }
 
@@ -114,7 +124,9 @@ namespace _20190312
                 tb.SetBinding(TextBlock.BackgroundProperty, bind);
 
             }
-            //sp.DataContext = myDataList;
+
+            Palette1 = new Palette(colors);
+            MyStackPanel.Children.Add(Palette1);
         }
 
         private void Tb_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -170,7 +182,78 @@ namespace _20190312
         }
     }
 
+    public class Palette : StackPanel
+    {
+        //List<Border> Pans;
+        public ObservableCollection<Color> PaletteColors;
 
+        public Palette(List<Color> colorList)
+        {
+            this.Orientation = Orientation.Horizontal;
+            PaletteColors = new ObservableCollection<Color>();
+            //Pans = new List<Border>();
+
+            for (int i = 0; i < colorList.Count; i++)
+            {
+                PaletteColors.Add(colorList[i]);
+                Border bo = new Border()
+                {
+                    Width = 16,
+                    Height = 16,
+                    Margin = new Thickness(2),
+                    BorderBrush = Brushes.AliceBlue,
+                    BorderThickness = new Thickness(1)
+                };
+
+                var bind = new Binding();
+                //bind.Source = PaletteColors;//this.Datacontext = PaletteColorsでも同じ結果
+                bind.Path = new PropertyPath("[" + i + "]");//無理やりすぎる
+                bind.Converter = new MyConverter();
+                bind.Mode = BindingMode.TwoWay;
+                bo.SetBinding(Border.BackgroundProperty, bind);
+                bo.MouseLeftButtonDown += Bo_MouseLeftButtonDown;
+                this.Children.Add(bo);
+            }
+            this.DataContext = PaletteColors;
+        }
+
+        public void ChangeColors(List<Color> colors)
+        {
+            //PaletteColors = new ObservableCollection<Color>(colors);
+            for (int i = 0; i < colors.Count; i++)
+            {
+                PaletteColors[i] = colors[i];
+            }
+        }
+
+        private void Bo_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            Border bo = sender as Border;
+            bo.Background = new SolidColorBrush(Colors.Cyan);
+            bo.Focus();
+        }
+
+        //public ObservableCollection<Color> MyColorList
+        //{
+        //    get { return (ObservableCollection<Color>)GetValue(MyColorListProperty); }
+        //    set { SetValue(MyColorListProperty, value); }
+        //}
+
+        //public static readonly DependencyProperty MyColorListProperty =
+        //    DependencyProperty.Register(nameof(MyColorList), typeof(ObservableCollection<Color>), typeof(Palette));
+
+
+        //public Color MyColor
+        //{
+        //    get { return (Color)GetValue(MyColorProperty); }
+        //    set { SetValue(MyColorProperty, value); }
+        //}
+
+        //public static readonly DependencyProperty MyColorProperty =
+        //    DependencyProperty.Register("MyColor", typeof(Color), typeof(Palette));
+
+
+    }
 
 
 
