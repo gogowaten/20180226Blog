@@ -13,6 +13,7 @@
         <Button Name="MyButton2" Content="button2"/>
         <Button Name="MyButton3" Content="button3"/>
         <Button Name="MyButton4" Content="button4"/>
+        <Button Name="MyButton5" Content="button5 10Colors"/>
       </StackPanel>
     </ScrollViewer>
   </Grid>

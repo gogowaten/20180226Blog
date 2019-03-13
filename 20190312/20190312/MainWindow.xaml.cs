@@ -34,6 +34,7 @@ namespace _20190312
         List<MyData> myData = new List<MyData>();
         MyDatas myDataList;
         Palette Palette1;
+        PaletteVer2 PaletteV2;
 
         public MainWindow()
         {
@@ -63,6 +64,12 @@ namespace _20190312
             MyButton4.Click += (s, e) =>
             {
                 Palette1.ChangeColors(MakeColorList(ColorCount));
+                PaletteV2.SetColorList(MakeColorList(ColorCount));
+
+            };
+            MyButton5.Click += (s, e) =>
+            {
+                PaletteV2.SetColorList(MakeColorList(10));
             };
         }
 
@@ -127,6 +134,10 @@ namespace _20190312
 
             Palette1 = new Palette(colors);
             MyStackPanel.Children.Add(Palette1);
+
+            PaletteV2 = new PaletteVer2(colors);
+            MyStackPanel.Children.Add(PaletteV2);
+
         }
 
         private void Tb_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -182,6 +193,90 @@ namespace _20190312
         }
     }
 
+
+    //256colors
+    public class PaletteVer2 : StackPanel
+    {
+        //List<Border> Pans;
+        private List<Color> AvailablePaletteColors;//実際に使う色リスト、減色処理で使う
+        private ObservableCollection<Color> PaletteColors;//表示に使う色リスト(256色以下のとき透明色を含んでいる)
+        private List<Border> MyBorderPan;
+
+        public PaletteVer2(List<Color> colorList)
+        {
+            this.Orientation = Orientation.Horizontal;
+            
+            PaletteColors = new ObservableCollection<Color>();
+            MyInitialize();
+
+            SetColorList(colorList);
+            for (int i = 0; i < colorList.Count; i++)
+            {
+                var bind = new Binding();
+                //bind.Source = PaletteColors;//this.Datacontext = PaletteColorsでも同じ結果
+                bind.Path = new PropertyPath("[" + i + "]");//無理やりすぎる
+                bind.Converter = new MyConverter();
+                bind.Mode = BindingMode.TwoWay;
+                MyBorderPan[i].SetBinding(Border.BackgroundProperty, bind);
+
+            }
+            this.DataContext = PaletteColors;
+        }
+
+        private void MyInitialize()
+        {
+
+            MyBorderPan = new List<Border>();
+            for (int i = 0; i < 256; i++)
+            {
+                PaletteColors.Add(Colors.Transparent);
+                Border bo = new Border()
+                {
+                    Width = 16,
+                    Height = 16,
+                    Margin = new Thickness(2),
+                    BorderBrush = Brushes.AliceBlue,
+                    BorderThickness = new Thickness(1),
+                };
+                bo.MouseLeftButtonDown += Bo_MouseLeftButtonDown;
+                MyBorderPan.Add(bo);
+                this.Children.Add(bo);
+            }
+        }
+        private void ClealPaletteColors()
+        {
+            for (int i = 0; i < 256; i++) { PaletteColors[i] = Colors.Transparent; }
+        }
+        //private void ClealBindings()
+        //{
+        //    for (int i = 0; i < 256; i++) { MyBorderPan[i].SetBinding(Border.BackgroundProperty, new Binding()); }
+        //}
+
+        //ColorListの入れ替え
+        //相互Bindingしている背景色とPaletteColorは、どちらも指定していないと#00FFFFFFとTransparentになる
+        //なので色リストを変更してもBindingは更新しなくていい
+        //PaletteColorのすべてをTransparentoにして新しい色を入れていけばいい
+        public void SetColorList(List<Color> colors)
+        {
+            AvailablePaletteColors = colors;
+            ClealPaletteColors();//すべてTransparent
+
+            for (int i = 0; i < colors.Count; i++)
+            {                
+                PaletteColors[i] = colors[i];
+            }
+        }
+
+        //一つの色を入れ替え、背景色を変える
+        private void Bo_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            Border bo = sender as Border;
+            bo.Background = new SolidColorBrush(Colors.Cyan);
+        }
+
+
+    }
+
     public class Palette : StackPanel
     {
         //List<Border> Pans;
@@ -217,6 +312,7 @@ namespace _20190312
             this.DataContext = PaletteColors;
         }
 
+        //ColorListの入れ替え
         public void ChangeColors(List<Color> colors)
         {
             //PaletteColors = new ObservableCollection<Color>(colors);
@@ -226,11 +322,11 @@ namespace _20190312
             }
         }
 
+        //一つの色を入れ替え、背景色を変える
         private void Bo_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             Border bo = sender as Border;
             bo.Background = new SolidColorBrush(Colors.Cyan);
-            bo.Focus();
         }
 
         //public ObservableCollection<Color> MyColorList
