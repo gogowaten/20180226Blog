@@ -53,17 +53,19 @@ namespace _20190312
             {
                 Palette1.PaletteColors[0] = Colors.LimeGreen;
             };
-
+            //色リスト変更
             MyButton4.Click += (s, e) =>
             {
                 Palette1.ChangeColors(MakeColorList(ColorCount));
                 PaletteV2.SetColorList(MakeColorList(ColorCount));
 
             };
+            //色リスト変更
             MyButton5.Click += (s, e) =>
             {
                 PaletteV2.SetColorList(MakeColorList(10));
             };
+            //色リスト変更
             MyButton6.Click += (s, e) =>
             {
                 PaletteV2.SetColorList(MakeColorList(256));
@@ -82,7 +84,8 @@ namespace _20190312
             MyStackPanel.Children.Add(PaletteV2);
 
             MyStackPanel.Children.Add(new PaletteVer2(colors));
-
+            MyStackPanel.Children.Add(new PaletteVer2(colors));
+            MyStackPanel.Children.Add(new PaletteVer2(colors));
         }
 
         private void Tb_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -124,6 +127,7 @@ namespace _20190312
             this.Orientation = Orientation.Horizontal;
             this.Margin = new Thickness(1);
             PaletteColors = new ObservableCollection<Color>();
+            AvailablePaletteColors = new List<Color>();
 
             AddPans();
 
@@ -170,10 +174,10 @@ namespace _20190312
             MessageBox.Show("");
         }
 
-        private void ClealPaletteColors()
-        {
-            for (int i = 0; i < 256; i++) { PaletteColors[i] = Colors.Transparent; }
-        }
+        //private void ClealPaletteColors()
+        //{
+        //    for (int i = 0; i < 256; i++) { PaletteColors[i] = Colors.Transparent; }
+        //}
 
         //ColorListの入れ替え
         //相互Bindingしている背景色とPaletteColorは、どちらも指定していないと#00FFFFFFとTransparentになる
@@ -181,19 +185,39 @@ namespace _20190312
         //PaletteColorのすべてをTransparentoにして新しい色を入れていけばいい
         public void SetColorList(List<Color> colors)
         {
-            AvailablePaletteColors = colors;
-            ClealPaletteColors();//すべてTransparent
+
+            //if (colors.Count < this.AvailablePaletteColors.Count)
+            //{
+            //    for (int i = colors.Count; i < AvailablePaletteColors.Count; i++)
+            //    {
+            //        PaletteColors[i] = Colors.Transparent;
+            //    }
+            //}
+            //AvailablePaletteColors = colors;
+            ////ClealPaletteColors();//すべてTransparent
 
             for (int i = 0; i < colors.Count; i++)
             {
                 PaletteColors[i] = colors[i];
             }
+
+            int max = (colors.Count > AvailablePaletteColors.Count) ? colors.Count : AvailablePaletteColors.Count;
+            for (int i = colors.Count; i < max; i++)
+            {
+                PaletteColors[i] = Colors.Transparent;
+            }
+
+            AvailablePaletteColors = colors.ToList();
         }
 
         //一つの色を入れ替え、背景色を変える
         private void Bo_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             Border bo = sender as Border;
+            SolidColorBrush brush = (SolidColorBrush)bo.Background;
+            //int ind = PaletteColors.IndexOf(brush.Color);
+            MessageBox.Show($"{brush.Color}をColors.cyanに変更");
+
             bo.Background = new SolidColorBrush(Colors.Cyan);
         }
 

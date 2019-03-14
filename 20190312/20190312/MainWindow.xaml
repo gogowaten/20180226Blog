@@ -19,8 +19,8 @@
         <Button Name="MyButton2" Content="button2" Style="{StaticResource myStype}"/>
         <Button Name="MyButton3" Content="button3" Style="{StaticResource myStype}"/>
         <Button Name="MyButton4" Content="button4" Style="{StaticResource myStype}"/>
-        <Button Name="MyButton5" Content="button5 10Colors" Style="{StaticResource myStype}"/>
-        <Button Name="MyButton6" Content="button6 30Colors" Style="{StaticResource myStype}"/>
+        <Button Name="MyButton5" Content="button5" Style="{StaticResource myStype}"/>
+        <Button Name="MyButton6" Content="button6" Style="{StaticResource myStype}"/>
       </StackPanel>
     </ScrollViewer>
   </Grid>
