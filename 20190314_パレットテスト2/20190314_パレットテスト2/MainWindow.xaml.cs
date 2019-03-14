@@ -80,12 +80,6 @@ namespace _20190314_パレットテスト2
             MyStackPanel.Children.Add(new PaletteVer2(colors));
         }
 
-        private void Tb_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            TextBlock tb = sender as TextBlock;
-            tb.Background = new SolidColorBrush(Colors.Cyan);
-        }
-
         private List<Color> MakeColorList(int count)
         {
             var colList = new List<Color>();
