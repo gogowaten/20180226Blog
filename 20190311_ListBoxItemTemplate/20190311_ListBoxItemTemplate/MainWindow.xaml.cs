@@ -61,7 +61,9 @@ namespace _20190311_ListBoxItemTemplate
             var se = sender as TextBlock;
             var se2 = se.Parent as StackPanel;
             var se3 = se2.Parent as ListBox;
-            
+            var fo = MyListBox1.IsFocused;
+            var fo2 = MyListBox2.IsFocused;
+            var fo3 = MyListBox3.IsFocused;
             MessageBox.Show("");
 
         }
@@ -73,7 +75,6 @@ namespace _20190311_ListBoxItemTemplate
             var rs = e.RoutedEvent;
             var se = sender;
             var pa = sender as StackPanel;
-            var neko = pa.Parent;
         }
 
         private void MyListBox2_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
