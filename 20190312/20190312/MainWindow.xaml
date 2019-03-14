@@ -6,14 +6,21 @@
         xmlns:local="clr-namespace:_20190312"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
+  <Window.Resources>
+    <Style TargetType="Button" x:Key="myStype">
+      <Setter Property="Width" Value="200"/>
+      <Setter Property="HorizontalAlignment" Value="Left"/>
+    </Style>
+  </Window.Resources>
   <Grid Margin="5,30,5,5">
     <ScrollViewer Name="MyScroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
       <StackPanel Name="MyStackPanel" UseLayoutRounding="True">
-        <Button Name="MyButton1" Content="button1"/>
-        <Button Name="MyButton2" Content="button2"/>
-        <Button Name="MyButton3" Content="button3"/>
-        <Button Name="MyButton4" Content="button4"/>
-        <Button Name="MyButton5" Content="button5 10Colors"/>
+        <Button Name="MyButton1" Content="button1" Style="{StaticResource myStype}"/>
+        <Button Name="MyButton2" Content="button2" Style="{StaticResource myStype}"/>
+        <Button Name="MyButton3" Content="button3" Style="{StaticResource myStype}"/>
+        <Button Name="MyButton4" Content="button4" Style="{StaticResource myStype}"/>
+        <Button Name="MyButton5" Content="button5 10Colors" Style="{StaticResource myStype}"/>
+        <Button Name="MyButton6" Content="button6 30Colors" Style="{StaticResource myStype}"/>
       </StackPanel>
     </ScrollViewer>
   </Grid>
