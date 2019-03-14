@@ -13,6 +13,10 @@
     </Style>
   </Window.Resources>
   <Grid Margin="5,30,5,5">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="250"/>
+      <RowDefinition/>
+    </Grid.RowDefinitions>
     <ScrollViewer Name="MyScroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
       <StackPanel Name="MyStackPanel" UseLayoutRounding="True">
         <Button Name="MyButton1" Content="button1" Style="{StaticResource myStype}"/>
@@ -22,6 +26,9 @@
         <Button Name="MyButton5" Content="button5" Style="{StaticResource myStype}"/>
         <Button Name="MyButton6" Content="button6" Style="{StaticResource myStype}"/>
       </StackPanel>
+    </ScrollViewer>
+    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+    <Image Name="MyImage1" Stretch="None" UseLayoutRounding="True"/>
     </ScrollViewer>
   </Grid>
 </Window>

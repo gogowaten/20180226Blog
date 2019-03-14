@@ -30,6 +30,9 @@ namespace _20190312
     /// </summary>
     public partial class MainWindow : Window
     {
+        BitmapSource MyImageSource;
+        byte[] MyImageByteArray;
+
         static int ColorCount = 20;
         Palette Palette1;
         PaletteVer2 PaletteV2;
@@ -46,7 +49,7 @@ namespace _20190312
 
             MyButton2.Click += (s, e) =>
             {
-
+                var bitmap = MyImage1.Source;
             };
 
             MyButton3.Click += (s, e) =>
@@ -74,9 +77,15 @@ namespace _20190312
 
         private void MyAdd()
         {
+            //画像ファイル表示
+            string filePath = "";
+            filePath = @"D:\ブログ用\チェック用2\NEC_6221_2019_02_24_午後わてん_half.jpg";
+            (BitmapSource MyImageSource, byte[] MyImageByteArray) =
+                GetBitmapSourceWithChangePixelFormat(filePath, PixelFormats.Rgb24, 96, 96);
+            MyImage1.Source = MyImageSource;
 
+            //色リスト作成からパレット作成
             List<Color> colors = MakeColorList(ColorCount);
-
             Palette1 = new Palette(colors);
             MyStackPanel.Children.Add(Palette1);
 
@@ -88,12 +97,90 @@ namespace _20190312
             MyStackPanel.Children.Add(new PaletteVer2(colors));
         }
 
-        private void Tb_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        #region 画像
+
+        public BitmapSource Reduce(byte[] pixels, List<Color> palette)
         {
-            TextBlock tb = sender as TextBlock;
-            tb.Background = new SolidColorBrush(Colors.Cyan);
+            byte[] pixels2 = new byte[pixels.Length];
+            for (int i = 0; i < pixels.Length; i += 3)
+            {
+                double distance = 0;
+                double min = 1000;
+                int index = 0;
+                for (int j = 0; j < palette.Count; j++)
+                {
+                    distance = ColorDistance(pixels[i], pixels[i + 1], pixels[i + 2], palette[j]);
+                    if (distance < min)
+                    {
+                        min = distance;
+                        index = j;
+                    }
+                }
+                pixels2[i] = palette[index].R;
+                pixels2[i + 1] = palette[index].G;
+                pixels2[i + 2] = palette[index].B;
+            }
+            int stride = MyImageSource.Format.BitsPerPixel / 8 * MyImageSource.PixelWidth;
+            BitmapSource bitmap = BitmapSource.Create(MyImageSource.PixelWidth,
+                MyImageSource.PixelHeight, 96, 96, MyImageSource.Format, null, pixels2, stride);
+            return bitmap;
         }
 
+        private double ColorDistance(byte r1, byte g1, byte b1, byte r2, byte g2, byte b2)
+        {
+            return Math.Sqrt(Math.Pow(r1 - r2, 2) + Math.Pow(g1 - g2, 2) + Math.Pow(b1 - b2, 2));
+        }
+        private double ColorDistance(byte r1, byte g1, byte b1, Color col)
+        {
+            return ColorDistance(r1, g1, b1, col.R, col.G, col.B);
+        }
+
+        /// <summary>
+        ///  ファイルパスとPixelFormatを指定してBitmapSourceとそのbyte配列を作成、dpiの変更は任意
+        /// </summary>
+        /// <param name="filePath">画像ファイルのフルパス</param>
+        /// <param name="pixelFormat">PixelFormatsの中からどれかを指定</param>
+        /// <param name="dpiX">無指定なら画像ファイルで指定されているdpiになる</param>
+        /// <param name="dpiY">無指定なら画像ファイルで指定されているdpiになる</param>
+        /// <returns></returns>
+        private (BitmapSource, byte[]) GetBitmapSourceWithChangePixelFormat(
+            string filePath, PixelFormat pixelFormat, double dpiX = 0, double dpiY = 0)
+        {
+            BitmapSource source = null;
+            byte[] pixels = new byte[0];
+            try
+            {
+                using (System.IO.FileStream fs = new System.IO.FileStream(filePath, System.IO.FileMode.Open, System.IO.FileAccess.Read))
+                {
+                    var bf = BitmapFrame.Create(fs);
+                    var convertedBitmap = new FormatConvertedBitmap(bf, pixelFormat, null, 0);
+                    int w = convertedBitmap.PixelWidth;
+                    int h = convertedBitmap.PixelHeight;
+                    int stride = (w * pixelFormat.BitsPerPixel + 7) / 8;
+                    pixels = new byte[h * stride];
+                    convertedBitmap.CopyPixels(pixels, stride, 0);
+                    //dpi指定がなければ元の画像と同じdpiにする
+                    if (dpiX == 0) { dpiX = bf.DpiX; }
+                    if (dpiY == 0) { dpiY = bf.DpiY; }
+                    //dpiを指定してBitmapSource作成
+                    source = BitmapSource.Create(
+                        w, h, dpiX, dpiY,
+                        convertedBitmap.Format,
+                        convertedBitmap.Palette, pixels, stride);
+                };
+            }
+            catch (Exception)
+            {
+
+            }
+
+            return (source, pixels);
+        }
+
+
+        #endregion
+
+        #region ランダム色作成
         private List<Color> MakeColorList(int count)
         {
             var colList = new List<Color>();
@@ -111,6 +198,8 @@ namespace _20190312
         {
             return Color.FromRgb(rgb[0], rgb[1], rgb[2]);
         }
+        #endregion
+
     }
 
 
@@ -171,7 +260,7 @@ namespace _20190312
 
         private void Btn_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("");
+            
         }
 
         //private void ClealPaletteColors()
