@@ -80,7 +80,7 @@ namespace _20190312
             //画像ファイル表示
             string filePath = "";
             filePath = @"D:\ブログ用\チェック用2\NEC_6221_2019_02_24_午後わてん_half.jpg";
-            (BitmapSource MyImageSource, byte[] MyImageByteArray) =
+            (MyImageSource, MyImageByteArray) =
                 GetBitmapSourceWithChangePixelFormat(filePath, PixelFormats.Rgb24, 96, 96);
             MyImage1.Source = MyImageSource;
 
@@ -89,51 +89,23 @@ namespace _20190312
             Palette1 = new Palette(colors);
             MyStackPanel.Children.Add(Palette1);
 
-            PaletteV2 = new PaletteVer2(colors);
+            PaletteV2 = new PaletteVer2(colors, this, MyImageSource, MyImageByteArray);
             MyStackPanel.Children.Add(PaletteV2);
 
-            MyStackPanel.Children.Add(new PaletteVer2(colors));
-            MyStackPanel.Children.Add(new PaletteVer2(colors));
-            MyStackPanel.Children.Add(new PaletteVer2(colors));
+            MyStackPanel.Children.Add(new PaletteVer2(colors, this, MyImageSource, MyImageByteArray));
+            MyStackPanel.Children.Add(new PaletteVer2(colors, this, MyImageSource, MyImageByteArray));
+            MyStackPanel.Children.Add(new PaletteVer2(colors, this, MyImageSource, MyImageByteArray));
         }
 
         #region 画像
 
-        public BitmapSource Reduce(byte[] pixels, List<Color> palette)
+
+
+        private void ByteArrayDisplay(byte[] pixels)
         {
-            byte[] pixels2 = new byte[pixels.Length];
-            for (int i = 0; i < pixels.Length; i += 3)
-            {
-                double distance = 0;
-                double min = 1000;
-                int index = 0;
-                for (int j = 0; j < palette.Count; j++)
-                {
-                    distance = ColorDistance(pixels[i], pixels[i + 1], pixels[i + 2], palette[j]);
-                    if (distance < min)
-                    {
-                        min = distance;
-                        index = j;
-                    }
-                }
-                pixels2[i] = palette[index].R;
-                pixels2[i + 1] = palette[index].G;
-                pixels2[i + 2] = palette[index].B;
-            }
-            int stride = MyImageSource.Format.BitsPerPixel / 8 * MyImageSource.PixelWidth;
-            BitmapSource bitmap = BitmapSource.Create(MyImageSource.PixelWidth,
-                MyImageSource.PixelHeight, 96, 96, MyImageSource.Format, null, pixels2, stride);
-            return bitmap;
+
         }
 
-        private double ColorDistance(byte r1, byte g1, byte b1, byte r2, byte g2, byte b2)
-        {
-            return Math.Sqrt(Math.Pow(r1 - r2, 2) + Math.Pow(g1 - g2, 2) + Math.Pow(b1 - b2, 2));
-        }
-        private double ColorDistance(byte r1, byte g1, byte b1, Color col)
-        {
-            return ColorDistance(r1, g1, b1, col.R, col.G, col.B);
-        }
 
         /// <summary>
         ///  ファイルパスとPixelFormatを指定してBitmapSourceとそのbyte配列を作成、dpiの変更は任意
@@ -206,15 +178,21 @@ namespace _20190312
     //256colors
     public class PaletteVer2 : StackPanel
     {
-        //List<Border> Pans;
+        private MainWindow MyMainWindow;
+        private BitmapSource OriginBitmapSource;
+        private byte[] OriginByteArray;
         private List<Color> AvailablePaletteColors;//実際に使う色リスト、減色処理で使う
         private ObservableCollection<Color> PaletteColors;//表示に使う色リスト(256色以下のとき透明色を含んでいる)
         private List<Border> PalettePans;
 
-        public PaletteVer2(List<Color> colorList)
+        public PaletteVer2(List<Color> colorList, MainWindow mainWindow, BitmapSource bitmap, byte[] pixels)
         {
             this.Orientation = Orientation.Horizontal;
             this.Margin = new Thickness(1);
+            MyMainWindow = mainWindow;
+            OriginBitmapSource = bitmap;
+            OriginByteArray = pixels;
+
             PaletteColors = new ObservableCollection<Color>();
             AvailablePaletteColors = new List<Color>();
 
@@ -260,7 +238,47 @@ namespace _20190312
 
         private void Btn_Click(object sender, RoutedEventArgs e)
         {
-            
+            byte[] pixels = Reduce(AvailablePaletteColors, OriginBitmapSource, OriginByteArray);
+            int width = OriginBitmapSource.PixelWidth;
+            int height = OriginBitmapSource.PixelHeight;
+            int stride = OriginBitmapSource.Format.BitsPerPixel / 8 * width;
+            BitmapSource bitmap = BitmapSource.Create(width, height, 96, 96, OriginBitmapSource.Format, null, pixels, stride);
+            MyMainWindow.MyImage1.Source = bitmap;
+        }
+
+        private byte[] Reduce(List<Color> palette, BitmapSource source, byte[] pixels)
+        {
+            byte[] pixels2 = new byte[pixels.Length];
+            for (int i = 0; i < pixels.Length; i += 3)
+            {
+                double distance = 0;
+                double min = 1000;
+                int index = 0;
+                for (int j = 0; j < palette.Count; j++)
+                {
+                    distance = ColorDistance(pixels[i], pixels[i + 1], pixels[i + 2], palette[j]);
+                    if (distance < min)
+                    {
+                        min = distance;
+                        index = j;
+                    }
+                }
+                pixels2[i] = palette[index].R;
+                pixels2[i + 1] = palette[index].G;
+                pixels2[i + 2] = palette[index].B;
+            }
+            return pixels2;
+
+        }
+
+
+        private double ColorDistance(byte r1, byte g1, byte b1, byte r2, byte g2, byte b2)
+        {
+            return Math.Sqrt(Math.Pow(r1 - r2, 2) + Math.Pow(g1 - g2, 2) + Math.Pow(b1 - b2, 2));
+        }
+        private double ColorDistance(byte r1, byte g1, byte b1, Color col)
+        {
+            return ColorDistance(r1, g1, b1, col.R, col.G, col.B);
         }
 
         //private void ClealPaletteColors()
