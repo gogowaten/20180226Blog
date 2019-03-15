@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.421
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "20190315_Pixelformats.Pbgra32で色変化", "20190315_Pixelformats.Pbgra32で色変化\20190315_Pixelformats.Pbgra32で色変化.csproj", "{5A65E765-11AA-4BB8-A29C-0423F1CBCE1D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5A65E765-11AA-4BB8-A29C-0423F1CBCE1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A65E765-11AA-4BB8-A29C-0423F1CBCE1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A65E765-11AA-4BB8-A29C-0423F1CBCE1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A65E765-11AA-4BB8-A29C-0423F1CBCE1D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E5C8331F-3285-4218-9CDC-7C40C22E0D23}
+	EndGlobalSection
+EndGlobal
