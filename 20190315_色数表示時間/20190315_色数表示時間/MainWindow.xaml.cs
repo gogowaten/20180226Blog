@@ -22,7 +22,7 @@ namespace _20190315_色数表示時間
     public partial class MainWindow : Window
     {
         private byte[] SourceByte;//画像のピクセルデータ
-        const int MyLoopCount = 10;//計測ループ回数
+        const int MyLoopCount = 5;//計測ループ回数
 
         public MainWindow()
         {
@@ -41,15 +41,72 @@ namespace _20190315_色数表示時間
             MyImage.Source = source;
 
             Button1.Click += Button1_Click;
+            Button2.Click += Button2_Click;
+        }
+//        C#でDictionaryの値によるソート - Coniglioの忘備録
+//http://coniglio.hateblo.jp/entry/2014/06/05/214330
+
+            //各色カウントして表示、上位10色下位10色
+        private void Button2_Click(object sender, RoutedEventArgs e)
+        {
+            Dictionary<uint, int> tabel = Count11Dictionary_32bitとビットシフト各色カウント(SourceByte);            
+            IOrderedEnumerable<KeyValuePair<uint, int>> sorted = tabel.OrderByDescending((x) => x.Value);
+            //foreach (KeyValuePair<uint, int> item in sorted)
+            //{
+            //    uint key = item.Key;
+            //    //    a       r        g        b
+            //    //00000000_00000000_00000000_00000000
+            //    byte b = (byte)(key & 0x000000FF);
+            //    byte g = (byte)(key >> 8 & 0x0000FF);
+            //    byte r = (byte)(key >> 16 & 0x00FF);
+            //    byte a = (byte)(key >> 24);
+            //    Color iro = Color.FromArgb(a, r, g, b);
+            //    Console.WriteLine($"{iro.ToString()}_{item.Value}");
+            //}
+
+            IEnumerable<KeyValuePair<uint, int>> top10 = sorted.Take(10);//上位10色
+            foreach (KeyValuePair<uint, int> item in top10)
+            {
+                uint key = item.Key;
+                //    a       r        g        b
+                //00000000_00000000_00000000_00000000
+                byte b = (byte)(key & 0x000000FF);
+                byte g = (byte)(key >> 8 & 0x0000FF);
+                byte r = (byte)(key >> 16 & 0x00FF);
+                byte a = (byte)(key >> 24);
+                Color iro = Color.FromArgb(a, r, g, b);
+                Console.WriteLine($"{iro.ToString()}_{item.Value}");
+            }
+
+            var bottom10 = sorted.Skip(sorted.Count() - 10);
+            foreach (KeyValuePair<uint, int> item in bottom10)
+            {
+                uint key = item.Key;
+                //    a       r        g        b
+                //00000000_00000000_00000000_00000000
+                byte b = (byte)(key & 0x000000FF);
+                byte g = (byte)(key >> 8 & 0x0000FF);
+                byte r = (byte)(key >> 16 & 0x00FF);
+                byte a = (byte)(key >> 24);
+                Color iro = Color.FromArgb(a, r, g, b);
+                Console.WriteLine($"{iro.ToString()}_{item.Value}");
+            }
 
         }
+
+
+        private void Button1_Click(object sender, RoutedEventArgs e)
+        {
+            Time計測();
+        }
+
 
         private void MainWindow_Drop(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop) == false) { return; }
             string[] filePath = (string[])e.Data.GetData(DataFormats.FileDrop);
             BitmapSource source;
-            (SourceByte, source) = MakeByteArrayAndSourceFromImageFile(filePath[0], PixelFormats.Pbgra32, 96, 96);
+            (SourceByte, source) = MakeByteArrayAndSourceFromImageFile(filePath[0], PixelFormats.Bgra32, 96, 96);
             if (source == null)
             {
                 MessageBox.Show("画像ファイルじゃないみたい");
@@ -60,22 +117,20 @@ namespace _20190315_色数表示時間
 
         }
 
-        private void Button1_Click(object sender, RoutedEventArgs e)
-        {
-            Time計測();
-
-        }
-
         private void Time計測()
         {
             List<Func<byte[], int>> funcs = new List<Func<byte[], int>>();
-            funcs.Add(Count1配列とビットシフト);
-            funcs.Add(Count2配列と掛け算足し算);
-            funcs.Add(Count3Dictionary);
-            funcs.Add(Count4DictionaryKeyCount);
-            funcs.Add(Count5Dictionary32bpp);
-            funcs.Add(Count6Dictionary32bppとビットシフト);
-            //funcs.Add(Count7Concurrent32bppとビットシフト);
+            funcs.Add(Count1配列とビットシフト_24bit);
+            funcs.Add(Count2配列と掛け算足し算_24bit);
+            funcs.Add(Count3Dictionary_24bit);
+            funcs.Add(Count5Dictionary_24bitビットシフト);
+            funcs.Add(Count4Dictionary_24bit_KeyCount);
+            funcs.Add(Count6Dictionary_32bit);
+            funcs.Add(Count7Dictionary_32bitとビットシフト);
+            //funcs.Add(Count8Concurrent32bppとビットシフト);
+            funcs.Add(Count9DictionaryIsAlpha_24or32bit);
+            funcs.Add(Count10DictionaryIsAlpha_24or32bitビットシフト);
+
 
             List<TextBlock> textBlocks = new List<TextBlock>();
             textBlocks.Add(TextBlock1);
@@ -85,27 +140,30 @@ namespace _20190315_色数表示時間
             textBlocks.Add(TextBlock5);
             textBlocks.Add(TextBlock6);
             //textBlocks.Add(TextBlock7);
+            textBlocks.Add(TextBlock8);
+            textBlocks.Add(TextBlock9);
+            textBlocks.Add(TextBlock10);
 
             var sw = new Stopwatch();
             int count = 0;
             for (int i = 0; i < funcs.Count; i++)
             {
                 sw.Restart();
-                for (int j = 0; j < 10; j++)
+                for (int j = 0; j < MyLoopCount; j++)
                 {
                     count = funcs[i](SourceByte);
                 }
                 sw.Stop();
-                long tt = sw.Elapsed.Ticks / 10;
+                long tt = sw.Elapsed.Ticks / MyLoopCount;
                 var total = new TimeSpan(tt);
 
-                textBlocks[i].Text = $"{total.Seconds}.{total.Milliseconds.ToString("000")}秒：{count}色";
+                textBlocks[i].Text = $"{total.Seconds}.{total.Milliseconds.ToString("000")}秒：{count}色 {funcs[i].Method.Name}";
             }
         }
 
 
         #region
-        private int Count1配列とビットシフト(byte[] pixels)
+        private int Count1配列とビットシフト_24bit(byte[] pixels)
         {
             int[] colorInt = new int[256 * 256 * 256];
             for (int i = 0; i < pixels.Length; i += 4)
@@ -120,7 +178,7 @@ namespace _20190315_色数表示時間
             return count;
         }
 
-        private int Count2配列と掛け算足し算(byte[] pixels)
+        private int Count2配列と掛け算足し算_24bit(byte[] pixels)
         {
             int[] colorInt = new int[256 * 256 * 256];
             for (int i = 0; i < pixels.Length; i += 4)
@@ -135,19 +193,19 @@ namespace _20190315_色数表示時間
             return count;
         }
 
-        private int Count3Dictionary(byte[] pixels)
+        private int Count3Dictionary_24bit(byte[] pixels)
         {
             var table = new Dictionary<int, int>();
             int key;
             for (int i = 0; i < pixels.Length; i += 4)
             {
                 key = pixels[i] + (pixels[i + 1] * 256) + (pixels[i + 2] * 65536);
-                if (table.ContainsKey(key) == false) { table.Add(key, 1); }//valueはintならなんでもいい
+                if (table.ContainsKey(key) == false) { table.Add(key, 1); }//valueはintならなんでもいい                
             }
             return table.Count;
         }
 
-        private int Count4DictionaryKeyCount(byte[] pixels)
+        private int Count4Dictionary_24bit_KeyCount(byte[] pixels)
         {
             var table = new Dictionary<int, int>();
             int key;
@@ -160,7 +218,19 @@ namespace _20190315_色数表示時間
             return k.Count;
         }
 
-        private int Count5Dictionary32bpp(byte[] pixels)
+        private int Count5Dictionary_24bitビットシフト(byte[] pixels)
+        {
+            var table = new Dictionary<int, int>();
+            int key;
+            for (int i = 0; i < pixels.Length; i += 4)
+            {
+                key = pixels[i] | (pixels[i + 1] << 8) | (pixels[i + 2] << 16);
+                if (table.ContainsKey(key) == false) { table.Add(key, 1); }//valueはintならなんでもいい
+            }
+            return table.Count;
+        }
+
+        private int Count6Dictionary_32bit(byte[] pixels)
         {
             var table = new Dictionary<uint, int>();//uint
             uint key;
@@ -172,19 +242,21 @@ namespace _20190315_色数表示時間
             return table.Count;
         }
 
-        private int Count6Dictionary32bppとビットシフト(byte[] pixels)
+        private int Count7Dictionary_32bitとビットシフト(byte[] pixels)
         {
             var table = new Dictionary<uint, int>();//uint
             uint key;
             for (int i = 0; i < pixels.Length; i += 4)
             {
                 key = (uint)(pixels[i] | (pixels[i + 1] << 8) | (pixels[i + 2] << 16) | (pixels[i + 3] << 24));
-                if (table.ContainsKey(key) == false) { table.Add(key, 1); }//valueはintならなんでもいい
+                if (table.ContainsKey(key) == false) { table.Add(key, 1); }//valueはintならなんでもいい                
             }
             return table.Count;
         }
 
-        private int Count7Concurrent32bppとビットシフト(byte[] pixels)
+        //全ピクセルを詰め込んでから重複を取り除いたリストをカウントする
+        //遅い、メモリを大量に消費する
+        private int Count8Concurrent32bppとビットシフト(byte[] pixels)
         {
             var concurrent = new System.Collections.Concurrent.ConcurrentBag<uint>();
             Parallel.For(0, pixels.Length / 4, i =>
@@ -194,6 +266,86 @@ namespace _20190315_色数表示時間
             return concurrent.Distinct().ToArray().Length;
         }
 
+        //半透明ピクセルがあった場合だけ32bitでカウント
+        private int Count9DictionaryIsAlpha_24or32bit(byte[] pixels)
+        {
+            bool IsAlpha = false;
+            for (int i = 3; i < pixels.Length; i += 4)
+            {
+                if (pixels[i] != 255)
+                {
+                    IsAlpha = true;
+                    break;
+                }
+            }
+
+            var table = new Dictionary<uint, int>();//uint
+            uint key;
+            if (IsAlpha)
+            {
+                for (int i = 0; i < pixels.Length; i += 4)
+                {
+                    key = (uint)(pixels[i] + (pixels[i + 1] * 256) + (pixels[i + 2] * 65536) + (pixels[i + 3] * 65536 * 256));
+                    if (table.ContainsKey(key) == false) { table.Add(key, 1); }//valueはintならなんでもいい
+                }
+            }
+            else
+            {
+                for (int i = 0; i < pixels.Length; i += 4)
+                {
+                    key = (uint)(pixels[i] + (pixels[i + 1] * 256) + (pixels[i + 2] * 65536));
+                    if (table.ContainsKey(key) == false) { table.Add(key, 1); }//valueはintならなんでもいい
+                }
+            }
+            return table.Count;
+        }
+
+        //半透明ピクセルがあった場合だけ32bitでカウント
+        private int Count10DictionaryIsAlpha_24or32bitビットシフト(byte[] pixels)
+        {
+            bool IsAlpha = false;
+            for (int i = 3; i < pixels.Length; i += 4)
+            {
+                if (pixels[i] != 255)
+                {
+                    IsAlpha = true;
+                    break;
+                }
+            }
+
+            var table = new Dictionary<uint, int>();//uint
+            uint key;
+            if (IsAlpha)
+            {
+                for (int i = 0; i < pixels.Length; i += 4)
+                {
+                    key = (uint)(pixels[i] | (pixels[i + 1] << 8) | (pixels[i + 2] << 16) | (pixels[i + 3] << 24));
+                    if (table.ContainsKey(key) == false) { table.Add(key, 1); }//valueはintならなんでもいい
+                }
+            }
+            else
+            {
+                for (int i = 0; i < pixels.Length; i += 4)
+                {
+                    key = (uint)(pixels[i] | (pixels[i + 1] << 8) | (pixels[i + 2] << 16));
+                    if (table.ContainsKey(key) == false) { table.Add(key, 1); }//valueはintならなんでもいい
+                }
+            }
+            return table.Count;
+        }
+
+        private Dictionary<uint, int> Count11Dictionary_32bitとビットシフト各色カウント(byte[] pixels)
+        {
+            var table = new Dictionary<uint, int>();//uint
+            uint key;
+            for (int i = 0; i < pixels.Length; i += 4)
+            {
+                key = (uint)(pixels[i] | (pixels[i + 1] << 8) | (pixels[i + 2] << 16) | (pixels[i + 3] << 24));
+                if (table.ContainsKey(key) == false) { table.Add(key, 1); }//valueはintならなんでもいい                
+                else { table[key] = table[key] + 1; }
+            }
+            return table;
+        }
 
         #endregion
 
