@@ -1,17 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace _20190315_Pixelformats.Pbgra32で色変化
 {
@@ -19,43 +9,47 @@ namespace _20190315_Pixelformats.Pbgra32で色変化
     /// MainWindow.xaml の相互作用ロジック
     /// </summary>
     public partial class MainWindow : Window
-    {   
+    {
 
         public MainWindow()
         {
             InitializeComponent();
 
             string imagePath = "";
-            imagePath = @"D:\ブログ用\テスト用画像\半透明2色.png";
+            imagePath = @"D:\ブログ用\テスト用画像\半透明A100R30G122B224.png";
+
+
+            byte[] pixels;
+
+            BitmapSource bitmapPbgra32;
+            (pixels, bitmapPbgra32) = MakeByteArrayAndSourceFromImageFile(imagePath, PixelFormats.Pbgra32);
+            var Pbgra32 = Color.FromArgb(pixels[3], pixels[2], pixels[1], pixels[0]);
+            MyImagePbgra32.Source = bitmapPbgra32;
+
+            BitmapSource bitmapRgra32;
+            (pixels, bitmapRgra32) = MakeByteArrayAndSourceFromImageFile(imagePath, PixelFormats.Bgra32);
+            var Bgra32 = Color.FromArgb(pixels[3], pixels[2], pixels[1], pixels[0]);
+            MyImageBgra32.Source = bitmapRgra32;
 
             BitmapSource source;
-            byte[] pixels;
-            (pixels, source) = MakeByteArrayAndSourceFromImageFile(imagePath, PixelFormats.Pbgra32, 96, 96);//半透明色が変化してしまう
-            var Pbgra32 = Color.FromArgb(pixels[3], pixels[2], pixels[1], pixels[0]);
-
-            (pixels, source) = MakeByteArrayAndSourceFromImageFile(imagePath, PixelFormats.Bgra32, 96, 96);
-            var Bgra32 = Color.FromArgb(pixels[3], pixels[2], pixels[1], pixels[0]);
-
-            (pixels, source) = MakeByteArrayAndSourceFromImageFile(imagePath, PixelFormats.Bgr32, 96, 96);
+            (pixels, source) = MakeByteArrayAndSourceFromImageFile(imagePath, PixelFormats.Bgr32);
             var Bgr32 = Color.FromArgb(pixels[3], pixels[2], pixels[1], pixels[0]);
 
-            (pixels, source) = MakeByteArrayAndSourceFromImageFile(imagePath, PixelFormats.Rgb24, 96, 96);
+            (pixels, source) = MakeByteArrayAndSourceFromImageFile(imagePath, PixelFormats.Rgb24);
             var Rgb24 = Color.FromRgb(pixels[0], pixels[1], pixels[2]);
 
-            (pixels, source) = MakeByteArrayAndSourceFromImageFile(imagePath, PixelFormats.Bgr24, 96, 96);
+            (pixels, source) = MakeByteArrayAndSourceFromImageFile(imagePath, PixelFormats.Bgr24);
             var Bgr24 = Color.FromRgb(pixels[2], pixels[1], pixels[0]);
 
             BitmapImage bitmapImage = new BitmapImage(new Uri(imagePath));
-            int w = bitmapImage.PixelWidth;
-            int h = bitmapImage.PixelHeight;
             var pf = bitmapImage.Format;//Bgra32
-            int stride = pf.BitsPerPixel / 8 * w;
-            pixels = new byte[stride * h];
+            int stride = pf.BitsPerPixel / 8 * bitmapImage.PixelWidth;
+            pixels = new byte[stride * bitmapImage.PixelHeight];
             bitmapImage.CopyPixels(pixels, stride, 0);
             var auto = Color.FromArgb(pixels[3], pixels[2], pixels[1], pixels[0]);
 
-
         }
+
 
 
         /// <summary>
@@ -97,5 +91,7 @@ namespace _20190315_Pixelformats.Pbgra32で色変化
             }
             return (pixels, source);
         }
+
+
     }
 }

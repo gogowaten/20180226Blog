@@ -5,7 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:_20190315_Pixelformats.Pbgra32で色変化"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-  <Grid>
+        Title="MainWindow" Height="250" Width="400">
+  <Grid Margin="10,30,10,10">
+    <StackPanel Orientation="Horizontal">
+      <Image Name="MyImagePbgra32" Stretch="None" UseLayoutRounding="True" Margin="0,0,1,0"/>
+      <Image Name="MyImageBgra32" Stretch="None" UseLayoutRounding="True"/>
+    </StackPanel>
   </Grid>
 </Window>
