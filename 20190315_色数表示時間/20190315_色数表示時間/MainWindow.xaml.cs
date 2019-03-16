@@ -72,9 +72,10 @@ namespace _20190315_色数表示時間
             funcs.Add(Count1配列とビットシフト);
             funcs.Add(Count2配列と掛け算足し算);
             funcs.Add(Count3Dictionary);
-            funcs.Add(Count4DictionaryKyeCount);
+            funcs.Add(Count4DictionaryKeyCount);
             funcs.Add(Count5Dictionary32bpp);
             funcs.Add(Count6Dictionary32bppとビットシフト);
+            //funcs.Add(Count7Concurrent32bppとビットシフト);
 
             List<TextBlock> textBlocks = new List<TextBlock>();
             textBlocks.Add(TextBlock1);
@@ -83,6 +84,7 @@ namespace _20190315_色数表示時間
             textBlocks.Add(TextBlock4);
             textBlocks.Add(TextBlock5);
             textBlocks.Add(TextBlock6);
+            //textBlocks.Add(TextBlock7);
 
             var sw = new Stopwatch();
             int count = 0;
@@ -145,7 +147,7 @@ namespace _20190315_色数表示時間
             return table.Count;
         }
 
-        private int Count4DictionaryKyeCount(byte[] pixels)
+        private int Count4DictionaryKeyCount(byte[] pixels)
         {
             var table = new Dictionary<int, int>();
             int key;
@@ -182,6 +184,16 @@ namespace _20190315_色数表示時間
             return table.Count;
         }
 
+        private int Count7Concurrent32bppとビットシフト(byte[] pixels)
+        {
+            var concurrent = new System.Collections.Concurrent.ConcurrentBag<uint>();
+            Parallel.For(0, pixels.Length / 4, i =>
+              {
+                  concurrent.Add((uint)(pixels[i * 4] | (pixels[i * 4 + 1] << 8) | (pixels[i * 4 + 2] << 16) | (pixels[i * 4 + 3] << 24)));
+              });
+            return concurrent.Distinct().ToArray().Length;
+        }
+
 
         #endregion
 
@@ -205,7 +217,7 @@ namespace _20190315_色数表示時間
                 using (System.IO.FileStream fs = new System.IO.FileStream(filePath, System.IO.FileMode.Open, System.IO.FileAccess.Read))
                 {
                     var bf = BitmapFrame.Create(fs);
-                    
+
                     var convertedBitmap = new FormatConvertedBitmap(bf, pixelFormat, null, 0);
                     int w = convertedBitmap.PixelWidth;
                     int h = convertedBitmap.PixelHeight;
@@ -285,7 +297,7 @@ namespace _20190315_色数表示時間
             }
             else
             {
-                
+
             }
             return count;
         }
