@@ -3,6 +3,9 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
+//半透明画像とWPFのPixelFormats.Pbgra32は相性が良くないかも ( ソフトウェア ) - 午後わてんのブログ - Yahoo!ブログ
+//https://blogs.yahoo.co.jp/gogowaten/15904871.html
+
 namespace _20190315_Pixelformats.Pbgra32で色変化
 {
     /// <summary>
