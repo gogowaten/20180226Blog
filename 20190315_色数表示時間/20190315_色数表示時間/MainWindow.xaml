@@ -8,7 +8,7 @@
         Title="MainWindow" Height="450" Width="800">
   <Grid Margin="10,30,10,0">
     <Grid.RowDefinitions>
-      <RowDefinition Height="200"/>
+      <RowDefinition Height="240"/>
       <RowDefinition/>
     </Grid.RowDefinitions>
     <StackPanel Grid.Row="0">
@@ -23,6 +23,8 @@
       <TextBlock Name="TextBlock8" Text="text8"/>
       <TextBlock Name="TextBlock9" Text="text9"/>
       <TextBlock Name="TextBlock10" Text="text10"/>
+      <TextBlock Name="TextBlock11" Text="text11"/>
+      <TextBlock Name="TextBlock12" Text="text12"/>
       <Button Name="Button2" Content="各色カウント"/>
       <StackPanel Name="MyStackPanel" Orientation="Horizontal"/>
     </StackPanel>

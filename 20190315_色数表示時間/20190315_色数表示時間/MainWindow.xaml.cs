@@ -42,14 +42,16 @@ namespace _20190315_色数表示時間
 
             Button1.Click += Button1_Click;
             Button2.Click += Button2_Click;
-        }
-//        C#でDictionaryの値によるソート - Coniglioの忘備録
-//http://coniglio.hateblo.jp/entry/2014/06/05/214330
 
-            //各色カウントして表示、上位10色下位10色
+            int c = Count11配列とビットシフト_24bitParallel(SourceByte);
+        }
+        //        C#でDictionaryの値によるソート - Coniglioの忘備録
+        //http://coniglio.hateblo.jp/entry/2014/06/05/214330
+
+        //各色カウントして表示、上位10色下位10色
         private void Button2_Click(object sender, RoutedEventArgs e)
         {
-            Dictionary<uint, int> tabel = Count11Dictionary_32bitとビットシフト各色カウント(SourceByte);            
+            Dictionary<uint, int> tabel = CountADictionary_32bitとビットシフト各色カウント(SourceByte);
             IOrderedEnumerable<KeyValuePair<uint, int>> sorted = tabel.OrderByDescending((x) => x.Value);
             //foreach (KeyValuePair<uint, int> item in sorted)
             //{
@@ -130,7 +132,8 @@ namespace _20190315_色数表示時間
             //funcs.Add(Count8Concurrent32bppとビットシフト);
             funcs.Add(Count9DictionaryIsAlpha_24or32bit);
             funcs.Add(Count10DictionaryIsAlpha_24or32bitビットシフト);
-
+            funcs.Add(Count11配列とビットシフト_24bitParallel);
+            funcs.Add(Count14ConcurrentDictionaryBoolean_32bpp);
 
             List<TextBlock> textBlocks = new List<TextBlock>();
             textBlocks.Add(TextBlock1);
@@ -143,6 +146,8 @@ namespace _20190315_色数表示時間
             textBlocks.Add(TextBlock8);
             textBlocks.Add(TextBlock9);
             textBlocks.Add(TextBlock10);
+            textBlocks.Add(TextBlock11);
+            textBlocks.Add(TextBlock12);
 
             var sw = new Stopwatch();
             int count = 0;
@@ -334,7 +339,7 @@ namespace _20190315_色数表示時間
             return table.Count;
         }
 
-        private Dictionary<uint, int> Count11Dictionary_32bitとビットシフト各色カウント(byte[] pixels)
+        private Dictionary<uint, int> CountADictionary_32bitとビットシフト各色カウント(byte[] pixels)
         {
             var table = new Dictionary<uint, int>();//uint
             uint key;
@@ -342,10 +347,95 @@ namespace _20190315_色数表示時間
             {
                 key = (uint)(pixels[i] | (pixels[i + 1] << 8) | (pixels[i + 2] << 16) | (pixels[i + 3] << 24));
                 if (table.ContainsKey(key) == false) { table.Add(key, 1); }//valueはintならなんでもいい                
-                else { table[key] = table[key] + 1; }
+                else { table[key] = table[key] + 1; }//value += 1
             }
             return table;
         }
+
+        //無理やり３スレッドにしてみたけどカウント数が合わない
+        private int Count11配列とビットシフト_24bitParallel(byte[] pixels)
+        {
+            int[] colorInt = new int[256 * 256 * 256];
+            var a1 = new int[256 * 256 * 256];
+            var a2 = new int[256 * 256 * 256];
+            var a3 = new int[256 * 256 * 256];
+            int v = pixels.Length / 3;
+            Parallel.Invoke(() =>
+            {
+                for (int i = 0; i < v; i += 4)
+                {
+                    a1[pixels[i] | (pixels[i + 1] << 8) | (pixels[i + 2] << 16)]++;
+                }
+            }, () =>
+            {
+                for (int i = v + 1; i < v * 2; i += 4)
+                {
+                    a2[pixels[i] | (pixels[i + 1] << 8) | (pixels[i + 2] << 16)]++;
+                }
+            }, () =>
+            {
+                for (int i = v * 2 + 1; i < pixels.Length; i += 4)
+                {
+                    a3[pixels[i] | (pixels[i + 1] << 8) | (pixels[i + 2] << 16)]++;
+                }
+            }
+                );
+
+
+            for (int i = 0; i < a1.Length; i++)
+            {
+                a1[i] += a2[i] + a3[i];
+            }
+
+            int count = 0;
+            for (int i = 0; i < a1.Length; i++)
+            {
+                if (a1[i] != 0) { count++; }
+            }
+
+            return count;
+        }
+
+        //bool型の配列で色の有無だけ確認、速い
+        private int Count12bool配列とビットシフト_24bit(byte[] pixels)
+        {
+            bool[] colorInt = new bool[256 * 256 * 256];
+            for (int i = 0; i < pixels.Length; i += 4)
+            {
+                colorInt[pixels[i] | (pixels[i + 1] << 8) | (pixels[i + 2] << 16)] = true;//bgr
+            }
+            int count = 0;
+            for (int i = 0; i < colorInt.Length; i++)
+            {
+                if (colorInt[i] == true) { count++; }
+            }
+            return count;
+        }
+
+        private int Count13boolDictionary_32bitとビットシフト(byte[] pixels)
+        {
+            var table = new Dictionary<uint, bool>();//uint
+            uint key;
+            for (int i = 0; i < pixels.Length; i += 4)
+            {
+                key = (uint)(pixels[i] | (pixels[i + 1] << 8) | (pixels[i + 2] << 16) | (pixels[i + 3] << 24));
+                if (table.ContainsKey(key) == false) { table.Add(key, true); }
+            }
+            return table.Count;
+        }
+
+        //遅いしメモリの大量消費
+        private int Count14ConcurrentDictionaryBoolean_32bpp(byte[] pixels)
+        {
+            var cd = new System.Collections.Concurrent.ConcurrentDictionary<uint, bool>();
+            Parallel.For(0, pixels.Length / 4, i =>
+            {
+                cd.GetOrAdd((uint)(pixels[i * 4] | (pixels[i * 4 + 1] << 8) | (pixels[i * 4 + 2] << 16) | (pixels[i * 4 + 3] << 24)), true);
+            });
+            return cd.Distinct().ToArray().Length;
+        }
+
+
 
         #endregion
 
