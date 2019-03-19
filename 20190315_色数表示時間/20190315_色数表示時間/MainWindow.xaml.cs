@@ -568,4 +568,11 @@ namespace _20190315_色数表示時間
 
 
     }
+
+
+    public class MyData
+    {
+        public uint Index { get; set; }
+        public int Count { get; set; }
+    }
 }
