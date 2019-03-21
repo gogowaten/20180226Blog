@@ -5,6 +5,11 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Data;
 
+
+//ListBoxで棒グラフ、MultiBindingを使ってListBox幅と要素幅を連動(ソフトウェア ) - 午後わてんのブログ - Yahoo!ブログ
+//https://blogs.yahoo.co.jp/gogowaten/15910034.html
+
+
 namespace _20190321_Listboxで棒グラフ2
 {
     public partial class MainWindow : Window
