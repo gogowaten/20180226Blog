@@ -11,6 +11,10 @@ using System.Windows.Data;
 //"ConverterParameterプロパティは依存関係プロパティではないため、バインドできません。
 //しかし、代替の解決策があります。通常のBindingの代わりにmulti-value converterを使用することができます："
 
+    //blog
+//    ListBoxで棒グラフ、MultiBindingを使ってListBox幅と要素幅を連動(ソフトウェア ) - 午後わてんのブログ - Yahoo!ブログ
+//https://blogs.yahoo.co.jp/gogowaten/15910034.html
+
 
 namespace _20190321_ListBoxで棒グラフ_比率で伸縮
 {
