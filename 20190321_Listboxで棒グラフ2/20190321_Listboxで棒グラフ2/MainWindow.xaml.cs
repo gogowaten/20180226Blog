@@ -47,7 +47,8 @@ namespace _20190321_Listboxで棒グラフ2
         {
             double width = (double)values[0];
             double rate = (double)values[1];
-            return (width * rate) - 20;//-20はパディングみたいなもの、適当に
+            //return (width * rate) - 20;//-20はパディングみたいなもの、適当に
+            return (width - 16) * rate;//こっちのほうがいい
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
