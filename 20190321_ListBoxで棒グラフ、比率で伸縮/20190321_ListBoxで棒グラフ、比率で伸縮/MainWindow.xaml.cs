@@ -23,14 +23,18 @@ namespace _20190321_ListBoxで棒グラフ_比率で伸縮
         {
             InitializeComponent();
 
+
+            //ContentRenderedイベントでデータバインディングするのは
+            //Bindingソースには実際に表示されたListBoxの横幅を使うから
             ContentRendered += MainWindow_ContentRendered;
 
         }
 
+        //ContentRenderedイベントでデータバインディング
         private void MainWindow_ContentRendered(object sender, EventArgs e)
         {
             List<double> myData = new List<double> { 0.5, 0.8, 0.3, 1.0 };
-            DataContext = myData;
+            DataContext = myData;//データバインディング
         }
     }
 
@@ -50,7 +54,8 @@ namespace _20190321_ListBoxで棒グラフ_比率で伸縮
         }
     }
 
-    //使用
+    //使用、2つのソースからターゲットに送る値に変換
+    //MultiBindingのConverterで使う
     public class MyMultiConverter : IMultiValueConverter
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
