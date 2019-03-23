@@ -72,15 +72,18 @@ namespace _20190318_画像の使用色数24bit
             //桁    8   7   6   5  4  3  2  1
             //値  128  64  32  16  8  4  2  1
 
+
             int a20 = 20;        //  10進数の20
             int b20 = 0b10100;   //  2進数の20
             //一番上の桁の1より上の桁の0は見た目以外の意味はない、桁を揃えたいときに使う
             int c20 = 0b00010100;//  2進数の20、8桁表記、上の桁に0をつけただけ
             int d20 = 0b0001_0100;// 2進数の20、8桁の中間に_で区切り表記
+
             int e20 = 0x14;      //  16進数の20
             int f20 = 0x0014;    //  16進数の20、これも上の桁に0つけても値は変わらない
             bool vv = (a20 == b20) & (c20 == d20) & (e20 == f20);//true
             int g20 = 0b0001_0100 + 0x14;// 20 + 20 = 40
+
 
             //ビットシフト
             int j20 = 20 << 2;//        80、20を左に2シフト
@@ -110,7 +113,7 @@ namespace _20190318_画像の使用色数24bit
             //=  0001_0100  1111_1111  1111_1111  1001_1101
 
 
-            //andはどちらも1なら1
+            //andはどちらも1のときだけ1、それ以外は全部0
             int ba = 0b0001_0100 & 0b0000_0000;// =0000 0000 =  0
             int bb = 0b0001_0100 & 0b1111_1111;// =0001 0100 = 20
             int bc = 0b0001_0100 & 0b1110_1011;// =0000 0000 =  0
@@ -132,10 +135,11 @@ namespace _20190318_画像の使用色数24bit
             byte cc = (byte)ca;//  1
             ca = 10000;
             byte cd = (byte)ca;// 16
-            //                                      下の8bit
-            int ce = 0b0001_0000_0000;//        256 0000_0000 = 0
-            int cf = 0b0001_0000_0001;//        257 0000_0001 = 1
-            int cg = 0b0010_0111_0001_0000;// 10000 0001_0000 = 16
+            //                                       下の8bit
+            int ce = 0b0001_0000_0000;//        256  0000_0000 = 0
+            int cf = 0b0001_0000_0001;//        257  0000_0001 = 1
+            int cg = 0b0010_0111_0001_0000;// 10000  0001_0000 = 16
+
 
 
             //ビット演算で
@@ -155,6 +159,7 @@ namespace _20190318_画像の使用色数24bit
             //                                                 |    b    |    g    |    r    |
             //1行で
             int iColor2 = r | (g << 8) | (b << 16);
+
 
             //int型をbyte型RGBに変換
             //Redは下の8桁の値なので9bit以上を0にして8bit以下をそのままの値にすればいい
@@ -187,6 +192,10 @@ namespace _20190318_画像の使用色数24bit
 
 
         }
+
+        //ウィンドウに画像ファイルドロップで
+        //ピクセルフォーマットBgra32で読み込み
+        //使用色数表示
         private void MainWindow_Drop(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop) == false) { return; }
@@ -202,24 +211,42 @@ namespace _20190318_画像の使用色数24bit
                 int count = Count24bit(MyImageByte);
                 TextBlock1.Text = $"使用色数{count:#,0}(24bit)";
                 MyImage.Source = MyBitmapSource;
+
+                var count24 = Count24bit(MyImageByte);
+                var count24p = Count24bitColorAndPixels(MyImageByte);
+                var count32p = Count32bitColorAndPixels2(MyImageByte);
+                //var keys = count32p.Keys.ToArray();
+                foreach (var item in count32p)
+                {
+                    var cc = UintToArgb(item.Key);
+                }
             }
 
         }
+
+        //int型Colorをbyte型に変換
         private (byte r, byte g, byte b) IntToRgb(int value)
         {
-            byte r = (byte)(value >> 16);
-            byte g = (byte)((value >> 8) & 0xFF);
-            byte b = (byte)value;
+            byte r = (byte)value;// & 0xFF;
+            byte g = (byte)(value >> 8);// & 0xFF;
+            byte b = (byte)(value >> 16);
             return (r, g, b);
         }
+
+        //byte型Colorをintに変換
         private int RGBtoInt(byte r, byte g, byte b)
         {
-            return (r << 16) | (g << 8) | b;
+            return r | (g << 8) | (b << 16);
         }
-        //24bitだけ対応、bool型の配列で色の有無だけ確認、速い
+
+        //使用色数カウント
+        //ピクセルフォーマットBgra32のbyte配列に対応
+        //カウントは透明度を無視して24bitだけ対応、bool型の配列で色の有無だけ確認、速い
         private int Count24bit(byte[] pixels)
         {
-            bool[] bColor = new bool[256 * 256 * 256];
+            //bool[] bColor = new bool[256 * 256 * 256];
+            //↑と同じ意味
+            bool[] bColor = new bool[0xFFFFFF + 1];
             //RGBをintに変換して、そのインデックスの値をTrueにする
             for (int i = 0; i < pixels.Length; i += 4)
             {
@@ -238,6 +265,60 @@ namespace _20190318_画像の使用色数24bit
             //int inu = bColor.Count(saru => saru);
             return count;
         }
+
+        /// <summary>
+        /// 使用色数と色ごとのピクセル数をカウント、24bit
+        /// </summary>
+        /// <param name="pixels">BGRA順のbyte配列</param>
+        /// <returns>Indexが色のint、要素の値がピクセル数</returns>
+        private int[] Count24bitColorAndPixels(byte[] pixels)
+        {
+            int[] iColor = new int[256 * 256 * 256];
+            for (int i = 0; i < pixels.Length; i += 4)
+            {
+                iColor[RGBtoInt(pixels[i], pixels[i + 1], pixels[i + 2])]++;
+            }
+            return iColor;
+        }
+
+
+        //uint型Colorをbyte型に変換
+        private (byte a, byte r, byte g, byte b) UintToArgb(uint value)
+        {
+            byte a = (byte)value;// (value & 0xFF);
+            byte r = (byte)(value >> 8);// ((value >> 8) & 0xFF);
+            byte g = (byte)(value >> 16);// ((value >> 16) & 0xFF);
+            byte b = (byte)(value >> 24);
+            return (a, r, g, b);
+        }
+
+        //byte型Colorをintに変換
+        private uint ARGBtoUint(byte a, byte r, byte g, byte b)
+        {
+            return (uint)(a | (r << 8) | (g << 16) | (b << 24));
+        }
+
+        //
+        /// <summary>
+        /// 使用色数と色ごとのピクセル数をカウント、32bit
+        /// </summary>
+        /// <param name="pixels">BGRA順のbyte配列</param>
+        /// <returns>keyが色のuint、Valueはピクセル数</returns>
+        private Dictionary<uint, int> Count32bitColorAndPixels2(byte[] pixels)
+        {
+            Dictionary<uint, int> table = new Dictionary<uint, int>();
+            for (int i = 0; i < pixels.Length; i += 4)
+            {
+                uint key = ARGBtoUint(pixels[i + 3], pixels[i + 2], pixels[i + 1], pixels[i]);
+                //今の色のuintがなければ要素のValueを1で追加、すでにあればValueに+1
+                if (table.ContainsKey(key) == false) table.Add(key, 1);//追加
+                else { table[key]++; }//+1
+            }
+            return table;
+        }
+
+
+
 
         /// <summary>
         /// 画像ファイルからbitmapと、そのbyte配列を取得、ピクセルフォーマットを指定したものに変換
