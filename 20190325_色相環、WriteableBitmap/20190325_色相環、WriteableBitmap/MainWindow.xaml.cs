@@ -43,10 +43,10 @@ namespace _20190325_色相環_WriteableBitmap
             //切り抜き
             MyImage4.Clip = pg;
 
-            //サイズ100ｘ100、リング幅10で決め打ち
+            ////サイズ100ｘ100、リング幅10で決め打ち
             //PathGeometry pg = new PathGeometry();
             //pg.AddGeometry(new EllipseGeometry(new Rect(0, 0, width, height)));
-            //pg.AddGeometry(new EllipseGeometry(new Point(50, 50), 40, 40));//決め打ち
+            //pg.AddGeometry(new EllipseGeometry(new Point(50, 50), 30, 30));//決め打ち
             //MyImage4.Clip = pg;
 
 
@@ -101,6 +101,46 @@ namespace _20190325_色相環_WriteableBitmap
                     double kakudo = Degrees(radian);
                     //色相をColorに変換
                     Color c = HSV.HSV2Color(kakudo, 1.0, 1.0);
+                    //バイト配列に色情報を書き込み
+                    p = y * stride + x * 3;
+                    pixels[p] = c.R;
+                    pixels[p + 1] = c.G;
+                    pixels[p + 2] = c.B;
+                }
+            }
+            //バイト配列をBitmapに書き込み
+            wb.WritePixels(new Int32Rect(0, 0, width, height), pixels, stride, 0);
+            return wb;
+        }
+
+
+        //彩度を変化させた色相環作成
+        private BitmapSource MakeHueRountRect2(int width, int height)
+        {
+            var wb = new WriteableBitmap(width, height, 96, 96, PixelFormats.Rgb24, null);
+            //色情報用のバイト配列作成
+            int stride = wb.BackBufferStride;//横一列のバイト数、24bit = 8byteに横ピクセル数をかけた値
+            byte[] pixels = new byte[height * stride * 8];//*8はbyteをbitにするから
+
+            //100ｘ100のとき中心は50，50
+            //ピクセル位置と画像の中心との差
+            int xDiff = width / 2;
+            int yDiff = height / 2;
+            double distance;//中心からの距離
+            double saturasion;//彩度
+            int p = 0;//今のピクセル位置の配列での位置
+            for (int y = 0; y < height; y++)//y座標
+            {
+                for (int x = 0; x < width; x++)//x座標
+                {
+                    distance = Math.Sqrt(Math.Pow(y - yDiff, 2.0) + Math.Pow(x - xDiff, 2.0));
+                    saturasion = distance / xDiff;
+                    if (saturasion > 1.0) saturasion = 1.0;
+                    //今の位置の角度を取得、これが色相になる
+                    double radian = Math.Atan2(y - yDiff, x - xDiff);
+                    double kakudo = Degrees(radian);
+                    //色相をColorに変換
+                    Color c = HSV.HSV2Color(kakudo, saturasion, 1.0);
                     //バイト配列に色情報を書き込み
                     p = y * stride + x * 3;
                     pixels[p] = c.R;
