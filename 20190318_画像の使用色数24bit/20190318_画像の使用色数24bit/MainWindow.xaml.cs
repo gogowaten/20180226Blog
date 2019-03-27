@@ -13,6 +13,10 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
+
+//ビット演算ビットシフトメモ、画像の使用色数と色ごとのピクセル数カウント(ソフトウェア ) - 午後わてんのブログ - Yahoo!ブログ
+//https://blogs.yahoo.co.jp/gogowaten/15915934.html
+
 namespace _20190318_画像の使用色数24bit
 {
     /// <summary>
