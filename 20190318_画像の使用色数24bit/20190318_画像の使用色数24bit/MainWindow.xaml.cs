@@ -30,8 +30,8 @@ namespace _20190318_画像の使用色数24bit
             this.AllowDrop = true;
             Drop += MainWindow_Drop;
 
-            var bit24 = 256 * 256 * 256;
-            uint bit32 = (uint)(bit24 * 256u);//16,777,216
+            var bit24 = 256 * 256 * 256;//          16,777,216
+            uint bit32 = (uint)(bit24 * 256u);// 4,294,967,296は溢れて0
             long bitLong = bit24 * 256u;//4,294,967,296
             long bitLong2 = bit24 * 256;//0
             long bitLong3 = (long)Math.Pow(2, 32);//4,294,967,296
@@ -40,7 +40,8 @@ namespace _20190318_画像の使用色数24bit
             var uint16Max = ushort.MaxValue;//Uint16.MaxValue
 
             bool[] b16 = new bool[uint16Max];
-            //bool[] ui = new bool[uintMax];//オーバーフロー
+            bool[] int24 = new bool[256 * 256 * 256];
+            //bool[] ui = new bool[256 * 256 * 256 * 256];//オーバーフロー
 
             Color c = Colors.AliceBlue;
             int index = RGBtoInt(c.R, c.G, c.B);
@@ -172,6 +173,7 @@ namespace _20190318_画像の使用色数24bit
             byte rr3 = (byte)(iColor & 0xFF);
             byte rr4 = (byte)(iColor & 255);
             byte rr5 = (byte)iColor;//byteキャストで9bit以上を切り捨て
+            var rr7 = iColor & 0xFF;
 
             //Green、中間の9bitから16bitまでの8bitぶんを8bitとして取り出す
             //                |    g    |
@@ -212,9 +214,9 @@ namespace _20190318_画像の使用色数24bit
                 TextBlock1.Text = $"使用色数{count:#,0}(24bit)";
                 MyImage.Source = MyBitmapSource;
 
-                var count24 = Count24bit(MyImageByte);
-                var count24p = Count24bitColorAndPixels(MyImageByte);
-                var count32p = Count32bitColorAndPixels2(MyImageByte);
+                int count24 = Count24bit(MyImageByte);
+                int[] count24p = Count24bitColorAndPixels(MyImageByte);
+                Dictionary<uint, int> count32p = Count32bitColorAndPixels2(MyImageByte);
                 //var keys = count32p.Keys.ToArray();
                 foreach (var item in count32p)
                 {
@@ -231,12 +233,36 @@ namespace _20190318_画像の使用色数24bit
             byte g = (byte)(value >> 8);// & 0xFF;
             byte b = (byte)(value >> 16);
             return (r, g, b);
+            //1行で書くと
+            //return ((byte)value, (byte)(value >> 8), (byte)(value >> 16));
         }
+
+        private Color IntToColor(int value)
+        {
+            return Color.FromRgb((byte)value, (byte)(value >> 8), (byte)(value >> 16));
+        }
+
+        //0xFFを使うこっちのほうが正しいかも？
+        private Color IntToColor2(int value)
+        {
+            byte r = (byte)(value & 0xFF);
+            byte g = (byte)((value >> 8) & 0xFF);
+            byte b = (byte)(value >> 16);
+            return Color.FromRgb(r, g, b);
+            //1行で書くと
+            //return Color.FromRgb((byte)(value & 0xFF), (byte)((value >> 8) & 0xFF), (byte)(value >> 16));
+        }
+
 
         //byte型Colorをintに変換
         private int RGBtoInt(byte r, byte g, byte b)
         {
             return r | (g << 8) | (b << 16);
+        }
+
+        private int RGBtoInt(Color c)
+        {
+            return c.R | (c.G << 8) | (c.B << 16);
         }
 
         //使用色数カウント
@@ -259,9 +285,9 @@ namespace _20190318_画像の使用色数24bit
                 if (bColor[i] == true) { count++; }
             }
 
-            //LINQでTrueの数をカウント、↑より1～2割遅い
+            ////LINQでTrueの数をカウント、↑より1～2割遅い
             //int neko = bColor.Where(saru => saru == true).Count();
-            //Whereは省略してcountメソッドだけでもカウントできるけど、もっと遅い
+            ////Whereは省略してcountメソッドだけでもカウントできるけど、もっと遅い
             //int inu = bColor.Count(saru => saru);
             return count;
         }
@@ -292,7 +318,7 @@ namespace _20190318_画像の使用色数24bit
             return (a, r, g, b);
         }
 
-        //byte型Colorをintに変換
+        //byte型Colorをuintに変換
         private uint ARGBtoUint(byte a, byte r, byte g, byte b)
         {
             return (uint)(a | (r << 8) | (g << 16) | (b << 24));

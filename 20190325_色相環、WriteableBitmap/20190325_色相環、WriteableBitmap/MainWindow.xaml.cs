@@ -23,7 +23,7 @@ namespace _20190325_色相環_WriteableBitmap
             MyImage2.Source = MakeHueRountRect(width, height);
             MyImage3.Source = MakeHueRountRect(width, height);
             MyImage4.Source = MakeHueRountRect(width, height);
-
+            
 
             //切り抜いて円にする
             MyImage3.Clip = new EllipseGeometry(new Rect(0, 0, width, height));
