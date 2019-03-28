@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.421
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "20190328_透明市松模様作成タイル表示", "20190328_透明市松模様作成タイル表示\20190328_透明市松模様作成タイル表示.csproj", "{44DC40AB-B209-4D12-AD22-82DE0E97BA93}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{44DC40AB-B209-4D12-AD22-82DE0E97BA93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44DC40AB-B209-4D12-AD22-82DE0E97BA93}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44DC40AB-B209-4D12-AD22-82DE0E97BA93}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44DC40AB-B209-4D12-AD22-82DE0E97BA93}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EC1F4308-4517-454B-A696-47BFA44B7D9E}
+	EndGlobalSection
+EndGlobal
