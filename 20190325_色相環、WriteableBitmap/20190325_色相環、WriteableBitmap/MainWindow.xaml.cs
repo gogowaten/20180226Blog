@@ -53,7 +53,7 @@ namespace _20190325_色相環_WriteableBitmap
         }
 
         /// <summary>
-        /// pixelsFormats.Bgr24の赤一色のBitmap作成
+        /// pixelsFormats.Rgb24の赤一色のBitmap作成
         /// </summary>
         /// <param name="width"></param>
         /// <param name="height"></param>
@@ -74,7 +74,7 @@ namespace _20190325_色相環_WriteableBitmap
         }
 
         /// <summary>
-        /// pixelsFormats.Bgr24の色相環作成用のBitmap作成
+        /// pixelsFormats.Rgb24の色相環作成用のBitmap作成
         /// 右が赤、時計回り
         /// </summary>
         /// <param name="width"></param>
