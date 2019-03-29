@@ -1,0 +1,12 @@
+﻿<Window x:Class="_20190329_ListBoxのDataTemplateをコードで.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:_20190329_ListBoxのDataTemplateをコードで"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="200" Width="400">
+  <Grid>
+    <ListBox Name="MyListBox" ItemsSource="{Binding}" Background="YellowGreen"/>
+  </Grid>
+</Window>
