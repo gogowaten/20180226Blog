@@ -2,6 +2,9 @@
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
+//無限の透明市松模様をWriteableBitmapとImageBrushのタイル表示で作成(ソフトウェア ) - 午後わてんのブログ - Yahoo!ブログ
+//https://blogs.yahoo.co.jp/gogowaten/15917385.html
+
 namespace _20190328_透明市松模様作成タイル表示
 {
     /// <summary>
