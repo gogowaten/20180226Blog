@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:_20190328_透明市松模様作成タイル表示"
         mc:Ignorable="d"
-        Title="MainWindow" Height="300" Width="540">
-    <Grid Name="MyGrid">
-        
-    </Grid>
+        Title="MainWindow" Height="200" Width="300">
+  <Grid Name="MyGrid">
+    
+  </Grid>
 </Window>

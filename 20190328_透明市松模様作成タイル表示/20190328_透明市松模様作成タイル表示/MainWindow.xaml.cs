@@ -1,17 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
+﻿using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace _20190328_透明市松模様作成タイル表示
 {
@@ -23,8 +12,8 @@ namespace _20190328_透明市松模様作成タイル表示
         public MainWindow()
         {
             InitializeComponent();
-            
-            var bitmap = MakeTransparentChecered(10, Colors.LightGray);
+
+            WriteableBitmap bitmap = MakeCheckeredPattern(10, Colors.LightGray);
             MyGrid.Background = MakeTileBrush(bitmap);
         }
 
@@ -34,7 +23,7 @@ namespace _20190328_透明市松模様作成タイル表示
         /// <param name="cellSize">タイル1辺のサイズ</param>
         /// <param name="gray">白じゃない方の色指定</param>
         /// <returns></returns>
-        private WriteableBitmap MakeTransparentChecered(int cellSize, Color gray)
+        private WriteableBitmap MakeCheckeredPattern(int cellSize, Color gray)
         {
             int width = cellSize * 2;
             int height = cellSize * 2;
@@ -64,7 +53,7 @@ namespace _20190328_透明市松模様作成タイル表示
         }
 
         /// <summary>
-        /// Bitmapからブラシ作成
+        /// BitmapからImageBrush作成
         /// 引き伸ばし無しでタイル状に敷き詰め
         /// </summary>
         /// <param name="bitmap"></param>
@@ -72,12 +61,12 @@ namespace _20190328_透明市松模様作成タイル表示
         private ImageBrush MakeTileBrush(BitmapSource bitmap)
         {
             var imgBrush = new ImageBrush(bitmap);
-            imgBrush.Stretch = Stretch.None;//これは必要ないかも
+            imgBrush.Stretch = Stretch.Uniform;//これは必要ないかも
             //タイルモード、タイル
             imgBrush.TileMode = TileMode.Tile;
-            //タイルサイズは元のサイズ
-            imgBrush.Viewport = new Rect(0, 0, bitmap.PixelWidth, bitmap.PixelHeight);
-            //タイルサイズ指定は絶対値、これで引き伸ばしなしになる
+            //タイルサイズは元画像のサイズ
+            imgBrush.Viewport = new Rect(0, 0, bitmap.Width, bitmap.Height);
+            //タイルサイズ指定方法は絶対値、これで引き伸ばされない
             imgBrush.ViewportUnits = BrushMappingMode.Absolute;
             return imgBrush;
         }
