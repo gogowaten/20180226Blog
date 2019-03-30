@@ -13,6 +13,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+//c# - WPF Doughnut ProgressBar - Stack Overflow
+//https://stackoverflow.com/questions/36752183/wpf-doughnut-progressbar
 
 namespace _20190330_扇形arcSegment
 {
@@ -137,8 +139,8 @@ namespace _20190330_扇形arcSegment
             double minimum = (double)values[0];
             double maximum = (double)values[1];
             double value = (double) values[2];
-            double current = (value / (maximum - minimum)) * 360;
-            if (current == 360) { current = 359.99; }
+            double current = value / (maximum - minimum) * 360;
+            if (current >= 360) { current = 359.99; }
             current -= 90;
             current = current * (Math.PI / 180.0);
             double x = 100 + 100 * Math.Cos(current);
@@ -159,7 +161,7 @@ namespace _20190330_扇形arcSegment
             double maximum = (double)values[1];
             double value = (double)values[2];
 
-            return ((value * 2) >= (maximum - minimum));
+            return (value * 2) >= (maximum - minimum);
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
