@@ -36,12 +36,14 @@ namespace _20190328_色相ヒストグラム
             filePath = @"D:\ブログ用\チェック用2\NEC_6221_2019_02_24_午後わてん_16colors.png";
             //filePath = @"D:\ブログ用\チェック用2\NEC_6369_2019_03_24_午後わてん.jpg";
             filePath = @"D:\ブログ用\テスト用画像\HSVRectValue.png";
-            //filePath = @"D:\ブログ用\テスト用画像\青空とトマトの花.jpg";
+            filePath = @"D:\ブログ用\テスト用画像\青空とトマトの花.jpg";
 
             (byte[] array, BitmapSource source) aa = MakeBitmapSourceAndByteArray(filePath, PixelFormats.Bgra32, 96, 96);
-            Histogram360(aa.array);
-            //MyImage1.Clip = MakeClipPathGeometry(MakeClip6Segment(aa.array));
-            //MyImage1.Clip = MakeClipPathGeometry(MakeClipSegmentPoint(aa.array, 6, 100));
+
+            //Histogram360(aa.array);//360分割
+            //MyImage1.Clip = MakeClipPathGeometry(MakeClip6Segment(aa.array));//6分割
+            //任意分割
+            MyImage1.Clip = MakeClipPathGeometry(MakeClipSegmentPoint(aa.array, 72, 100));
 
         }
 
@@ -52,11 +54,12 @@ namespace _20190328_色相ヒストグラム
         /// <returns></returns>
         private PathGeometry MakeClipPathGeometry(List<Point> pc)
         {
-            PolyLineSegment segment = new PolyLineSegment();
-            segment.Points = new PointCollection(pc);
             var fig = new PathFigure();
-            fig.Segments.Add(segment);
             fig.StartPoint = pc[0];
+            //pc.RemoveAt(0);//これはいらないかも
+            PolyLineSegment segment = new PolyLineSegment();            
+            segment.Points = new PointCollection(pc);
+            fig.Segments.Add(segment);
             fig.IsClosed = true;//Pathを閉じる
             var pg = new PathGeometry();
             //塗りつぶしのルール、Pathが交差したときに残すか切り抜くかの違い？
@@ -89,7 +92,7 @@ namespace _20190328_色相ヒストグラム
             return table;
         }
 
-    
+
         /// <summary>
         /// 切り抜き用のPointリスト作成
         /// </summary>

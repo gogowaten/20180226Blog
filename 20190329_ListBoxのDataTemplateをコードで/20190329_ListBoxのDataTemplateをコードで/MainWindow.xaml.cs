@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+
+//ListBoxのItemTemplate(DataTemplate)をC#コードで ( ソフトウェア ) - 午後わてんのブログ - Yahoo!ブログ
+//https://blogs.yahoo.co.jp/gogowaten/15918212.html
 
 
 //ListBoxの要素全部に同じ背景画像(市松模様)を表示したい
@@ -27,17 +22,16 @@ namespace _20190329_ListBoxのDataTemplateをコードで
         public MainWindow()
         {
             InitializeComponent();
-            //MyListBox.Items.Add(10);
-            //MyListBox.Items.Add(20);
-            List<int> myData = new List<int>() { 12, 345, 6789, 0000 };
+
+            List<int> myData = new List<int>() { 12, 345, 6789, 0 };
             DataContext = myData;
 
-            //ListBoxのItemTemplateにDataTemplate設定
-            MyListBox.ItemTemplate = MakeDataTemplate();
+            //コードでDataTemplate設定
+            MyListBox.ItemTemplate = CreateDataTemplate();
         }
 
         //DataTemplate作成
-        private DataTemplate MakeDataTemplate()
+        private DataTemplate CreateDataTemplate()
         {
             //市松模様ブラシ作成
             ImageBrush myPattern = MakeTileBrush(MakeCheckeredPattern(10, Colors.LightGray));
@@ -61,7 +55,7 @@ namespace _20190329_ListBoxのDataTemplateをコードで
             eStackPanel.AppendChild(eTextBlock);
 
             //DataTemplate作成、VisualTreeに上のStackPanelを指定で完成
-            var dt = new DataTemplate(typeof(StackPanel));
+            var dt = new DataTemplate();
             dt.VisualTree = eStackPanel;
             return dt;
         }

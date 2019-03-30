@@ -6,7 +6,24 @@
         xmlns:local="clr-namespace:_20190329_ListBoxのDataTemplateをコードで"
         mc:Ignorable="d"
         Title="MainWindow" Height="200" Width="400">
-  <Grid>
+  <Grid Margin="0,30,0,0">
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition/>
+      <ColumnDefinition/>
+    </Grid.ColumnDefinitions>
+    
     <ListBox Name="MyListBox" ItemsSource="{Binding}" Background="YellowGreen"/>
+    
+    <ListBox Grid.Column="1" ItemsSource="{Binding}" Background="MediumOrchid">
+      <ListBox.ItemTemplate>
+        <DataTemplate>
+          <StackPanel Orientation="Horizontal">
+            <Border Background="Snow" Width="100" Height="20"/>
+            <TextBlock Text="{Binding}"/>
+          </StackPanel>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+    
   </Grid>
 </Window>
