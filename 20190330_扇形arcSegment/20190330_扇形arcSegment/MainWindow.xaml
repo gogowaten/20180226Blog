@@ -1,0 +1,75 @@
+﻿<Window x:Class="_20190330_扇形arcSegment.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:_20190330_扇形arcSegment"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="600">
+  <Window.Resources>
+    <local:ConverterPoint x:Key="myConvPoint"/>
+  </Window.Resources>
+  <Grid Margin="0,30">
+    <StackPanel>
+      <StackPanel Orientation="Horizontal">
+        <Slider Name="sliderSX" Width="200" Minimum="0" Maximum="200" Value="100"/>
+        <TextBlock Text="{Binding ElementName=sliderSX, Path=Value, StringFormat= startX\=0.0}"/>
+      </StackPanel>
+      <StackPanel Orientation="Horizontal">
+        <Slider Name="sliderSY" Width="200" Minimum="0" Maximum="200" Value="0"/>
+        <TextBlock Text="{Binding ElementName=sliderSY, Path=Value, StringFormat= startY\=0.0}"/>
+      </StackPanel>
+      <StackPanel Orientation="Horizontal">
+        <Slider Name="sliderX" Width="200" Minimum="0" Maximum="200" Value="100"/>
+        <TextBlock Text="{Binding ElementName=sliderX, Path=Value, StringFormat= segmentX\=0.0}"/>
+      </StackPanel>
+      <StackPanel Orientation="Horizontal">
+        <Slider Name="sliderY" Width="200" Minimum="0" Maximum="200" Value="100"/>
+        <TextBlock Text="{Binding ElementName=sliderY, Path=Value, StringFormat= segmentY\=0.0}"/>
+      </StackPanel>
+      <StackPanel Orientation="Horizontal">
+        <Slider Name="sliderSizeX" Width="200" Minimum="0" Maximum="200" Value="100"/>
+        <TextBlock Text="{Binding ElementName=sliderSizeX, Path=Value, StringFormat= sizeX\=0.0}"/>
+      </StackPanel>
+      <StackPanel Orientation="Horizontal">
+        <Slider Name="sliderSizeY" Width="200" Minimum="0" Maximum="200" Value="100"/>
+        <TextBlock Text="{Binding ElementName=sliderSizeY, Path=Value, StringFormat= sizeY\=0.0}"/>
+      </StackPanel>
+      <StackPanel Orientation="Horizontal">
+        <Slider Name="sliderAngle" Width="200" Minimum="0" Maximum="360" Value="{Binding ElementName=mySegment, Path=RotationAngle}"/>
+        <TextBlock Text="{Binding ElementName=sliderAngle, Path=Value, StringFormat= Angle\=0.0}"/>
+      </StackPanel>
+      
+      <StackPanel Orientation="Horizontal">
+        <Slider Name="sliderMin" Width="200" Minimum="0" Maximum="360" Value="0"/>
+        <TextBlock Text="{Binding ElementName=sliderMin, Path=Value, StringFormat= min\=0.0}"/>
+      </StackPanel>
+      <StackPanel Orientation="Horizontal">
+        <Slider Name="sliderMax" Width="200" Minimum="0" Maximum="360" Value="360"/>
+        <TextBlock Text="{Binding ElementName=sliderMax, Path=Value, StringFormat= max\=0.0}"/>
+      </StackPanel>
+      <StackPanel Orientation="Horizontal">
+        <Slider Name="sliderValue" Width="200" Minimum="0" Maximum="360" Value="30"/>
+        <TextBlock Text="{Binding ElementName=sliderValue, Path=Value, StringFormat= Value\=0.0}"/>
+      </StackPanel>
+      
+      <GroupBox Header="SweepDirection">
+        <StackPanel>
+          <RadioButton Name="radioSweepClock" Content="Clockwise" IsChecked="True" Click="RadioButton_Click"/>
+          <RadioButton Name="radioSweepCounter" Content="Counterclockwise"/>
+        </StackPanel>
+      </GroupBox>
+      <Path Name="MyPath" Stroke="red" StrokeThickness="5">
+        <Path.Data>
+          <PathGeometry>
+            <PathFigure x:Name="myPathFigre" StartPoint="100,0">
+              <!--<ArcSegment x:Name="mySegment" Point="106,60" Size="50,25" SweepDirection="Clockwise" IsLargeArc="True" RotationAngle="0"/>-->
+              <ArcSegment x:Name="mySegment" Size="100,100" SweepDirection="Clockwise" IsLargeArc="True" RotationAngle="0"/>
+            </PathFigure>
+          </PathGeometry>
+        </Path.Data>
+      </Path>
+      <Button Content="button"/>
+    </StackPanel>
+  </Grid>
+</Window>
