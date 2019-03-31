@@ -26,8 +26,12 @@ namespace _20190328_色相ヒストグラム
             InitializeComponent();
 
             MyImage1.Source = MakeHueRountRect(200, 200);
-            MyTest();
-
+            //MyTest();
+            System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
+            //var bitmap = new BitmapImage(assembly.GetManifestResourceStream("HSVRectValue.png"));
+            var pr = Properties.Resources.ResourceManager;
+            BitmapFrame bb = BitmapFrame.Create(assembly.GetManifestResourceStream("_20190328_色相ヒストグラム.HSVRectValue.png"));
+            MyImage1.Source = bb;
         }
 
         private void MyTest()
