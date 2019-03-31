@@ -30,52 +30,69 @@ namespace _20190330_Clip切り抜き
         }
         private void MyClip()
         {
-            //MyRectangle.Clip = new EllipseGeometry(new Rect(0, 0, 20, 20));
-            //MyRectangle.Clip = new RectangleGeometry(new Rect(10, 10, 20, 20));
-            MyWrapPanel.Children.Add(CreateBorder(null));
-
             var clip1 = new RectangleGeometry(new Rect(10, 10, 60, 90));
             var clip2 = new EllipseGeometry(new Rect(0, 0, 60, 60));
-            var gg = new GeometryGroup();
-            gg.FillRule = FillRule.EvenOdd;
-            gg.Children.Add(clip1);
-            gg.Children.Add(clip2);
-            MyRectangle.Clip = gg;
-            var cg = new CombinedGeometry(GeometryCombineMode.Exclude,clip1,clip2);
-            //MyRectangle.Clip = cg;            
-            MyWrapPanel.Children.Add(CreateBorder(cg));
-
-            cg = new CombinedGeometry(GeometryCombineMode.Intersect, clip1, clip2);
-            MyWrapPanel.Children.Add(CreateBorder(cg));
-
-            cg = new CombinedGeometry(GeometryCombineMode.Union, clip1, clip2);            
-            MyWrapPanel.Children.Add(CreateBorder(cg));
-
-            
-            cg = new CombinedGeometry(GeometryCombineMode.Xor, clip1, clip2);
-            MyWrapPanel.Children.Add(CreateBorder(cg));
-
-            cg = new CombinedGeometry(GeometryCombineMode.Union, clip1, clip2);
             var clip3 = new EllipseGeometry(new Rect(50, 0, 60, 60));
-            cg = new CombinedGeometry(GeometryCombineMode.Union, cg, clip3);
-            MyWrapPanel.Children.Add(CreateBorder(cg));
 
-            gg = new GeometryGroup();
-            gg.Children.Add(clip1);
-            gg.Children.Add(clip2);
-            gg.Children.Add(clip3);
-            MyWrapPanel.Children.Add(CreateBorder(gg));
 
-            gg = new GeometryGroup();
-            gg.Children.Add(clip1);
-            gg.Children.Add(clip2);
-            gg.Children.Add(clip3);
-            gg.FillRule = FillRule.Nonzero;
-            MyWrapPanel.Children.Add(CreateBorder(gg));
+            MyWrapPanel1.Children.Add(CreateBorderWithClip(null));
+            MyWrapPanel1.Children.Add(CreateBorderWithClip(clip1));
+            MyWrapPanel1.Children.Add(CreateBorderWithClip(clip2));
+            MyWrapPanel1.Children.Add(CreateBorderWithClip(clip3));
+
+
+            GeometryGroup geoGroup;
+            geoGroup = new GeometryGroup();
+            geoGroup.Children.Add(clip1);
+            geoGroup.Children.Add(clip2);
+            geoGroup.FillRule = FillRule.EvenOdd;//初期値
+            MyWrapPanel2.Children.Add(CreateBorderWithClip(geoGroup));
+
+            geoGroup = new GeometryGroup();
+            geoGroup.Children.Add(clip1);
+            geoGroup.Children.Add(clip2);
+            geoGroup.FillRule = FillRule.Nonzero;
+            MyWrapPanel2.Children.Add(CreateBorderWithClip(geoGroup));
+
+            geoGroup = new GeometryGroup();
+            geoGroup.Children.Add(clip1);
+            geoGroup.Children.Add(clip2);
+            geoGroup.Children.Add(clip3);
+            geoGroup.FillRule = FillRule.EvenOdd;
+            MyWrapPanel2.Children.Add(CreateBorderWithClip(geoGroup));
+
+            geoGroup = new GeometryGroup();
+            geoGroup.Children.Add(clip1);
+            geoGroup.Children.Add(clip2);
+            geoGroup.Children.Add(clip3);
+            geoGroup.FillRule = FillRule.Nonzero;
+            MyWrapPanel2.Children.Add(CreateBorderWithClip(geoGroup));
+
+
+            CombinedGeometry comboGeo;
+            comboGeo = new CombinedGeometry(GeometryCombineMode.Exclude, clip1, clip2);
+            MyWrapPanel3.Children.Add(CreateBorderWithClip(comboGeo));
+
+            comboGeo = new CombinedGeometry(GeometryCombineMode.Intersect, clip1, clip2);
+            MyWrapPanel3.Children.Add(CreateBorderWithClip(comboGeo));
+
+            comboGeo = new CombinedGeometry(GeometryCombineMode.Union, clip1, clip2);
+            MyWrapPanel3.Children.Add(CreateBorderWithClip(comboGeo));
+
+            comboGeo = new CombinedGeometry(GeometryCombineMode.Xor, clip1, clip2);
+            MyWrapPanel3.Children.Add(CreateBorderWithClip(comboGeo));
+
+            comboGeo = new CombinedGeometry(GeometryCombineMode.Union, clip1, clip2);
+            comboGeo = new CombinedGeometry(GeometryCombineMode.Union, comboGeo, clip3);
+            MyWrapPanel4.Children.Add(CreateBorderWithClip(comboGeo));
+
+            comboGeo = new CombinedGeometry(GeometryCombineMode.Exclude, clip1, clip2);
+            comboGeo = new CombinedGeometry(GeometryCombineMode.Union, comboGeo, clip3);
+            MyWrapPanel4.Children.Add(CreateBorderWithClip(comboGeo));
 
         }
 
-        private Border CreateBorder(Geometry clip)
+        private Border CreateBorderWithClip(Geometry clip)
         {
             var r = new Border
             {
@@ -85,7 +102,7 @@ namespace _20190330_Clip切り抜き
                 BorderThickness = new Thickness(4.0),
                 Width = 100,
                 Height = 100,
-                Margin = new Thickness(10.0),
+                Margin = new Thickness(4.0),
             };
             return r;
         }
