@@ -82,13 +82,51 @@ namespace _20190330_Clip切り抜き
             comboGeo = new CombinedGeometry(GeometryCombineMode.Xor, clip1, clip2);
             MyWrapPanel3.Children.Add(CreateBorderWithClip(comboGeo));
 
+
+            //Combine 3clip
+            comboGeo = new CombinedGeometry(GeometryCombineMode.Exclude, clip1, clip2);
+            comboGeo = new CombinedGeometry(GeometryCombineMode.Exclude, comboGeo, clip3);
+            MyWrapPanel4.Children.Add(CreateBorderWithClip(comboGeo));
+
+            comboGeo = new CombinedGeometry(GeometryCombineMode.Intersect, clip1, clip2);
+            comboGeo = new CombinedGeometry(GeometryCombineMode.Intersect, comboGeo, clip3);
+            MyWrapPanel4.Children.Add(CreateBorderWithClip(comboGeo));
+
             comboGeo = new CombinedGeometry(GeometryCombineMode.Union, clip1, clip2);
             comboGeo = new CombinedGeometry(GeometryCombineMode.Union, comboGeo, clip3);
             MyWrapPanel4.Children.Add(CreateBorderWithClip(comboGeo));
 
+            comboGeo = new CombinedGeometry(GeometryCombineMode.Xor, clip1, clip2);
+            comboGeo = new CombinedGeometry(GeometryCombineMode.Xor, comboGeo, clip3);
+            MyWrapPanel4.Children.Add(CreateBorderWithClip(comboGeo));
+
+
+
+            comboGeo = new CombinedGeometry(GeometryCombineMode.Exclude, clip1, clip2);
+            comboGeo = new CombinedGeometry(GeometryCombineMode.Intersect, comboGeo, clip3);
+            MyWrapPanel5.Children.Add(CreateBorderWithClip(comboGeo));
+
             comboGeo = new CombinedGeometry(GeometryCombineMode.Exclude, clip1, clip2);
             comboGeo = new CombinedGeometry(GeometryCombineMode.Union, comboGeo, clip3);
-            MyWrapPanel4.Children.Add(CreateBorderWithClip(comboGeo));
+            MyWrapPanel5.Children.Add(CreateBorderWithClip(comboGeo));
+
+            comboGeo = new CombinedGeometry(GeometryCombineMode.Exclude, clip1, clip2);
+            comboGeo = new CombinedGeometry(GeometryCombineMode.Xor, comboGeo, clip3);
+            MyWrapPanel5.Children.Add(CreateBorderWithClip(comboGeo));
+
+
+
+            comboGeo = new CombinedGeometry(GeometryCombineMode.Intersect, clip1, clip2);
+            comboGeo = new CombinedGeometry(GeometryCombineMode.Exclude, comboGeo, clip3);
+            MyWrapPanel6.Children.Add(CreateBorderWithClip(comboGeo));
+
+            comboGeo = new CombinedGeometry(GeometryCombineMode.Intersect, clip1, clip2);
+            comboGeo = new CombinedGeometry(GeometryCombineMode.Union, comboGeo, clip3);
+            MyWrapPanel6.Children.Add(CreateBorderWithClip(comboGeo));
+
+            comboGeo = new CombinedGeometry(GeometryCombineMode.Intersect, clip1, clip2);
+            comboGeo = new CombinedGeometry(GeometryCombineMode.Xor, comboGeo, clip3);
+            MyWrapPanel6.Children.Add(CreateBorderWithClip(comboGeo));
 
         }
 
@@ -97,12 +135,12 @@ namespace _20190330_Clip切り抜き
             var r = new Border
             {
                 Clip = clip,
-                Background = Brushes.YellowGreen,
-                BorderBrush = Brushes.Khaki,
+                Background = Brushes.MediumSlateBlue,
+                BorderBrush = Brushes.DarkOrange,
                 BorderThickness = new Thickness(4.0),
                 Width = 100,
                 Height = 100,
-                Margin = new Thickness(4.0),
+                Margin = new Thickness(2.0,10.0, 2.0, 10.0),
             };
             return r;
         }

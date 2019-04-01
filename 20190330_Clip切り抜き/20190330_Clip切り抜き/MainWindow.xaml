@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:_20190330_Clip切り抜き"
         mc:Ignorable="d"
-        Title="MainWindow" Height="500" Width="550">
-  <Grid Background="OliveDrab">
+        Title="MainWindow" Height="750" Width="500">
+  <Grid Background="Moccasin">
     <StackPanel UseLayoutRounding="True">
       <WrapPanel Name="MyWrapPanel1">
         <!--<Border Name="MyBorder" Background="YellowGreen" BorderBrush="Khaki" BorderThickness="4" Width="100" Height="100"/>-->
@@ -14,6 +14,8 @@
       <WrapPanel Name="MyWrapPanel2"/>
       <WrapPanel Name="MyWrapPanel3"/>
       <WrapPanel Name="MyWrapPanel4"/>
+      <WrapPanel Name="MyWrapPanel5"/>
+      <WrapPanel Name="MyWrapPanel6"/>
     </StackPanel>
   </Grid>
 </Window>
