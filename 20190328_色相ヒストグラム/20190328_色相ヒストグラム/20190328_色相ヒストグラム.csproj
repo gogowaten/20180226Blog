@@ -120,7 +120,10 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="HSV.dll" />
-    <EmbeddedResource Include="Properties\HSVRectValue.png" />
+    <EmbeddedResource Include="NEC_1456_2018_03_17_午後わてん.jpg" />
+    <EmbeddedResource Include="青空とトマトの花.jpg" />
+    <EmbeddedResource Include="NEC_6221_2019_02_24_午後わてん_16colors.png" />
+    <EmbeddedResource Include="NEC_6418_2019_03_27_午後わてん.jpg" />
     <EmbeddedResource Include="HSVRectValue.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

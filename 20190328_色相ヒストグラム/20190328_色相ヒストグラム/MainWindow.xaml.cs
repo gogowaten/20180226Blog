@@ -13,6 +13,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using MyHSV;
+//画像の色相の状態をレーダーチャートふうに表示してみた(ソフトウェア ) - 午後わてんのブログ - Yahoo!ブログ
+//https://blogs.yahoo.co.jp/gogowaten/15920156.html
 
 namespace _20190328_色相ヒストグラム
 {
@@ -25,34 +27,56 @@ namespace _20190328_色相ヒストグラム
         {
             InitializeComponent();
 
+            //色相の四角形画像作成表示
             MyImage1.Source = MakeHueRountRect(200, 200);
-            //MyTest();
-            System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
-            //var bitmap = new BitmapImage(assembly.GetManifestResourceStream("HSVRectValue.png"));
-            var pr = Properties.Resources.ResourceManager;
-            BitmapFrame bb = BitmapFrame.Create(assembly.GetManifestResourceStream("_20190328_色相ヒストグラム.HSVRectValue.png"));
-            MyImage1.Source = bb;
+
+            //レーダーチャート型に切り抜き
+            //MyTest();//PCのファイル画像から
+            MyTest2();//アプリに埋め込んだ画像から
         }
 
+        //アプリに埋め込んだ画像からレーダーチャート
+        private void MyTest2()
+        {
+            string fileName = "";
+            fileName = "_20190328_色相ヒストグラム.HSVRectValue.png";
+            //fileName = "_20190328_色相ヒストグラム.NEC_1456_2018_03_17_午後わてん.jpg";
+            //fileName = "_20190328_色相ヒストグラム.NEC_6221_2019_02_24_午後わてん_16colors.png";
+            //fileName = "_20190328_色相ヒストグラム.NEC_6418_2019_03_27_午後わてん.jpg";
+            //fileName = "_20190328_色相ヒストグラム.青空とトマトの花.jpg";
+
+            byte[] pixels;
+            BitmapSource bitmap;
+            System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
+            System.IO.Stream stream = assembly.GetManifestResourceStream(fileName);
+            (pixels, bitmap) = MakeBitmapSourceAndByteArray(stream, PixelFormats.Bgra32, 96, 96);
+
+            MyImage1.Clip = MakeClipPathGeometry(MakeClipPoints(pixels, 360, 100));
+            MyImage2.Source = bitmap;
+        }
+
+        //PCにある画像ファイルからレーダーチャート
         private void MyTest()
         {
-            string filePath = @"D:\ブログ用\チェック用2\NEC_6313_2019_03_12_午後わてん.jpg";
-            filePath = @"D:\ブログ用\チェック用2\NEC_6221_2019_02_24_午後わてん_16colors.png";
-            //filePath = @"D:\ブログ用\チェック用2\NEC_6369_2019_03_24_午後わてん.jpg";
+            string filePath;
+            filePath = @"D:\ブログ用\チェック用2\NEC_6418_2019_03_27_午後わてん.jpg";
+            //filePath = @"D:\ブログ用\チェック用2\NEC_6221_2019_02_24_午後わてん_16colors.png";
+            //filePath = @"D:\ブログ用\テスト用画像\青空とトマトの花.jpg";
+            //filePath = @"D:\ブログ用\テスト用画像\NEC_1456_2018_03_17_午後わてん.jpg";
             filePath = @"D:\ブログ用\テスト用画像\HSVRectValue.png";
-            filePath = @"D:\ブログ用\テスト用画像\青空とトマトの花.jpg";
 
-            (byte[] array, BitmapSource source) aa = MakeBitmapSourceAndByteArray(filePath, PixelFormats.Bgra32, 96, 96);
+            //画像ファイルからピクセルの色の配列とBitmapを取得
+            (byte[] pixels, BitmapSource bitmap) aa = MakeBitmapSourceAndByteArray(filePath, PixelFormats.Bgra32, 96, 96);
 
             //Histogram360(aa.array);//360分割
             //MyImage1.Clip = MakeClipPathGeometry(MakeClip6Segment(aa.array));//6分割
             //任意分割
-            MyImage1.Clip = MakeClipPathGeometry(MakeClipSegmentPoint(aa.array, 72, 100));
-
+            MyImage1.Clip = MakeClipPathGeometry(MakeClipPoints(aa.pixels, 360, 100));
+            MyImage2.Source = aa.bitmap;
         }
 
         /// <summary>
-        /// 切り抜き用のPathGeometry作成
+        /// PointのリストからPathGeometry作成
         /// </summary>
         /// <param name="pc"></param>
         /// <returns></returns>
@@ -61,7 +85,7 @@ namespace _20190328_色相ヒストグラム
             var fig = new PathFigure();
             fig.StartPoint = pc[0];
             //pc.RemoveAt(0);//これはいらないかも
-            PolyLineSegment segment = new PolyLineSegment();            
+            PolyLineSegment segment = new PolyLineSegment();
             segment.Points = new PointCollection(pc);
             fig.Segments.Add(segment);
             fig.IsClosed = true;//Pathを閉じる
@@ -73,47 +97,52 @@ namespace _20190328_色相ヒストグラム
             return pg;
         }
 
+      
+
         /// <summary>
         /// 色相の分割範囲ごとのピクセル数をカウント、
-        /// 範囲はcountで指定、12なら360/12=30で30度ごとに分割になる
+        /// 分割数divCountが4なら、360/4＝90度毎、範囲0(315~45)、範囲1(45~135)、範囲2(135~225)、範囲3(225~315)
         /// </summary>
         /// <param name="pixels">PixelFormats.Bgra32のbyte配列</param>
-        /// <param name="count">3～360で指定、色相分割数</param>
+        /// <param name="divCount">3～360で指定、色相分割数</param>
         /// <returns></returns>
-        private int[] HueCount(byte[] pixels, int count)
+        private int[] HuePixelCount(byte[] pixels, int divCount)
         {
-            int[] table = new int[count];
-            double div = 360.0 / count;
+            int[] table = new int[divCount];
+            double div = 360.0 / divCount;
+            double divdiv = div / 2.0;
             for (int i = 0; i < pixels.Length; i += 4)
             {
-                double ihsv = HSV.Color2HSV(pixels[i + 2], pixels[i + 1], pixels[i]).Hue;
-                if (ihsv == 360.0) { continue; }//色相360は無彩色なのでパス
-                var aa = ihsv / div;
-                var bb = (int)Math.Round(aa, MidpointRounding.AwayFromZero);
-                if (bb == count) { bb = 0; }
-                table[bb]++;
+                //ピクセルの色相取得
+                double hue = HSV.Color2HSV(pixels[i + 2], pixels[i + 1], pixels[i]).Hue;
+                if (hue == 360.0) { continue; }//色相360は無彩色なのでパス
+
+                //色相の範囲ごとにカウント
+                hue = Math.Floor((hue + divdiv) / div);
+                hue = (hue >= divCount) ? 0 : hue;
+                table[(int)hue]++;
             }
             return table;
         }
 
 
         /// <summary>
-        /// 切り抜き用のPointリスト作成
+        /// 切り抜き用のPointリスト作成、レーダーチャートの要素の値にあたる
         /// </summary>
         /// <param name="pixels">PixelFormats.Bgra32のbyte配列</param>
-        /// <param name="count">色相の分割数、3～360で指定</param>
+        /// <param name="divCount">色相の分割数、3～360で指定</param>
         /// <param name="radius">レーダーチャート画像の辺の半分(半径)を指定</param>
         /// <returns></returns>
-        private List<Point> MakeClipSegmentPoint(byte[] pixels, int count, int radius)
+        private List<Point> MakeClipPoints(byte[] pixels, int divCount, int radius)
         {
             //色相範囲ごとのピクセル数取得
-            //配列のIndex * 360 / countが色相で、値がピクセル数になる
-            int[] table = HueCount(pixels, count);
+            //配列の(Index * 360 / divCount)が色相で、値がピクセル数になる            
+            int[] table = HuePixelCount(pixels, divCount);
             //最大値は相対的なレーダーチャートの半径にする
             double max = table.Max();
 
             double distance, radian, x, y;
-            double div = 360.0 / count;
+            double div = 360.0 / divCount;
             var pc = new List<Point>();
             for (int i = 0; i < table.Length; i++)
             {
@@ -316,6 +345,35 @@ namespace _20190328_色相ヒストグラム
                         convertedBitmap.Format,
                         convertedBitmap.Palette, pixels, stride);
                 };
+            }
+            catch (Exception)
+            {
+            }
+            return (pixels, source);
+        }
+
+        private (byte[] array, BitmapSource source) MakeBitmapSourceAndByteArray(System.IO.Stream stream, PixelFormat pixelFormat, double dpiX = 0, double dpiY = 0)
+        {
+            byte[] pixels = null;
+            BitmapSource source = null;
+            try
+            {
+                var bf = BitmapFrame.Create(stream);
+                var convertedBitmap = new FormatConvertedBitmap(bf, pixelFormat, null, 0);
+                int w = convertedBitmap.PixelWidth;
+                int h = convertedBitmap.PixelHeight;
+                int stride = (w * pixelFormat.BitsPerPixel + 7) / 8;
+                pixels = new byte[h * stride];
+                convertedBitmap.CopyPixels(pixels, stride, 0);
+                //dpi指定がなければ元の画像と同じdpiにする
+                if (dpiX == 0) { dpiX = bf.DpiX; }
+                if (dpiY == 0) { dpiY = bf.DpiY; }
+                //dpiを指定してBitmapSource作成
+                source = BitmapSource.Create(
+                    w, h, dpiX, dpiY,
+                    convertedBitmap.Format,
+                    convertedBitmap.Palette, pixels, stride);
+
             }
             catch (Exception)
             {

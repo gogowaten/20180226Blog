@@ -12,6 +12,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+//c# - WPF Doughnut ProgressBar - Stack Overflow
+//https://stackoverflow.com/questions/36752183/wpf-doughnut-progressbar
 
 namespace _20190331_円弧arcSegment
 {

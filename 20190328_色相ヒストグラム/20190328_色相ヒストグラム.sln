@@ -6,9 +6,6 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "20190328_色相ヒストグラム", "20190328_色相ヒストグラム\20190328_色相ヒストグラム.csproj", "{6B0D3AC0-51A9-497F-9F33-8CDFD66D78FE}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9D493C21-A6FF-4AA9-BFDD-5C8FA70DC4A5}"
-	ProjectSection(SolutionItems) = preProject
-		D:\ブログ用\テスト用画像\HSVRectValue.png = D:\ブログ用\テスト用画像\HSVRectValue.png
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

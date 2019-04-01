@@ -5,8 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:_20190328_色相ヒストグラム"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-    <Image Name="MyImage1" Stretch="None" UseLayoutRounding="True"/>
+        Title="MainWindow" Height="450" Width="300">
+  <Grid Margin="0,10">
+    <StackPanel UseLayoutRounding="True">
+      <Image Name="MyImage1" Stretch="None"/>
+      <Image Name="MyImage2" Stretch="Uniform" Width="200" Height="200"/>
+    </StackPanel>
   </Grid>
 </Window>
