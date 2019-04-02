@@ -243,7 +243,7 @@ namespace _20190331_円弧arcSegment
 
 
         /// <summary>
-        /// 指定角度、中心点、中心点からの距離の座標を返す
+        /// 距離と角度からその座標を返す
         /// </summary>
         /// <param name="degrees">360以上は359.99になる</param>
         /// <param name="center">中心点</param>
@@ -255,8 +255,8 @@ namespace _20190331_円弧arcSegment
             var rad = Radian(degrees);
             var cos = Math.Cos(rad);
             var sin = Math.Sin(rad);
-            var x = distance + cos * center.X;
-            var y = distance + sin * center.Y;
+            var x = center.X + cos * distance;
+            var y = center.Y + sin * distance;
             return new Point(x, y);
         }
 

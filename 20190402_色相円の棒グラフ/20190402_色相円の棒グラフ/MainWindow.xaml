@@ -5,8 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:_20190402_色相円の棒グラフ"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-  <Grid>
-    <WrapPanel Name="MyWrapPanel" UseLayoutRounding="True"/>
+        Title="MainWindow" Height="450" Width="820">
+  <Grid Background="Gray">
+    <DockPanel>
+    <WrapPanel DockPanel.Dock="Left" Name="MyWrapPanel" UseLayoutRounding="True"/>
+    <Image DockPanel.Dock="Right" Name="MyImage" Stretch="Uniform"/>
+    </DockPanel>
   </Grid>
 </Window>

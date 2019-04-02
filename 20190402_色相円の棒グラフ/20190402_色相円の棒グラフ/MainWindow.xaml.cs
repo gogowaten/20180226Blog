@@ -25,9 +25,39 @@ namespace _20190402_色相円の棒グラフ
         {
             InitializeComponent();
 
-            MyTest();
-
+            //MyTest();
+            MyTest2();
         }
+
+        private void MyTest2()
+        {
+            string filePath;
+            filePath = @"D:\ブログ用\チェック用2\NEC_6469_2019_03_31_午後わてん.jpg";
+            filePath = @"D:\ブログ用\チェック用2\NEC_6459_2019_03_31_午後わてん.jpg";
+            (byte[] pixels, BitmapSource bitmap) myImg = MakeBitmapSourceAndByteArray(filePath, PixelFormats.Bgra32, 96, 96);
+            MyImage.Source = myImg.bitmap;
+
+            int divCount = 60;
+            int[] hues = HuePixelCount(myImg.pixels, divCount);
+
+            double max = hues.Max();
+            int radius = 200;
+            Point center = new Point(radius, radius);
+            double distance;
+            double divDeg = 360.0 / divCount;            
+            var clip = new PathGeometry();
+            clip.FillRule = FillRule.Nonzero;
+            for(int i = 0; i < hues.Length; i++)
+            {
+                distance = hues[i] / max * radius;
+                var start = i * divDeg;
+                var stop = start + divDeg;                
+                clip.AddGeometry(PieGeometry(center, distance, start, stop, SweepDirection.Clockwise));
+
+            }
+            AddHueImage(radius * 2, clip);
+        }
+
 
         private void MyTest()
         {
@@ -38,14 +68,56 @@ namespace _20190402_色相円の棒グラフ
             int side = (int)radius * 2;
             AddHueImage(side, null);
 
-            PathGeometry clip1 = PieGeometry(center, radius, 0, 50, direction);
-            AddHueImage(side, clip1);
+            PathGeometry clip1 = PieGeometry(center, 100, 0, 50, direction);
+            PathGeometry clip2 = PieGeometry(center, 50, 0, 50, direction);
+            PathGeometry clip3 = PieGeometry(center, 70, 50, 100, direction);
 
-            PathGeometry clip2 = PieGeometry(center, radius, 0, 50, direction);
+            //扇形
+            Path pei;
+            pei = new Path();
+            pei.Data = clip1;
+            pei.Fill = Brushes.Tomato;
+            MyWrapPanel.Children.Add(pei);
+
+            pei = new Path();
+            pei.Data = new CombinedGeometry(clip1, clip3);
+            pei.Fill = Brushes.MediumOrchid;
+            MyWrapPanel.Children.Add(pei);
+
+            RectangleGeometry rectangleGeometry;
+
+
+            AddHueImage(side, clip1);
+            AddHueImage(side, clip2);
+            AddHueImage(side, clip3);
+
+            GeometryGroup geoGroup1 = new GeometryGroup();
+            geoGroup1.Children.Add(clip1);
+            geoGroup1.Children.Add(clip2);
+            AddHueImage(side, geoGroup1);
+
+            GeometryGroup geoGroup2 = new GeometryGroup();
+            geoGroup2.Children.Add(clip2);
+            geoGroup2.Children.Add(clip3);
+            AddHueImage(side, geoGroup2);
+
+
+            //円弧
+            var neko = new Path();
+            neko.Stroke = Brushes.Red;
+            neko.StrokeThickness = 20;
+            neko.Data = ArcPathGeometry(center, 30, 20, 230, direction);
+            MyWrapPanel.Children.Add(neko);
+
+            neko = new Path();
+            neko.Stroke = Brushes.Orange;
+            neko.StrokeThickness = 20;
+            neko.Data = ArcPathGeometry(new Point(30, 30), 30, 20, 230, direction);
+            MyWrapPanel.Children.Add(neko);
 
         }
 
-        private void AddHueImage(int side, PathGeometry clip)
+        private void AddHueImage(int side, Geometry clip)
         {
             Image img = new Image
             {
@@ -56,6 +128,7 @@ namespace _20190402_色相円の棒グラフ
 
             MyWrapPanel.Children.Add(img);
         }
+
 
         #region PathGeometry
         /// <summary>
@@ -124,20 +197,20 @@ namespace _20190402_色相円の棒グラフ
 
 
         /// <summary>
-        /// 指定角度、中心点、半径の座標を返す
+        /// 距離と角度からその座標を返す
         /// </summary>
         /// <param name="degrees">360以上は359.99になる</param>
         /// <param name="center">中心点</param>
-        /// <param name="radius">半径</param>
+        /// <param name="distance">中心点からの距離</param>
         /// <returns></returns>
-        private Point MakePoint(double degrees, Point center, double radius)
+        private Point MakePoint(double degrees, Point center, double distance)
         {
             if (degrees >= 360) { degrees = 359.99; }
             var rad = Radian(degrees);
             var cos = Math.Cos(rad);
             var sin = Math.Sin(rad);
-            var x = radius + cos * center.X;
-            var y = radius + sin * center.Y;
+            var x = center.X + cos * distance;
+            var y = center.Y + sin * distance;
             return new Point(x, y);
         }
 
@@ -199,6 +272,81 @@ namespace _20190402_色相円の棒グラフ
         }
         #endregion
 
+
+        #region 画像系
+
+
+
+        /// <summary>
+        /// 色相の分割範囲ごとのピクセル数をカウント、
+        /// 分割数divCountが4なら、360/4＝90度毎、範囲0(315~45)、範囲1(45~135)、範囲2(135~225)、範囲3(225~315)、
+        /// 配列の「Index*360/分割数」が色相になる、4分割でIndex3なら、3*360/4=270、Index3の要素は色相270の範囲のもの
+        /// </summary>
+        /// <param name="pixels">PixelFormats.Bgra32のbyte配列</param>
+        /// <param name="divCount">3～360で指定、色相分割数</param>
+        /// <returns></returns>
+        private int[] HuePixelCount(byte[] pixels, int divCount)
+        {
+            int[] table = new int[divCount];
+            double div = 360.0 / divCount;
+            double divdiv = div / 2.0;
+            for (int i = 0; i < pixels.Length; i += 4)
+            {
+                //ピクセルの色相取得
+                double hue = HSV.Color2HSV(pixels[i + 2], pixels[i + 1], pixels[i]).Hue;
+                if (hue == 360.0) { continue; }//色相360は無彩色なのでパス
+
+                //色相の範囲ごとにカウント
+                hue = Math.Floor((hue + divdiv) / div);
+                hue = (hue >= divCount) ? 0 : hue;
+                table[(int)hue]++;
+            }
+            return table;
+        }
+
+
+
+
+        /// <summary>
+        /// 画像ファイルからbitmapと、そのbyte配列を取得、ピクセルフォーマットを指定したものに変換
+        /// </summary>
+        /// <param name="filePath">画像ファイルのフルパス</param>
+        /// <param name="pixelFormat">PixelFormatsを指定</param>
+        /// <param name="dpiX">96が基本、指定なしなら元画像と同じにする</param>
+        /// <param name="dpiY">96が基本、指定なしなら元画像と同じにする</param>
+        /// <returns></returns>
+        private (byte[] array, BitmapSource source) MakeBitmapSourceAndByteArray(string filePath, PixelFormat pixelFormat, double dpiX = 0, double dpiY = 0)
+        {
+            byte[] pixels = null;
+            BitmapSource source = null;
+            try
+            {
+                using (System.IO.FileStream fs = new System.IO.FileStream(filePath, System.IO.FileMode.Open, System.IO.FileAccess.Read))
+                {
+                    var bf = BitmapFrame.Create(fs);
+
+                    var convertedBitmap = new FormatConvertedBitmap(bf, pixelFormat, null, 0);
+                    int w = convertedBitmap.PixelWidth;
+                    int h = convertedBitmap.PixelHeight;
+                    int stride = (w * pixelFormat.BitsPerPixel + 7) / 8;
+                    pixels = new byte[h * stride];
+                    convertedBitmap.CopyPixels(pixels, stride, 0);
+                    //dpi指定がなければ元の画像と同じdpiにする
+                    if (dpiX == 0) { dpiX = bf.DpiX; }
+                    if (dpiY == 0) { dpiY = bf.DpiY; }
+                    //dpiを指定してBitmapSource作成
+                    source = BitmapSource.Create(
+                        w, h, dpiX, dpiY,
+                        convertedBitmap.Format,
+                        convertedBitmap.Palette, pixels, stride);
+                };
+            }
+            catch (Exception)
+            {
+            }
+            return (pixels, source);
+        }
+        #endregion
 
     }
 }

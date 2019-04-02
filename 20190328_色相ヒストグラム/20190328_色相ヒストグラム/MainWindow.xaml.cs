@@ -27,8 +27,6 @@ namespace _20190328_色相ヒストグラム
         {
             InitializeComponent();
 
-            //色相の四角形画像作成表示
-            MyImage1.Source = MakeHueRountRect(200, 200);
 
             //レーダーチャート型に切り抜き
             //MyTest();//PCのファイル画像から
@@ -45,13 +43,20 @@ namespace _20190328_色相ヒストグラム
             //fileName = "_20190328_色相ヒストグラム.NEC_6418_2019_03_27_午後わてん.jpg";
             //fileName = "_20190328_色相ヒストグラム.青空とトマトの花.jpg";
 
+
+            double radius = 200.0;
+            Point center = new Point(radius, radius);
+
+            //色相の四角形画像作成表示
+            MyImage1.Source = MakeHueRountRect((int)radius * 2, (int)radius * 2);
+
             byte[] pixels;
             BitmapSource bitmap;
             System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
             System.IO.Stream stream = assembly.GetManifestResourceStream(fileName);
             (pixels, bitmap) = MakeBitmapSourceAndByteArray(stream, PixelFormats.Bgra32, 96, 96);
 
-            MyImage1.Clip = MakeClipPathGeometry(MakeClipPoints(pixels, 360, 100));
+            MyImage1.Clip = MakeClipPathGeometry(MakeClipPoints(pixels, 360, radius, center));
             MyImage2.Source = bitmap;
         }
 
@@ -64,14 +69,21 @@ namespace _20190328_色相ヒストグラム
             //filePath = @"D:\ブログ用\テスト用画像\青空とトマトの花.jpg";
             //filePath = @"D:\ブログ用\テスト用画像\NEC_1456_2018_03_17_午後わてん.jpg";
             filePath = @"D:\ブログ用\テスト用画像\HSVRectValue.png";
-
+            filePath = @"D:\ブログ用\チェック用2\NEC_6459_2019_03_31_午後わてん.jpg";
             //画像ファイルからピクセルの色の配列とBitmapを取得
             (byte[] pixels, BitmapSource bitmap) aa = MakeBitmapSourceAndByteArray(filePath, PixelFormats.Bgra32, 96, 96);
+
+            double radius = 200.0;
+            Point center = new Point(radius, radius);
+
+            //色相の四角形画像作成表示
+            MyImage1.Source = MakeHueRountRect((int)radius * 2, (int)radius * 2);
 
             //Histogram360(aa.array);//360分割
             //MyImage1.Clip = MakeClipPathGeometry(MakeClip6Segment(aa.array));//6分割
             //任意分割
-            MyImage1.Clip = MakeClipPathGeometry(MakeClipPoints(aa.pixels, 360, 100));
+            
+            MyImage1.Clip = MakeClipPathGeometry(MakeClipPoints(aa.pixels, 60, radius, center));
             MyImage2.Source = aa.bitmap;
         }
 
@@ -97,7 +109,7 @@ namespace _20190328_色相ヒストグラム
             return pg;
         }
 
-      
+
 
         /// <summary>
         /// 色相の分割範囲ごとのピクセル数をカウント、
@@ -132,8 +144,9 @@ namespace _20190328_色相ヒストグラム
         /// <param name="pixels">PixelFormats.Bgra32のbyte配列</param>
         /// <param name="divCount">色相の分割数、3～360で指定</param>
         /// <param name="radius">レーダーチャート画像の辺の半分(半径)を指定</param>
+        /// <param name="center">中心点座標</param>
         /// <returns></returns>
-        private List<Point> MakeClipPoints(byte[] pixels, int divCount, int radius)
+        private List<Point> MakeClipPoints(byte[] pixels, int divCount, double radius, Point center)
         {
             //色相範囲ごとのピクセル数取得
             //配列の(Index * 360 / divCount)が色相で、値がピクセル数になる            
@@ -151,12 +164,44 @@ namespace _20190328_色相ヒストグラム
                 distance = table[i] / max;//最大値を1としたときの今の値
                 distance *= radius;//*レーダーチャート画像の半径
                 //中心からの位置
-                x = Math.Cos(radian) * distance + radius;
-                y = Math.Sin(radian) * distance + radius;
+                x = Math.Cos(radian) * distance + center.X;
+                y = Math.Sin(radian) * distance + center.Y;
                 pc.Add(new Point(x, y));
             }
             return pc;
         }
+
+        ///// <summary>
+        ///// 切り抜き用のPointリスト作成、レーダーチャートの要素の値にあたる
+        ///// </summary>
+        ///// <param name="pixels">PixelFormats.Bgra32のbyte配列</param>
+        ///// <param name="divCount">色相の分割数、3～360で指定</param>
+        ///// <param name="radius">レーダーチャート画像の辺の半分(半径)を指定</param>
+        ///// <returns></returns>
+        //private List<Point> MakeClipPoints(byte[] pixels, int divCount, int radius)
+        //{
+        //    //色相範囲ごとのピクセル数取得
+        //    //配列の(Index * 360 / divCount)が色相で、値がピクセル数になる            
+        //    int[] table = HuePixelCount(pixels, divCount);
+        //    //最大値は相対的なレーダーチャートの半径にする
+        //    double max = table.Max();
+
+        //    double distance, radian, x, y;
+        //    double div = 360.0 / divCount;
+        //    var pc = new List<Point>();
+        //    for (int i = 0; i < table.Length; i++)
+        //    {
+        //        radian = Radian(i * div);//色相(角度)をラジアンに変換
+        //        //中心からの距離
+        //        distance = table[i] / max;//最大値を1としたときの今の値
+        //        distance *= radius;//*レーダーチャート画像の半径
+        //        //中心からの位置
+        //        x = Math.Cos(radian) * distance + radius;
+        //        y = Math.Sin(radian) * distance + radius;
+        //        pc.Add(new Point(x, y));
+        //    }
+        //    return pc;
+        //}
 
 
 
