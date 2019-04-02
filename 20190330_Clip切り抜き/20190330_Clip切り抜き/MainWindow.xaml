@@ -5,12 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:_20190330_Clip切り抜き"
         mc:Ignorable="d"
-        Title="MainWindow" Height="750" Width="500">
-  <Grid Background="Moccasin">
+        Title="MainWindow" Height="1000" Width="500">
+  <Grid Background="White">
     <StackPanel UseLayoutRounding="True">
-      <WrapPanel Name="MyWrapPanel1">
-        <!--<Border Name="MyBorder" Background="YellowGreen" BorderBrush="Khaki" BorderThickness="4" Width="100" Height="100"/>-->
-      </WrapPanel>
+      <WrapPanel Name="MyWrapPanel1"/>
       <WrapPanel Name="MyWrapPanel2"/>
       <WrapPanel Name="MyWrapPanel3"/>
       <WrapPanel Name="MyWrapPanel4"/>

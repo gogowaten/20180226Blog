@@ -1,19 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 //第9回 WPFの「グラフィックス」を学ぼう(2/2)：連載：WPF入門 - ＠IT
 //https://www.atmarkit.co.jp/ait/articles/1102/02/news100_2.html
+
+//切り抜きClip、GeometryGroupとCombinedGeometry(ソフトウェア ) - 午後わてんのブログ - Yahoo!ブログ
+//https://blogs.yahoo.co.jp/gogowaten/15921152.html
 
 namespace _20190330_Clip切り抜き
 {
@@ -30,18 +22,21 @@ namespace _20190330_Clip切り抜き
         }
         private void MyClip()
         {
+            //clip用Geometry
             var clip1 = new RectangleGeometry(new Rect(10, 10, 60, 90));
             var clip2 = new EllipseGeometry(new Rect(0, 0, 60, 60));
             var clip3 = new EllipseGeometry(new Rect(50, 0, 60, 60));
 
-
-            MyWrapPanel1.Children.Add(CreateBorderWithClip(null));
+            //  1clip
+            MyWrapPanel1.Children.Add(CreateBorderWithClip(null));//clipなしの原型
             MyWrapPanel1.Children.Add(CreateBorderWithClip(clip1));
             MyWrapPanel1.Children.Add(CreateBorderWithClip(clip2));
             MyWrapPanel1.Children.Add(CreateBorderWithClip(clip3));
 
 
+
             GeometryGroup geoGroup;
+            //  2clip
             geoGroup = new GeometryGroup();
             geoGroup.Children.Add(clip1);
             geoGroup.Children.Add(clip2);
@@ -54,6 +49,7 @@ namespace _20190330_Clip切り抜き
             geoGroup.FillRule = FillRule.Nonzero;
             MyWrapPanel2.Children.Add(CreateBorderWithClip(geoGroup));
 
+            //  3clip
             geoGroup = new GeometryGroup();
             geoGroup.Children.Add(clip1);
             geoGroup.Children.Add(clip2);
@@ -69,7 +65,9 @@ namespace _20190330_Clip切り抜き
             MyWrapPanel2.Children.Add(CreateBorderWithClip(geoGroup));
 
 
+
             CombinedGeometry comboGeo;
+            //  2clip
             comboGeo = new CombinedGeometry(GeometryCombineMode.Exclude, clip1, clip2);
             MyWrapPanel3.Children.Add(CreateBorderWithClip(comboGeo));
 
@@ -83,7 +81,7 @@ namespace _20190330_Clip切り抜き
             MyWrapPanel3.Children.Add(CreateBorderWithClip(comboGeo));
 
 
-            //Combine 3clip
+            //  3clip   同じモードを2回
             comboGeo = new CombinedGeometry(GeometryCombineMode.Exclude, clip1, clip2);
             comboGeo = new CombinedGeometry(GeometryCombineMode.Exclude, comboGeo, clip3);
             MyWrapPanel4.Children.Add(CreateBorderWithClip(comboGeo));
@@ -101,7 +99,7 @@ namespace _20190330_Clip切り抜き
             MyWrapPanel4.Children.Add(CreateBorderWithClip(comboGeo));
 
 
-
+            //  3clip   Excludeと他
             comboGeo = new CombinedGeometry(GeometryCombineMode.Exclude, clip1, clip2);
             comboGeo = new CombinedGeometry(GeometryCombineMode.Intersect, comboGeo, clip3);
             MyWrapPanel5.Children.Add(CreateBorderWithClip(comboGeo));
@@ -115,7 +113,7 @@ namespace _20190330_Clip切り抜き
             MyWrapPanel5.Children.Add(CreateBorderWithClip(comboGeo));
 
 
-
+            //  3clip   Intersectと他
             comboGeo = new CombinedGeometry(GeometryCombineMode.Intersect, clip1, clip2);
             comboGeo = new CombinedGeometry(GeometryCombineMode.Exclude, comboGeo, clip3);
             MyWrapPanel6.Children.Add(CreateBorderWithClip(comboGeo));
@@ -135,12 +133,12 @@ namespace _20190330_Clip切り抜き
             var r = new Border
             {
                 Clip = clip,
-                Background = Brushes.MediumSlateBlue,
-                BorderBrush = Brushes.DarkOrange,
+                Background = Brushes.MediumAquamarine,
+                BorderBrush = Brushes.Orchid,
                 BorderThickness = new Thickness(4.0),
                 Width = 100,
                 Height = 100,
-                Margin = new Thickness(2.0,10.0, 2.0, 10.0),
+                Margin = new Thickness(4.0, 10.0, 4.0, 60.0),
             };
             return r;
         }
