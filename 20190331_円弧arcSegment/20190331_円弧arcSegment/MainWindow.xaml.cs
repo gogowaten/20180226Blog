@@ -27,68 +27,59 @@ namespace _20190331_円弧arcSegment
             InitializeComponent();
 
 
-            double radius = 50;
-            Point center = new Point(radius, radius);
+            double radius = 50;//図形の半径
+            double start;//開始角度
+            double stop;//終了角度
+            Point center = new Point(radius, radius);//中心点
+            PathGeometry arcPathGeo;//円弧のPathGeometry
+            PathGeometry peiPathGeo;//扇形のPathGeometry
 
+            //元の四角形
             MyWrapPanel.Children.Add(MakeBorder(radius, null));
 
-            PathGeometry arc = MakeArcPathGeometry(center, radius, 0, 120, SweepDirection.Clockwise);
-            MyWrapPanel2.Children.Add(MakePath(arc));
+            //
+            stop = 120;
+            //回転開始角度0で固定、回転方向時計回りで固定
 
-            PathGeometry pei = MakePieClip(center, radius, 120);
-            MyWrapPanel2.Children.Add(MakePath(pei));
-            MyWrapPanel2.Children.Add(MakeBorder(radius,pei));
+            peiPathGeo = PieGeometry(center, radius, stop);
+            MyWrapPanel2.Children.Add(MakePath(peiPathGeo));
+            MyWrapPanel2.Children.Add(MakeBorder(radius, peiPathGeo));
 
 
-            double start = 330;
-            double stop = 30;
+            start = 0;
+            arcPathGeo = ArcPathGeometry(center, radius, start, stop, SweepDirection.Clockwise);
+            MyWrapPanel2.Children.Add(MakePath(arcPathGeo));
+
+
+
+            start = 330;
+            stop = 30;
             //回転方向固定、時計回り
-            arc = MakeArcPathGeometry(center, radius, start, stop, SweepDirection.Clockwise);
-            pei = MakePieClip(center, radius, start, stop);
+            arcPathGeo = ArcPathGeometry(center, radius, start, stop, SweepDirection.Clockwise);
+            peiPathGeo = PieGeometry(center, radius, start, stop);
 
-            MyWrapPanel2.Children.Add(MakePath(arc));
-            MyWrapPanel2.Children.Add(MakePath(pei));
-            MyWrapPanel2.Children.Add(MakeBorder(radius, pei));
+            MyWrapPanel2.Children.Add(MakePath(arcPathGeo));
+            MyWrapPanel2.Children.Add(MakePath(peiPathGeo));
+            MyWrapPanel2.Children.Add(MakeBorder(radius, peiPathGeo));
 
 
             //回転方向任意
-            arc = MakeArcPathGeometry(center, radius, start, stop, SweepDirection.Counterclockwise);
-            pei = MakePieClip(center, radius, start, stop,SweepDirection.Counterclockwise);
+            arcPathGeo = ArcPathGeometry(center, radius, start, stop, SweepDirection.Counterclockwise);
+            peiPathGeo = PieGeometry(center, radius, start, stop, SweepDirection.Counterclockwise);
 
-            MyWrapPanel2.Children.Add(MakePath(arc));
-            MyWrapPanel2.Children.Add(MakePath(pei));
-            MyWrapPanel2.Children.Add(MakeBorder(radius, pei));
-
-
+            MyWrapPanel2.Children.Add(MakePath(arcPathGeo));
+            MyWrapPanel2.Children.Add(MakePath(peiPathGeo));
+            MyWrapPanel2.Children.Add(MakeBorder(radius, peiPathGeo));
 
 
-            ////arc.Clip = MakeArcClip(center, radius, 100);//開始角度固定0度
-            ////arc.Clip = MakeArcClip(center, radius, 27, 291);
-            //border.Clip = MakePieClip(center, radius, 330, 30, SweepDirection.Counterclockwise);
-            ////arc.Clip = MakeTryangle();//三角形clip、テスト用
-            //MyWrapPanel.Children.Add(border);
 
-            //Path pa;
-            //pa = new Path();
-            //pa.Stroke = Brushes.YellowGreen;
-            //pa.StrokeThickness = 1;
-            //pa.Margin = new Thickness(4);
-            //pa.Data = MakePieClip(center, radius, 330, 30, SweepDirection.Counterclockwise);
-            //MyWrapPanel.Children.Add(pa);
 
-            //pa = new Path();
-            //pa.Stroke = Brushes.YellowGreen;
-            //pa.StrokeThickness = 1;
-            //pa.Margin = new Thickness(4);
-            //pa.Data = MakeArcPathGeometry(center, radius, 330, 30, SweepDirection.Clockwise);
-            //MyWrapPanel.Children.Add(pa);
+            //arc.Clip = MakeArcClip(center, radius, 100);//開始角度固定0度
+            //arc.Clip = MakeArcClip(center, radius, 27, 291);
 
-            //pa = new Path();
-            //pa.Stroke = Brushes.YellowGreen;
-            //pa.StrokeThickness = 1;
-            //pa.Margin = new Thickness(4);
-            //pa.Data = MakeArcPathGeometry(center, radius, 330, 30, SweepDirection.Counterclockwise);
-            //MyWrapPanel.Children.Add(pa);
+            PathGeometry triPathGeo = MakeTryangle();//三角形clip、テスト用
+            MyWrapPanel.Children.Add(MakePath(triPathGeo));
+
 
         }
 
@@ -126,7 +117,7 @@ namespace _20190331_円弧arcSegment
         /// <param name="stopDegrees">終了角度、0以上360以下で指定</param>
         /// <param name="direction">回転方向、Clockwiseが時計回り</param>
         /// <returns></returns>
-        private PathGeometry MakeArcPathGeometry(Point center, double radius, double startDegrees, double stopDegrees, SweepDirection direction)
+        private PathGeometry ArcPathGeometry(Point center, double radius, double startDegrees, double stopDegrees, SweepDirection direction)
         {
             Point start = MakePoint(startDegrees, center, radius);
             Point stop = MakePoint(stopDegrees, center, radius);
@@ -152,7 +143,7 @@ namespace _20190331_円弧arcSegment
         /// <param name="stopDegrees">終了角度、0以上360以下で指定</param>
         /// <param name="direction">回転方向、Clockwiseが時計回り</param>
         /// <returns></returns>
-        private PathGeometry MakePieClip(Point center, double radius, double startDegrees, double stopDegrees, SweepDirection direction)
+        private PathGeometry PieGeometry(Point center, double radius, double startDegrees, double stopDegrees, SweepDirection direction)
         {
             Point start = MakePoint(startDegrees, center, radius);//始点座標
             Point stop = MakePoint(stopDegrees, center, radius);//終点座標
@@ -170,10 +161,10 @@ namespace _20190331_円弧arcSegment
 
             //ArcSegmentとPolyLineSegmentを繋げるPathFigure作成
             var fig = new PathFigure();
-            fig.StartPoint = start;//始点座標
+            fig.StartPoint = start;//始点座標は開始角度
             fig.Segments.Add(arc);//ArcSegment追加
             fig.Segments.Add(ll);//PolyLine
-            fig.IsClosed = true;//Pathを閉じる、これはなくてもいいのかも
+            fig.IsClosed = true;//Pathを閉じる
 
             //PathGeometryを作成してPathFigureを追加して完成
             var pg = new PathGeometry();
@@ -181,6 +172,7 @@ namespace _20190331_円弧arcSegment
             return pg;
         }
 
+        #region 作る過程でできたもの、未使用
 
         //任意の角度開始、回転方向は固定時計回り
         //330~10の場合、330を0にして、そこから40度とかにしたい
@@ -192,7 +184,7 @@ namespace _20190331_円弧arcSegment
         /// <param name="startDegrees">開始角度、0以上360以下で指定</param>
         /// <param name="stopDegrees">終了角度、0以上360以下で指定</param>
         /// <returns></returns>
-        private PathGeometry MakePieClip(Point center, double radius, double startDegrees, double stopDegrees)
+        private PathGeometry PieGeometry(Point center, double radius, double startDegrees, double stopDegrees)
         {
             Point start = MakePoint(startDegrees, center, radius);
             Point stop = MakePoint(stopDegrees, center, radius);
@@ -209,7 +201,7 @@ namespace _20190331_円弧arcSegment
             fig.StartPoint = start;
             fig.Segments.Add(arc);
             fig.Segments.Add(ll);
-            fig.IsClosed = true;//これはなくてもいいのかも
+            fig.IsClosed = true;//線を閉じる
             var pg = new PathGeometry();
             pg.Figures.Add(fig);
             return pg;
@@ -224,7 +216,7 @@ namespace _20190331_円弧arcSegment
         /// <param name="radius">半径</param>
         /// <param name="degrees">終了角度、0以上360以下で指定</param>
         /// <returns></returns>
-        private PathGeometry MakePieClip(Point center, double radius, double degrees)
+        private PathGeometry PieGeometry(Point center, double radius, double degrees)
         {
             Point start = new Point(center.X + radius, center.Y);
 
@@ -242,20 +234,14 @@ namespace _20190331_円弧arcSegment
             fig.StartPoint = start;
             fig.Segments.Add(arc);
             fig.Segments.Add(ll);
-            fig.IsClosed = true;//これはなくてもいいのかも
+            fig.IsClosed = true;//線を閉じる
             var pg = new PathGeometry();
             pg.Figures.Add(fig);
             return pg;
         }
+        #endregion
 
-        ////中心座標、半径、終了角度
-        //private ArcSegment MakeArcSegment(Point center, double radius, double degrees)
-        //{
-        //    if (degrees >= 360) { degrees = 359.99; }
-        //    bool isLarge = (degrees > 180) ? true : false;
-        //    Point stop = MakePoint(degrees, center, radius);
-        //    return new ArcSegment(stop, new Size(radius, radius), 0, isLarge, SweepDirection.Clockwise, true);
-        //}
+
 
         private Point MakePoint(double degrees, Point center, double radius)
         {
@@ -284,6 +270,7 @@ namespace _20190331_円弧arcSegment
             fig.StartPoint = new Point(100, 100);
             fig.Segments.Add(l1);
             fig.Segments.Add(l2);
+            fig.IsClosed = true;//線を閉じる
             var pg = new PathGeometry();
             pg.Figures.Add(fig);
             return pg;
