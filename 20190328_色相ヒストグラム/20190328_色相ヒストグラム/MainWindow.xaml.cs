@@ -171,37 +171,37 @@ namespace _20190328_色相ヒストグラム
             return pc;
         }
 
-        ///// <summary>
-        ///// 切り抜き用のPointリスト作成、レーダーチャートの要素の値にあたる
-        ///// </summary>
-        ///// <param name="pixels">PixelFormats.Bgra32のbyte配列</param>
-        ///// <param name="divCount">色相の分割数、3～360で指定</param>
-        ///// <param name="radius">レーダーチャート画像の辺の半分(半径)を指定</param>
-        ///// <returns></returns>
-        //private List<Point> MakeClipPoints(byte[] pixels, int divCount, int radius)
-        //{
-        //    //色相範囲ごとのピクセル数取得
-        //    //配列の(Index * 360 / divCount)が色相で、値がピクセル数になる            
-        //    int[] table = HuePixelCount(pixels, divCount);
-        //    //最大値は相対的なレーダーチャートの半径にする
-        //    double max = table.Max();
+        /// <summary>
+        /// 切り抜き用のPointリスト作成、レーダーチャートの要素の値にあたる
+        /// </summary>
+        /// <param name="pixels">PixelFormats.Bgra32のbyte配列</param>
+        /// <param name="divCount">色相の分割数、3～360で指定</param>
+        /// <param name="radius">レーダーチャート画像の辺の半分(半径)を指定</param>
+        /// <returns></returns>
+        private List<Point> MakeClipPoints(byte[] pixels, int divCount, int radius)
+        {
+            //色相範囲ごとのピクセル数取得
+            //配列の(Index * 360 / divCount)が色相で、値がピクセル数になる            
+            int[] table = HuePixelCount(pixels, divCount);
+            //最大値は相対的なレーダーチャートの半径にする
+            double max = table.Max();
 
-        //    double distance, radian, x, y;
-        //    double div = 360.0 / divCount;
-        //    var pc = new List<Point>();
-        //    for (int i = 0; i < table.Length; i++)
-        //    {
-        //        radian = Radian(i * div);//色相(角度)をラジアンに変換
-        //        //中心からの距離
-        //        distance = table[i] / max;//最大値を1としたときの今の値
-        //        distance *= radius;//*レーダーチャート画像の半径
-        //        //中心からの位置
-        //        x = Math.Cos(radian) * distance + radius;
-        //        y = Math.Sin(radian) * distance + radius;
-        //        pc.Add(new Point(x, y));
-        //    }
-        //    return pc;
-        //}
+            double distance, radian, x, y;
+            double div = 360.0 / divCount;
+            var pc = new List<Point>();
+            for (int i = 0; i < table.Length; i++)
+            {
+                radian = Radian(i * div);//色相(角度)をラジアンに変換
+                //中心からの距離
+                distance = table[i] / max;//最大値を1としたときの今の値
+                distance *= radius;//*レーダーチャート画像の半径
+                //中心からの位置
+                x = Math.Cos(radian) * distance + radius;
+                y = Math.Sin(radian) * distance + radius;
+                pc.Add(new Point(x, y));
+            }
+            return pc;
+        }
 
 
 

@@ -34,6 +34,7 @@ namespace _20190402_色相円の棒グラフ
             string filePath;
             filePath = @"D:\ブログ用\チェック用2\NEC_6469_2019_03_31_午後わてん.jpg";
             filePath = @"D:\ブログ用\チェック用2\NEC_6459_2019_03_31_午後わてん.jpg";
+            filePath = @"D:\ブログ用\WPF\20190402_test.png";
             (byte[] pixels, BitmapSource bitmap) myImg = MakeBitmapSourceAndByteArray(filePath, PixelFormats.Bgra32, 96, 96);
             MyImage.Source = myImg.bitmap;
 
