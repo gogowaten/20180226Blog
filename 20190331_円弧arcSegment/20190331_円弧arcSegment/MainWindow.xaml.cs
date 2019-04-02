@@ -27,27 +27,27 @@ namespace _20190331_円弧arcSegment
             InitializeComponent();
 
 
-            double radius = 50;//図形の半径
+            double distance = 50;//図形の中心点からの距離
             double start;//開始角度
             double stop;//終了角度
-            Point center = new Point(radius, radius);//中心点
+            Point center = new Point(distance, distance);//中心点
             PathGeometry arcPathGeo;//円弧のPathGeometry
             PathGeometry peiPathGeo;//扇形のPathGeometry
 
             //元の四角形
-            MyWrapPanel.Children.Add(MakeBorder(radius, null));
+            MyWrapPanel.Children.Add(MakeBorder(distance, null));
 
             //
             stop = 120;
             //回転開始角度0で固定、回転方向時計回りで固定
 
-            peiPathGeo = PieGeometry(center, radius, stop);
+            peiPathGeo = PieGeometry(center, distance, stop);
             MyWrapPanel2.Children.Add(MakePath(peiPathGeo));
-            MyWrapPanel2.Children.Add(MakeBorder(radius, peiPathGeo));
+            MyWrapPanel2.Children.Add(MakeBorder(distance, peiPathGeo));
 
 
             start = 0;
-            arcPathGeo = ArcPathGeometry(center, radius, start, stop, SweepDirection.Clockwise);
+            arcPathGeo = ArcPathGeometry(center, distance, start, stop, SweepDirection.Clockwise);
             MyWrapPanel2.Children.Add(MakePath(arcPathGeo));
 
 
@@ -55,27 +55,27 @@ namespace _20190331_円弧arcSegment
             start = 330;
             stop = 30;
             //回転方向固定、時計回り
-            arcPathGeo = ArcPathGeometry(center, radius, start, stop, SweepDirection.Clockwise);
-            peiPathGeo = PieGeometry(center, radius, start, stop);
+            arcPathGeo = ArcPathGeometry(center, distance, start, stop, SweepDirection.Clockwise);
+            peiPathGeo = PieGeometry(center, distance, start, stop);
 
             MyWrapPanel2.Children.Add(MakePath(arcPathGeo));
             MyWrapPanel2.Children.Add(MakePath(peiPathGeo));
-            MyWrapPanel2.Children.Add(MakeBorder(radius, peiPathGeo));
+            MyWrapPanel2.Children.Add(MakeBorder(distance, peiPathGeo));
 
 
             //回転方向任意
-            arcPathGeo = ArcPathGeometry(center, radius, start, stop, SweepDirection.Counterclockwise);
-            peiPathGeo = PieGeometry(center, radius, start, stop, SweepDirection.Counterclockwise);
+            arcPathGeo = ArcPathGeometry(center, distance, start, stop, SweepDirection.Counterclockwise);
+            peiPathGeo = PieGeometry(center, distance, start, stop, SweepDirection.Counterclockwise);
 
             MyWrapPanel2.Children.Add(MakePath(arcPathGeo));
             MyWrapPanel2.Children.Add(MakePath(peiPathGeo));
-            MyWrapPanel2.Children.Add(MakeBorder(radius, peiPathGeo));
+            MyWrapPanel2.Children.Add(MakeBorder(distance, peiPathGeo));
 
 
 
 
-            //arc.Clip = MakeArcClip(center, radius, 100);//開始角度固定0度
-            //arc.Clip = MakeArcClip(center, radius, 27, 291);
+            //arc.Clip = MakeArcClip(center, distance, 100);//開始角度固定0度
+            //arc.Clip = MakeArcClip(center, distance, 27, 291);
 
             PathGeometry triPathGeo = MakeTryangle();//三角形clip、テスト用
             MyWrapPanel.Children.Add(MakePath(triPathGeo));
@@ -83,13 +83,13 @@ namespace _20190331_円弧arcSegment
 
         }
 
-        private Border MakeBorder(double radius, PathGeometry clip)
+        private Border MakeBorder(double side, PathGeometry clip)
         {
             Border border = new Border
             {
                 Background = Brushes.LightCoral,
-                Width = radius * 2.0,
-                Height = radius * 2.0,
+                Width = side * 2.0,
+                Height = side * 2.0,
                 Margin = new Thickness(4),
                 Clip = clip
             };
@@ -112,19 +112,19 @@ namespace _20190331_円弧arcSegment
         /// 円弧のPathGeometryを作成
         /// </summary>
         /// <param name="center">中心座標</param>
-        /// <param name="radius">半径</param>        
+        /// <param name="distance">中心点からの距離</param>        
         /// <param name="startDegrees">開始角度、0以上360以下で指定</param>
         /// <param name="stopDegrees">終了角度、0以上360以下で指定</param>
         /// <param name="direction">回転方向、Clockwiseが時計回り</param>
         /// <returns></returns>
-        private PathGeometry ArcPathGeometry(Point center, double radius, double startDegrees, double stopDegrees, SweepDirection direction)
+        private PathGeometry ArcPathGeometry(Point center, double distance, double startDegrees, double stopDegrees, SweepDirection direction)
         {
-            Point start = MakePoint(startDegrees, center, radius);
-            Point stop = MakePoint(stopDegrees, center, radius);
+            Point start = MakePoint(startDegrees, center, distance);
+            Point stop = MakePoint(stopDegrees, center, distance);
             double diffDegrees = (direction == SweepDirection.Clockwise) ? stopDegrees - startDegrees : startDegrees - stopDegrees;
             if (diffDegrees < 0) { diffDegrees += 360.0; }
             bool isLarge = (diffDegrees > 180) ? true : false;
-            var arc = new ArcSegment(stop, new Size(radius, radius), 0, isLarge, direction, true);
+            var arc = new ArcSegment(stop, new Size(distance, distance), 0, isLarge, direction, true);
             var fig = new PathFigure();
             fig.StartPoint = start;
             fig.Segments.Add(arc);
@@ -138,21 +138,21 @@ namespace _20190331_円弧arcSegment
         /// 扇(pie)型のPathGeometryを作成
         /// </summary>
         /// <param name="center">中心座標</param>
-        /// <param name="radius">半径</param>        
+        /// <param name="distance">中心点からの距離</param>        
         /// <param name="startDegrees">開始角度、0以上360以下で指定</param>
         /// <param name="stopDegrees">終了角度、0以上360以下で指定</param>
         /// <param name="direction">回転方向、Clockwiseが時計回り</param>
         /// <returns></returns>
-        private PathGeometry PieGeometry(Point center, double radius, double startDegrees, double stopDegrees, SweepDirection direction)
+        private PathGeometry PieGeometry(Point center, double distance, double startDegrees, double stopDegrees, SweepDirection direction)
         {
-            Point start = MakePoint(startDegrees, center, radius);//始点座標
-            Point stop = MakePoint(stopDegrees, center, radius);//終点座標
+            Point start = MakePoint(startDegrees, center, distance);//始点座標
+            Point stop = MakePoint(stopDegrees, center, distance);//終点座標
             //開始角度から終了角度までが180度を超えているかの判定
             //超えていたらArcSegmentのIsLargeArcをtrue、なければfalseで作成
             double diffDegrees = (direction == SweepDirection.Clockwise) ? stopDegrees - startDegrees : startDegrees - stopDegrees;
             if (diffDegrees < 0) { diffDegrees += 360.0; }
             bool isLarge = (diffDegrees > 180) ? true : false;
-            var arc = new ArcSegment(stop, new Size(radius, radius), 0, isLarge, direction, true);
+            var arc = new ArcSegment(stop, new Size(distance, distance), 0, isLarge, direction, true);
 
             //ArcSegmentの終点から中心点への直線をPolyLineSegmentで作成
             var ll = new PolyLineSegment();
@@ -180,18 +180,18 @@ namespace _20190331_円弧arcSegment
         /// 扇(pie)型のPathGeometryを作成、回転方向は固定時計回り
         /// </summary>
         /// <param name="center">中心座標</param>
-        /// <param name="radius">半径</param>        
+        /// <param name="distance">中心点からの距離</param>        
         /// <param name="startDegrees">開始角度、0以上360以下で指定</param>
         /// <param name="stopDegrees">終了角度、0以上360以下で指定</param>
         /// <returns></returns>
-        private PathGeometry PieGeometry(Point center, double radius, double startDegrees, double stopDegrees)
+        private PathGeometry PieGeometry(Point center, double distance, double startDegrees, double stopDegrees)
         {
-            Point start = MakePoint(startDegrees, center, radius);
-            Point stop = MakePoint(stopDegrees, center, radius);
+            Point start = MakePoint(startDegrees, center, distance);
+            Point stop = MakePoint(stopDegrees, center, distance);
             double diffDegrees = stopDegrees - startDegrees;
             if (diffDegrees < 0) { diffDegrees += 360.0; }
             bool isLarge = (diffDegrees > 180) ? true : false;
-            var arc = new ArcSegment(stop, new Size(radius, radius), 0, isLarge, SweepDirection.Clockwise, true);
+            var arc = new ArcSegment(stop, new Size(distance, distance), 0, isLarge, SweepDirection.Clockwise, true);
 
             var ll = new PolyLineSegment();
             ll.Points.Add(stop);
@@ -213,18 +213,18 @@ namespace _20190331_円弧arcSegment
         /// 扇(pie)型のPathGeometryを作成、開始角度は0度で固定、開始位置は中心座標から右、回転は時計回りで固定
         /// </summary>
         /// <param name="center">中心座標</param>
-        /// <param name="radius">半径</param>
+        /// <param name="distance">中心点からの距離</param>
         /// <param name="degrees">終了角度、0以上360以下で指定</param>
         /// <returns></returns>
-        private PathGeometry PieGeometry(Point center, double radius, double degrees)
+        private PathGeometry PieGeometry(Point center, double distance, double degrees)
         {
-            Point start = new Point(center.X + radius, center.Y);
+            Point start = new Point(center.X + distance, center.Y);
 
             if (degrees >= 360) { degrees = 359.99; }
             if (degrees < 0) { degrees = 0; }
-            var stop = MakePoint(degrees, center, radius);
+            var stop = MakePoint(degrees, center, distance);
             bool isLarge = (degrees > 180) ? true : false;
-            var arc = new ArcSegment(stop, new Size(radius, radius), 0, isLarge, SweepDirection.Clockwise, true);
+            var arc = new ArcSegment(stop, new Size(distance, distance), 0, isLarge, SweepDirection.Clockwise, true);
 
             var ll = new PolyLineSegment();
             ll.Points.Add(stop);
@@ -242,15 +242,21 @@ namespace _20190331_円弧arcSegment
         #endregion
 
 
-
-        private Point MakePoint(double degrees, Point center, double radius)
+        /// <summary>
+        /// 指定角度、中心点、中心点からの距離の座標を返す
+        /// </summary>
+        /// <param name="degrees">360以上は359.99になる</param>
+        /// <param name="center">中心点</param>
+        /// <param name="distance">中心点からの距離</param>
+        /// <returns></returns>
+        private Point MakePoint(double degrees, Point center, double distance)
         {
             if (degrees >= 360) { degrees = 359.99; }
             var rad = Radian(degrees);
             var cos = Math.Cos(rad);
             var sin = Math.Sin(rad);
-            var x = radius + cos * center.X;
-            var y = radius + sin * center.Y;
+            var x = distance + cos * center.X;
+            var y = distance + sin * center.Y;
             return new Point(x, y);
         }
 
