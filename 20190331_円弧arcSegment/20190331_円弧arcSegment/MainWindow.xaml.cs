@@ -4,6 +4,8 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 //c# - WPF Doughnut ProgressBar - Stack Overflow
 //https://stackoverflow.com/questions/36752183/wpf-doughnut-progressbar
+//WPFで図形の円弧☽🌛、🍕扇形パイ形、🍩ドーナツ型(アーチ形)を表示してみた、ArcSegment(ソフトウェア ) - 午後わてんのブログ - Yahoo!ブログ
+//https://blogs.yahoo.co.jp/gogowaten/15922445.html
 
 namespace _20190331_円弧arcSegment
 {
