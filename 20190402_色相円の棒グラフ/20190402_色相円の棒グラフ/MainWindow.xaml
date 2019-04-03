@@ -8,7 +8,7 @@
         Title="MainWindow" Height="450" Width="820">
   <Grid Background="Gray">
     <DockPanel>
-    <WrapPanel DockPanel.Dock="Left" Name="MyWrapPanel" UseLayoutRounding="True"/>
+    <Grid DockPanel.Dock="Left" Name="MyGrid" UseLayoutRounding="True"/>
     <Image DockPanel.Dock="Right" Name="MyImage" Stretch="Uniform"/>
     </DockPanel>
   </Grid>

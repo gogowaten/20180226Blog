@@ -25,7 +25,7 @@ namespace _20190402_色相円の棒グラフ
         {
             InitializeComponent();
 
-            //MyTest();
+
             MyTest2();
         }
 
@@ -33,101 +33,64 @@ namespace _20190402_色相円の棒グラフ
         {
             string filePath;
             filePath = @"D:\ブログ用\チェック用2\NEC_6469_2019_03_31_午後わてん.jpg";
-            filePath = @"D:\ブログ用\チェック用2\NEC_6459_2019_03_31_午後わてん.jpg";
-            filePath = @"D:\ブログ用\WPF\20190402_test.png";
+            //filePath = @"D:\ブログ用\チェック用2\NEC_6459_2019_03_31_午後わてん.jpg";
+            //filePath = @"D:\ブログ用\WPF\20190402_test.png";
+            //filePath = @"D:\ブログ用\テスト用画像\色相円.png";
+            //filePath=@"D:\ブログ用\WPF\20190403_円弧、パイ、ドーナツ型のPathGeometry27.png";
             (byte[] pixels, BitmapSource bitmap) myImg = MakeBitmapSourceAndByteArray(filePath, PixelFormats.Bgra32, 96, 96);
             MyImage.Source = myImg.bitmap;
 
-            int divCount = 60;
+            int divCount = 36;//分割数
             int[] hues = HuePixelCount(myImg.pixels, divCount);
 
             double max = hues.Max();
-            int radius = 200;
+            double radius = 200.0;
             Point center = new Point(radius, radius);
-            double distance;
-            double divDeg = 360.0 / divCount;            
+
+            double divDeg = 360.0 / divCount;
             var clip = new PathGeometry();
             clip.FillRule = FillRule.Nonzero;
-            for(int i = 0; i < hues.Length; i++)
+            for (int i = 0; i < hues.Length; i++)
             {
-                distance = hues[i] / max * radius;
+                var distance = hues[i] / max * radius;
                 var start = i * divDeg;
-                var stop = start + divDeg;                
+                var stop = start + divDeg;
                 clip.AddGeometry(PieGeometry(center, distance, start, stop, SweepDirection.Clockwise));
 
             }
-            AddHueImage(radius * 2, clip);
+            AddHueImage((int)(radius * 2), clip);
+            MyGrid.Children.Add(MakeLine(center));
+
         }
 
-
-        private void MyTest()
+        private Path MakeLine(Point center)
         {
-            double radius = 100;
-            Point center = new Point(radius, radius);
-            SweepDirection direction = SweepDirection.Clockwise;
 
-            int side = (int)radius * 2;
-            AddHueImage(side, null);
+            var pg = new PathGeometry();
+            pg.AddGeometry(new EllipseGeometry(center, center.X, center.Y));
+            pg.AddGeometry(new EllipseGeometry(center, center.X * 3.0 / 4.0, center.Y * 3.0 / 4.0));
+            pg.AddGeometry(new EllipseGeometry(center, center.X / 2.0, center.Y / 2.0));
+            pg.AddGeometry(new EllipseGeometry(center, center.X / 4.0, center.Y / 4.0));
+            var p = new Path();
+            p.Stroke = Brushes.LightGray;
+            p.StrokeThickness = 1.0;
+            p.Opacity = 0.4;
+            p.Data = pg;
 
-            PathGeometry clip1 = PieGeometry(center, 100, 0, 50, direction);
-            PathGeometry clip2 = PieGeometry(center, 50, 0, 50, direction);
-            PathGeometry clip3 = PieGeometry(center, 70, 50, 100, direction);
-
-            //扇形
-            Path pei;
-            pei = new Path();
-            pei.Data = clip1;
-            pei.Fill = Brushes.Tomato;
-            MyWrapPanel.Children.Add(pei);
-
-            pei = new Path();
-            pei.Data = new CombinedGeometry(clip1, clip3);
-            pei.Fill = Brushes.MediumOrchid;
-            MyWrapPanel.Children.Add(pei);
-
-            RectangleGeometry rectangleGeometry;
-
-
-            AddHueImage(side, clip1);
-            AddHueImage(side, clip2);
-            AddHueImage(side, clip3);
-
-            GeometryGroup geoGroup1 = new GeometryGroup();
-            geoGroup1.Children.Add(clip1);
-            geoGroup1.Children.Add(clip2);
-            AddHueImage(side, geoGroup1);
-
-            GeometryGroup geoGroup2 = new GeometryGroup();
-            geoGroup2.Children.Add(clip2);
-            geoGroup2.Children.Add(clip3);
-            AddHueImage(side, geoGroup2);
-
-
-            //円弧
-            var neko = new Path();
-            neko.Stroke = Brushes.Red;
-            neko.StrokeThickness = 20;
-            neko.Data = ArcPathGeometry(center, 30, 20, 230, direction);
-            MyWrapPanel.Children.Add(neko);
-
-            neko = new Path();
-            neko.Stroke = Brushes.Orange;
-            neko.StrokeThickness = 20;
-            neko.Data = ArcPathGeometry(new Point(30, 30), 30, 20, 230, direction);
-            MyWrapPanel.Children.Add(neko);
-
+            return p;
         }
 
-        private void AddHueImage(int side, Geometry clip)
+        private void AddHueImage(int sideLength, Geometry clip)
         {
             Image img = new Image
             {
-                Source = MakeHueRountRect(side, side),
+                Source = MakeHueRountRect(sideLength, sideLength),
                 Clip = clip,
-                Stretch = Stretch.None
+                Stretch = Stretch.None,
+                VerticalAlignment = VerticalAlignment.Top
             };
 
-            MyWrapPanel.Children.Add(img);
+            MyGrid.Children.Add(img);
         }
 
 
@@ -175,20 +138,17 @@ namespace _20190402_色相円の棒グラフ
             //超えていたらArcSegmentのIsLargeArcをtrue、なければfalseで作成
             double diffDegrees = (direction == SweepDirection.Clockwise) ? stopDegrees - startDegrees : startDegrees - stopDegrees;
             if (diffDegrees < 0) { diffDegrees += 360.0; }
-            bool isLarge = (diffDegrees > 180) ? true : false;
+            bool isLarge = (diffDegrees >= 180) ? true : false;
             var arc = new ArcSegment(stop, new Size(distance, distance), 0, isLarge, direction, true);
 
-            //ArcSegmentの終点から中心点への直線をPolyLineSegmentで作成
-            var ll = new PolyLineSegment();
-            ll.Points.Add(stop);
-            ll.Points.Add(center);
-
-            //ArcSegmentとPolyLineSegmentを繋げるPathFigure作成
+            //PathFigure作成
+            //ArcSegmentとその両端と中心点をつなぐ直線LineSegment
             var fig = new PathFigure();
-            fig.StartPoint = start;//始点座標は開始角度
+            fig.StartPoint = start;//始点座標
             fig.Segments.Add(arc);//ArcSegment追加
-            fig.Segments.Add(ll);//PolyLine
-            fig.IsClosed = true;//Pathを閉じる
+            fig.Segments.Add(new LineSegment(center, true));//円弧の終点から中心への直線
+            fig.Segments.Add(new LineSegment(start, true));//中心から円弧の始点への直線
+            fig.IsClosed = true;//Pathを閉じる、必須
 
             //PathGeometryを作成してPathFigureを追加して完成
             var pg = new PathGeometry();
