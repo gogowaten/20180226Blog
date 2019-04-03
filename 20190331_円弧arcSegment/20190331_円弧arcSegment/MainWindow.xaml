@@ -7,9 +7,8 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="500" Width="400">
   <Grid Background="Snow">
-    <StackPanel>
-      <WrapPanel Name="MyWrapPanel"/>
-      <WrapPanel Name="MyWrapPanel2"/>
-    </StackPanel>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+      <StackPanel Name="MyStackPanel1"/>
+    </ScrollViewer>
   </Grid>
 </Window>
