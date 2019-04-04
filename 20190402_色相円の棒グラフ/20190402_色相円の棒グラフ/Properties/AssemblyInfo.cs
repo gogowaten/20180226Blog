@@ -12,7 +12,7 @@ using System.Windows;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("20190402_色相円の棒グラフ")]
-[assembly: AssemblyCopyright("Copyright ©  2019")]
+[assembly: AssemblyCopyright("Copyright ©  2019 gogowaten")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

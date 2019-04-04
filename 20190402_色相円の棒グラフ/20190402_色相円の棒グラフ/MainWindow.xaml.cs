@@ -21,49 +21,87 @@ namespace _20190402_色相円の棒グラフ
     /// </summary>
     public partial class MainWindow : Window
     {
+
+        const double MyRadius = 200.0;//色相画像半径
+        Point MyCenter = new Point(MyRadius, MyRadius);//色相画像中心座標
+        byte[] MyPixels;//画像のPixelの色情報、BitmapSourceのCopyPixelsより
+        double[] MyHuesList;//全ピクセルの色相の配列
+        int DivideCount = 120;//色相分割数
+
         public MainWindow()
         {
             InitializeComponent();
 
+            this.AllowDrop = true;
+            Drop += MainWindow_Drop;
 
-            MyTest2();
+            MyGrid.Children.Add(MakeAuxLine(MyCenter));
+            MyHueImage.Source = MakeHueBitmap((int)(MyRadius * 2));
+            MyHueImage.Clip = new RectangleGeometry(new Rect(0, 0, 0, 0));
+
+
         }
 
-        private void MyTest2()
+        #region イベント
+        private void RadioButton_Click(object sender, RoutedEventArgs e)
         {
-            string filePath;
-            filePath = @"D:\ブログ用\チェック用2\NEC_6469_2019_03_31_午後わてん.jpg";
-            //filePath = @"D:\ブログ用\チェック用2\NEC_6459_2019_03_31_午後わてん.jpg";
-            //filePath = @"D:\ブログ用\WPF\20190402_test.png";
-            //filePath = @"D:\ブログ用\テスト用画像\色相円.png";
-            //filePath=@"D:\ブログ用\WPF\20190403_円弧、パイ、ドーナツ型のPathGeometry27.png";
-            (byte[] pixels, BitmapSource bitmap) myImg = MakeBitmapSourceAndByteArray(filePath, PixelFormats.Bgra32, 96, 96);
-            MyImage.Source = myImg.bitmap;
+            if (MyPixels == null) { return; }
+            RadioButton rb = sender as RadioButton;
+            int divCount = int.Parse((string)rb.Content);
+            DivideCount = divCount;
+            MyHueImage.Clip = MakeClip(HuePixelCount(MyHuesList, divCount));
+        }
 
-            int divCount = 36;//分割数
-            int[] hues = HuePixelCount(myImg.pixels, divCount);
+        private void MainWindow_Drop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop) == false) { return; }
+            string[] filePath = (string[])e.Data.GetData(DataFormats.FileDrop);
+            var (pixels, bitmap) = MakeBitmapSourceAndByteArray(filePath[0], PixelFormats.Bgra32, 96, 96);
 
+            if (bitmap == null)
+            {
+                MessageBox.Show("画像ファイルじゃないみたい");
+            }
+            else
+            {
+                MyPixels = pixels;
+                MyHuesList = GetHueList(pixels);
+                var neko = HuePixelCount(MyHuesList, DivideCount);
+                MyHueImage.Clip = MakeClip(neko);
+                MyImage.Source = bitmap;
+            }
+        }
+        #endregion
+
+
+        //色相範囲ごとに仕分けられたListから🍕pie形のPathGeometry作成
+        private Geometry MakeClip(int[] hues)
+        {
             double max = hues.Max();
-            double radius = 200.0;
-            Point center = new Point(radius, radius);
+            //無彩色画像はmaxが0になっているはず、なので全クリップを返して終わり
+            if (max == 0) { return new RectangleGeometry(new Rect(0, 0, 0, 0)); }
 
-            double divDeg = 360.0 / divCount;
+            Point center = new Point(MyRadius, MyRadius);
+            double divDeg = 360.0 / hues.Length;//位置分割あたりの角度
+            double divdivDeg = divDeg / 2.0;//その半分の角度
+            //各分割角度を中心にして、そこから均等に左右に分けるために使う
+            
             var clip = new PathGeometry();
             clip.FillRule = FillRule.Nonzero;
             for (int i = 0; i < hues.Length; i++)
             {
-                var distance = hues[i] / max * radius;
-                var start = i * divDeg;
+                var distance = hues[i] / max * MyRadius;//最大値からの割合を距離にする
+                var centerDeg = i * divDeg;//範囲の中間角度、配列のIndexが色相(角度)の割合になっている
+                var start = centerDeg - divdivDeg;//範囲の半分の角度マイナスが開始角度になる
                 var stop = start + divDeg;
+                //🍕PathGeometry作成して追加
                 clip.AddGeometry(PieGeometry(center, distance, start, stop, SweepDirection.Clockwise));
-
             }
-            AddHueImage((int)(radius * 2), clip);
-            MyGrid.Children.Add(MakeLine(center));
-
+            return clip;
         }
 
-        private Path MakeLine(Point center)
+        //補助線表示用のPath作成
+        private Path MakeAuxLine(Point center)
         {
 
             var pg = new PathGeometry();
@@ -80,52 +118,40 @@ namespace _20190402_色相円の棒グラフ
             return p;
         }
 
-        private void AddHueImage(int sideLength, Geometry clip)
-        {
-            Image img = new Image
-            {
-                Source = MakeHueRountRect(sideLength, sideLength),
-                Clip = clip,
-                Stretch = Stretch.None,
-                VerticalAlignment = VerticalAlignment.Top
-            };
-
-            MyGrid.Children.Add(img);
-        }
 
 
         #region PathGeometry
-        /// <summary>
-        /// 円弧のPathGeometryを作成
-        /// </summary>
-        /// <param name="center">中心座標</param>
-        /// <param name="distance">中心点からの距離</param>        
-        /// <param name="startDegrees">開始角度、0以上360以下で指定</param>
-        /// <param name="stopDegrees">終了角度、0以上360以下で指定</param>
-        /// <param name="direction">回転方向、Clockwiseが時計回り</param>
-        /// <returns></returns>
-        private PathGeometry ArcPathGeometry(Point center, double distance, double startDegrees, double stopDegrees, SweepDirection direction)
-        {
-            Point start = MakePoint(startDegrees, center, distance);
-            Point stop = MakePoint(stopDegrees, center, distance);
-            double diffDegrees = (direction == SweepDirection.Clockwise) ? stopDegrees - startDegrees : startDegrees - stopDegrees;
-            if (diffDegrees < 0) { diffDegrees += 360.0; }
-            bool isLarge = (diffDegrees > 180) ? true : false;
-            var arc = new ArcSegment(stop, new Size(distance, distance), 0, isLarge, direction, true);
-            var fig = new PathFigure();
-            fig.StartPoint = start;
-            fig.Segments.Add(arc);
-            var pg = new PathGeometry();
-            pg.Figures.Add(fig);
-            return pg;
-        }
+        ///// <summary>
+        ///// 円弧のPathGeometryを作成
+        ///// </summary>
+        ///// <param name="center">中心座標</param>
+        ///// <param name="distance">中心点からの距離</param>        
+        ///// <param name="startDegrees">開始角度、0以上360以下で指定</param>
+        ///// <param name="stopDegrees">終了角度、0以上360以下で指定</param>
+        ///// <param name="direction">回転方向、Clockwiseが時計回り</param>
+        ///// <returns></returns>
+        //private PathGeometry ArcPathGeometry(Point center, double distance, double startDegrees, double stopDegrees, SweepDirection direction)
+        //{
+        //    Point start = MakePoint(startDegrees, center, distance);
+        //    Point stop = MakePoint(stopDegrees, center, distance);
+        //    double diffDegrees = (direction == SweepDirection.Clockwise) ? stopDegrees - startDegrees : startDegrees - stopDegrees;
+        //    if (diffDegrees < 0) { diffDegrees += 360.0; }
+        //    bool isLarge = (diffDegrees > 180) ? true : false;
+        //    var arc = new ArcSegment(stop, new Size(distance, distance), 0, isLarge, direction, true);
+        //    var fig = new PathFigure();
+        //    fig.StartPoint = start;
+        //    fig.Segments.Add(arc);
+        //    var pg = new PathGeometry();
+        //    pg.Figures.Add(fig);
+        //    return pg;
+        //}
 
         //完成形、回転方向を指定できるように
         /// <summary>
         /// 扇(pie)型のPathGeometryを作成
         /// </summary>
         /// <param name="center">中心座標</param>
-        /// <param name="distance">中心点からの距離</param>        
+        /// <param name="distance">中心点からの距離</param>
         /// <param name="startDegrees">開始角度、0以上360以下で指定</param>
         /// <param name="stopDegrees">終了角度、0以上360以下で指定</param>
         /// <param name="direction">回転方向、Clockwiseが時計回り</param>
@@ -187,24 +213,23 @@ namespace _20190402_色相円の棒グラフ
         /// pixelsFormats.Rgb24の色相環作成用のBitmap作成
         /// 右が赤、時計回り
         /// </summary>
-        /// <param name="width"></param>
-        /// <param name="height"></param>
+        /// <param name="size"></param>        
         /// <returns></returns>
-        private BitmapSource MakeHueRountRect(int width, int height)
+        private BitmapSource MakeHueBitmap(int size)
         {
-            var wb = new WriteableBitmap(width, height, 96, 96, PixelFormats.Rgb24, null);
+            var wb = new WriteableBitmap(size, size, 96, 96, PixelFormats.Rgb24, null);
             //色情報用のバイト配列作成
             int stride = wb.BackBufferStride;//横一列のバイト数、24bit = 8byteに横ピクセル数をかけた値
-            byte[] pixels = new byte[height * stride * 8];//*8はbyteをbitにするから
+            byte[] pixels = new byte[size * stride * 8];//*8はbyteをbitにするから
 
             //100ｘ100のとき中心は50，50
             //ピクセル位置と画像の中心との差
-            int xDiff = width / 2;
-            int yDiff = height / 2;
+            double xDiff = size / 2.0;
+            double yDiff = size / 2.0;
             int p = 0;//今のピクセル位置の配列での位置
-            for (int y = 0; y < height; y++)//y座標
+            for (int y = 0; y < size; y++)//y座標
             {
-                for (int x = 0; x < width; x++)//x座標
+                for (int x = 0; x < size; x++)//x座標
                 {
                     //今の位置の角度を取得、これが色相になる
                     double radian = Math.Atan2(y - yDiff, x - xDiff);
@@ -219,7 +244,7 @@ namespace _20190402_色相円の棒グラフ
                 }
             }
             //バイト配列をBitmapに書き込み
-            wb.WritePixels(new Int32Rect(0, 0, width, height), pixels, stride, 0);
+            wb.WritePixels(new Int32Rect(0, 0, size, size), pixels, stride, 0);
             return wb;
         }
 
@@ -237,24 +262,37 @@ namespace _20190402_色相円の棒グラフ
         #region 画像系
 
 
+        //hueのリスト作成
+        private double[] GetHueList(byte[] pixels)
+        {
+            double[] hueList = new double[pixels.Length / 4];
+            int count = 0;
+            for (int i = 0; i < pixels.Length; i += 4)
+            {
+                //ピクセルの色相取得
+                hueList[count] = HSV.Color2HSV(pixels[i + 2], pixels[i + 1], pixels[i]).Hue;
+                count++;
+                //if (hue == 360.0) { continue; }//色相360は無彩色なのでパス
+            }
+            return hueList;
+        }
 
         /// <summary>
-        /// 色相の分割範囲ごとのピクセル数をカウント、
+        /// GethueListから作成した色相の配列から色相の分割範囲ごとの数をカウント、
         /// 分割数divCountが4なら、360/4＝90度毎、範囲0(315~45)、範囲1(45~135)、範囲2(135~225)、範囲3(225~315)、
         /// 配列の「Index*360/分割数」が色相になる、4分割でIndex3なら、3*360/4=270、Index3の要素は色相270の範囲のもの
-        /// </summary>
-        /// <param name="pixels">PixelFormats.Bgra32のbyte配列</param>
-        /// <param name="divCount">3～360で指定、色相分割数</param>
+        /// <param name="hueList">色相の配列</param>
+        /// <param name="divCount">分割数</param>
         /// <returns></returns>
-        private int[] HuePixelCount(byte[] pixels, int divCount)
+        private int[] HuePixelCount(double[] hueList, int divCount)
         {
             int[] table = new int[divCount];
             double div = 360.0 / divCount;
             double divdiv = div / 2.0;
-            for (int i = 0; i < pixels.Length; i += 4)
+            for (int i = 0; i < hueList.Length; i++)
             {
                 //ピクセルの色相取得
-                double hue = HSV.Color2HSV(pixels[i + 2], pixels[i + 1], pixels[i]).Hue;
+                double hue = hueList[i];
                 if (hue == 360.0) { continue; }//色相360は無彩色なのでパス
 
                 //色相の範囲ごとにカウント
@@ -266,6 +304,32 @@ namespace _20190402_色相円の棒グラフ
         }
 
 
+        ///// <summary>
+        ///// 色相の分割範囲ごとのピクセル数をカウント、
+        ///// 分割数divCountが4なら、360/4＝90度毎、範囲0(315~45)、範囲1(45~135)、範囲2(135~225)、範囲3(225~315)、
+        ///// 配列の「Index*360/分割数」が色相になる、4分割でIndex3なら、3*360/4=270、Index3の要素は色相270の範囲のもの
+        ///// </summary>
+        ///// <param name="pixels">PixelFormats.Bgra32のbyte配列</param>
+        ///// <param name="divCount">3～360で指定、色相分割数</param>
+        ///// <returns></returns>
+        //private int[] HuePixelCount(byte[] pixels, int divCount)
+        //{
+        //    int[] table = new int[divCount];
+        //    double div = 360.0 / divCount;
+        //    double divdiv = div / 2.0;
+        //    for (int i = 0; i < pixels.Length; i += 4)
+        //    {
+        //        //ピクセルの色相取得
+        //        double hue = HSV.Color2HSV(pixels[i + 2], pixels[i + 1], pixels[i]).Hue;
+        //        if (hue == 360.0) { continue; }//色相360は無彩色なのでパス
+
+        //        //色相の範囲ごとにカウント
+        //        hue = Math.Floor((hue + divdiv) / div);
+        //        hue = (hue >= divCount) ? 0 : hue;
+        //        table[(int)hue]++;
+        //    }
+        //    return table;
+        //}
 
 
         /// <summary>
