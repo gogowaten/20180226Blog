@@ -13,6 +13,16 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using MyHSV;
+//色相環画像作成、WriteableBitmapとImage.Clip ( ソフトウェア ) - 午後わてんのブログ - Yahoo!ブログ
+//https://blogs.yahoo.co.jp/gogowaten/15913863.html
+//画像の色相の状態をレーダーチャートふうに表示してみた(ソフトウェア ) - 午後わてんのブログ - Yahoo!ブログ
+//https://blogs.yahoo.co.jp/gogowaten/15920156.html
+//WPFで図形の円弧☽🌛、🍕扇形パイ形、🍩ドーナツ型(アーチ形)を表示してみた、ArcSegment(ソフトウェア ) - 午後わてんのブログ - Yahoo!ブログ
+//https://blogs.yahoo.co.jp/gogowaten/15922445.html
+
+
+//画像の色相を円形ヒストグラム、扇形(パイ型)グラフで表示するアプリできた(ソフトウェア ) - 午後わてんのブログ - Yahoo!ブログ
+//https://blogs.yahoo.co.jp/gogowaten/15923169.html
 
 namespace _20190402_色相円の棒グラフ
 {
