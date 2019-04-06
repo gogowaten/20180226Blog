@@ -66,7 +66,7 @@ namespace _20190402_色相円の棒グラフ
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop) == false) { return; }
             string[] filePath = (string[])e.Data.GetData(DataFormats.FileDrop);
-            var (pixels, bitmap) = MakeBitmapSourceAndByteArray(filePath[0], PixelFormats.Bgra32, 96, 96);
+            (byte[] pixels, BitmapSource bitmap) = MakeBitmapSourceAndByteArray(filePath[0], PixelFormats.Bgra32, 96, 96);
 
             if (bitmap == null)
             {
