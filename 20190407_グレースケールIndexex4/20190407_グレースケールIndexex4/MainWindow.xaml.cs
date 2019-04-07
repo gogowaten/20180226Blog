@@ -48,19 +48,6 @@ namespace _20190407_グレースケールIndexex4
         {
             BitmapSource source = (BitmapSource)MyImage.Source;
             SaveImage(new FormatConvertedBitmap(source, PixelFormats.Indexed4, null, 0));
-            //var aaa = new FormatConvertedBitmap(source, MyPixelFormat, MakePalette(ColorBit), 0);
-            //var bbb = new FormatConvertedBitmap(source, MyPixelFormat, MakePalette2(ColorBit), 0);
-
-            //var ddd = new FormatConvertedBitmap(source, MyPixelFormat, null, 0);
-
-            //var fff1 = new FormatConvertedBitmap(source, MyPixelFormat, new BitmapPalette(source, GetMaxColorCount()), 0);
-            //var fff2 = new FormatConvertedBitmap(source, MyPixelFormat, new BitmapPalette(source, (int)Math.Pow(2, ColorBit)), 0);
-
-            //int stride = source.PixelWidth;
-            //var vv = new byte[stride * source.PixelHeight];
-            //fff2.CopyPixels(vv, stride, 0);
-
-            //SaveImage(ddd);
         }
 
         private void MainWindow_Drop(object sender, DragEventArgs e)
