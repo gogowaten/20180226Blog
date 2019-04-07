@@ -23,9 +23,10 @@ namespace _20190406_減色グレースケール
         string ImageFileFullPath;
         int ColorBit = 8;//1~8
         PixelFormat MyPixelFormat = PixelFormats.Indexed8;
-        BitmapSource MyBitmapSource;
+        //BitmapSource MyBitmapGrayOrigin;
+        BitmapSource MyBitmap;
         byte[] MyPixels;
-        BitmapPalette MyPalette;
+        //BitmapPalette MyPalette;
 
         public MainWindow()
         {
@@ -37,7 +38,7 @@ namespace _20190406_減色グレースケール
             MyTest(ColorBit);
         }
 
-        private void SetPalette(int bit)
+        private BitmapPalette MakePalette(int bit)
         {
             double rate = 255.0 / (Math.Pow(2, bit) - 1);
             int length = (int)Math.Pow(2, bit);
@@ -45,19 +46,69 @@ namespace _20190406_減色グレースケール
             byte value;
             for (int i = 0; i < length; i++)
             {
-                value =(byte)( rate * i);
+                value = (byte)(rate * i);
                 list.Add(Color.FromRgb(value, value, value));
             }
             BitmapPalette palette = new BitmapPalette(list);
-            MyPalette = palette;
+            return palette;
         }
+
+        private BitmapPalette MakePalette2(int bit)
+        {
+            //1bit  2
+            //2bit  4
+            //3bit  8
+            //4bit  16
+            //5bit  32
+            //6bit  64
+            //7bit  128
+            //8bit  256
+
+            //index1    1bit
+            //index2    2bit
+            //index4    3~4bit
+            //index8    5~8bit
+
+            int div;
+            if (bit == 1) { return null; }
+            else if (bit == 2) { div = 2; }
+            else div = (bit == 3 | bit == 4) ? 4 : 8;
+
+            double rate = 255.0 / (Math.Pow(2, div) - 1);
+            int length = (int)Math.Pow(2, div);
+            var list = new List<Color>();
+            byte value;
+            for (int i = 0; i < length; i++)
+            {
+                value = (byte)(rate * i);
+                list.Add(Color.FromRgb(value, value, value));
+            }
+            BitmapPalette palette = new BitmapPalette(list);
+            return palette;
+        }
+
         private void MainWindow_KeyDown(object sender, KeyEventArgs e)
         {
             var k = e.Key;
             var km = Keyboard.Modifiers;
 
+            if ((km == ModifierKeys.Control) & (k == Key.S))
+            {
+                BitmapSource source = (BitmapSource)MyImage.Source;
+                var aaa = new FormatConvertedBitmap(source, MyPixelFormat, MakePalette(ColorBit), 0);
+                var bbb = new FormatConvertedBitmap(source, MyPixelFormat, MakePalette2(ColorBit), 0);
 
-            if ((km == ModifierKeys.Control) & (k == Key.S)) { SaveImage((BitmapSource)MyImage.Source); }
+                var ddd = new FormatConvertedBitmap(source, MyPixelFormat, null, 0);
+
+                var fff1 = new FormatConvertedBitmap(source, MyPixelFormat, new BitmapPalette(source, GetMaxColorCount()), 0);
+                var fff2 = new FormatConvertedBitmap(source, MyPixelFormat, new BitmapPalette(source, (int)Math.Pow(2,ColorBit)), 0);
+
+                int stride = source.PixelWidth;
+                var vv = new byte[stride * source.PixelHeight];
+                fff2.CopyPixels(vv, stride, 0);
+                
+                SaveImage(ddd);
+            }
 
         }
 
@@ -65,55 +116,45 @@ namespace _20190406_減色グレースケール
         {
             string filePath;
             filePath = @"D:\ブログ用\テスト用画像\NEC_8041_2017_05_09_午後わてん_96dpi.jpg";
-            (MyPixels, MyBitmapSource) = MakeBitmapSourceAndByteArray(filePath, PixelFormats.Gray8, 96, 96);
-            if (MyBitmapSource == null) { return; }
+            (MyPixels, MyBitmap) = MakeBitmapSourceAndByteArray(filePath, PixelFormats.Gray8, 96, 96);
+            if (MyBitmap == null) { return; }
 
             ImageFileFullPath = filePath;
-            MyImage.Source = ToGray(MyPixels, ColorBit, MyBitmapSource);
+            MyImage.Source = ToReduceColor(MyPixels, ColorBit, MyBitmap);
         }
 
-        private BitmapSource ToGray(byte[] pixels, int bit, BitmapSource bitmap)
+        private BitmapSource ToReduceColor(byte[] pixels, int bit, BitmapSource bitmap)
         {
-            var vv = new byte[pixels.Length];
+            var pixelsNew = new byte[pixels.Length];
             var table = new byte[256];
-            double rate = 255.0 / (Math.Pow(2, bit) - 1);
+            double step = 255.0 / (Math.Pow(2, bit) - 1);//1階調ぶんの値
             int shift = 8 - bit;
             for (int i = 0; i < 256; i++)
             {
-                table[i] = (byte)((i >> shift) * rate);
+                table[i] = (byte)((i >> shift) * step);
             }
+
             for (int i = 0; i < pixels.Length; i++)
             {
-                vv[i] = table[pixels[i]];
+                pixelsNew[i] = table[pixels[i]];
             }
-            SetPalette(ColorBit);
-            //ひとまずわかりやすいGray8でBitmap作成してからPixelFormatsを変換
-            //var source = BitmapSource.Create(bitmap.PixelWidth, bitmap.PixelHeight, 96, 96, PixelFormats.Gray8, null, vv, bitmap.PixelWidth);
-            var source = BitmapSource.Create(bitmap.PixelWidth, bitmap.PixelHeight, 96, 96, PixelFormats.Indexed8, MyPalette, vv, bitmap.PixelWidth);
 
-            var g8 = new byte[vv.Length];
-            source.CopyPixels(g8, bitmap.PixelWidth, 0);
-            //var neko = MyPalette;
-            //source= BitmapSource.Create(bitmap.PixelWidth, bitmap.PixelHeight, 96, 96, PixelFormats.Gray8, palette, vv, bitmap.PixelWidth);
-            var fcb = new FormatConvertedBitmap(source, MyPixelFormat, MyPalette, 0);
-            var fpi = new byte[vv.Length];
-            fcb.CopyPixels(fpi, bitmap.PixelWidth, 0);
-            var fcb2= new FormatConvertedBitmap(source, MyPixelFormat, null, 0);
-            var fpi2 = new byte[vv.Length];
-            fcb2.CopyPixels(fpi2, bitmap.PixelWidth, 0);
-            var fcb3 = new FormatConvertedBitmap(source, MyPixelFormat, new BitmapPalette(source,GetColorCount()), 0);
-            var fpi3 = new byte[vv.Length];
-            fcb3.CopyPixels(fpi3, bitmap.PixelWidth, 0);
+            //SetPalette(ColorBit);
+            //SetPalette2(ColorBit);
 
+            var source = BitmapSource.Create(bitmap.PixelWidth, bitmap.PixelHeight, 96, 96, PixelFormats.Gray8, null, pixelsNew, bitmap.PixelWidth);
             return source;
 
         }
+
+
+
         #region
 
-        private int GetColorCount()
+        private int GetMaxColorCount()
         {
             int count;
-            if (MyPixelFormat == PixelFormats.BlackWhite) { count = 2; }
+            if (MyPixelFormat == PixelFormats.BlackWhite | MyPixelFormat == PixelFormats.Indexed1) { count = 2; }
             else if (MyPixelFormat == PixelFormats.Indexed2) { count = 4; }
             else if (MyPixelFormat == PixelFormats.Indexed4) { count = 16; }
             else { count = 256; }
@@ -133,8 +174,8 @@ namespace _20190406_減色グレースケール
             {
                 ImageFileFullPath = filePath[0];
                 MyPixels = pixels;
-                MyBitmapSource = bitmap;
-                MyImage.Source = ToGray(pixels, ColorBit, bitmap);
+                MyBitmap = bitmap;
+                MyImage.Source = ToReduceColor(pixels, ColorBit, bitmap);
             }
         }
 
@@ -216,13 +257,13 @@ namespace _20190406_減色グレースケール
             ColorBit = int.Parse((string)r.Content);
             SetPixelFormat();
             //var neko = ToGray(MyPixels, ColorBit, MyBitmapSource);
-            MyImage.Source = ToGray(MyPixels, ColorBit, MyBitmapSource);
+            MyImage.Source = ToReduceColor(MyPixels, ColorBit, MyBitmap);
         }
 
         private void SetPixelFormat()
         {
 
-            if (ColorBit == 1) { MyPixelFormat = PixelFormats.BlackWhite; }
+            if (ColorBit == 1) { MyPixelFormat = PixelFormats.Indexed1; }
             else if (ColorBit == 2) { MyPixelFormat = PixelFormats.Indexed2; }
             else
             {
