@@ -92,7 +92,7 @@ namespace _20190402_色相円の棒グラフ
             if (max == 0) { return new RectangleGeometry(new Rect(0, 0, 0, 0)); }
 
             Point center = new Point(MyRadius, MyRadius);
-            double divDeg = 360.0 / hues.Length;//位置分割あたりの角度
+            double divDeg = 360.0 / hues.Length;//  1分割あたりの角度
             double divdivDeg = divDeg / 2.0;//その半分の角度
             //各分割角度を中心にして、そこから均等に左右に分けるために使う
             
