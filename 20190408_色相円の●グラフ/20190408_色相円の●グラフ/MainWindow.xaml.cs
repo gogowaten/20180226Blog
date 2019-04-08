@@ -7,6 +7,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using MyHSV;
 
+//画像の色相をバブルチャート風に表示するアプリ(ソフトウェア ) - 午後わてんのブログ - Yahoo!ブログ
+//https://blogs.yahoo.co.jp/gogowaten/15926942.html
 
 namespace _20190408_色相円の_グラフ
 {
