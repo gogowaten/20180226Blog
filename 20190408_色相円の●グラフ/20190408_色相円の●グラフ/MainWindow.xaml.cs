@@ -1,16 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 using MyHSV;
 
@@ -50,7 +43,7 @@ namespace _20190408_色相円の_グラフ
             RadioButton rb = sender as RadioButton;
             int divCount = int.Parse((string)rb.Content);
             DivideCount = divCount;
-            MyHueImage.Clip = MakeClip(HuePixelCount(MyHuesList, divCount));
+            MyHueImage.Clip = MakeClipEllipse(HuePixelCount(MyHuesList, divCount));
         }
 
         private void MainWindow_Drop(object sender, DragEventArgs e)
@@ -68,39 +61,18 @@ namespace _20190408_色相円の_グラフ
                 MyPixels = pixels;
                 MyHuesList = GetHueList(pixels);
                 var neko = HuePixelCount(MyHuesList, DivideCount);
-                MyHueImage.Clip = MakeClip(neko);
+                MyHueImage.Clip = MakeClipEllipse(neko);
                 MyImage.Source = bitmap;
             }
         }
         #endregion
 
 
-        //色相範囲ごとに仕分けられたListから??pie形のPathGeometry作成
-        private Geometry MakeClip(int[] hues)
-        {
-            double max = hues.Max();
-            //無彩色画像はmaxが0になっているはず、なので全クリップを返して終わり
-            if (max == 0) { return new RectangleGeometry(new Rect(0, 0, 0, 0)); }
-
-            Point center = new Point(MyRadius, MyRadius);
-            double divDeg = 360.0 / hues.Length;//位置分割あたりの角度
-            double divdivDeg = divDeg / 2.0;//その半分の角度
-                                            //各分割角度を中心にして、そこから均等に左右に分けるために使う
-
-            var clip = new PathGeometry();
-            clip.FillRule = FillRule.Nonzero;
-            for (int i = 0; i < hues.Length; i++)
-            {
-                var distance = hues[i] / max * MyRadius;//最大値からの割合を距離にする
-                var centerDeg = i * divDeg;//範囲の中間角度、配列のIndexが色相(角度)の割合になっている
-                var start = centerDeg - divdivDeg;//範囲の半分の角度マイナスが開始角度になる
-                var stop = start + divDeg;
-                //??PathGeometry作成して追加
-                clip.AddGeometry(PieGeometry(center, distance, start, stop, SweepDirection.Clockwise));
-            }
-            return clip;
-        }
-
+        /// <summary>
+        /// EllipseGeometryのクリップ作成
+        /// </summary>
+        /// <param name="hues">色相範囲ごとのピクセル数カウントした配列</param>
+        /// <returns></returns>
         private Geometry MakeClipEllipse(int[] hues)
         {
             double max = hues.Max();
@@ -108,20 +80,36 @@ namespace _20190408_色相円の_グラフ
             if (max == 0) { return new RectangleGeometry(new Rect(0, 0, 0, 0)); }
 
             Point center = new Point(MyRadius, MyRadius);
-            double divDeg = 360.0 / hues.Length;//位置分割あたりの角度
-            double divdivDeg = divDeg / 2.0;//その半分の角度
-                                            //各分割角度を中心にして、そこから均等に左右に分けるために使う
-
+            double divDeg = 360.0 / hues.Length;//  1分割あたりの角度
+           
             var clip = new PathGeometry();
             clip.FillRule = FillRule.Nonzero;
+            //●の位置、中心から0.5～0.75の位置に配置
+            double minDistance = MyRadius * 0.5;
+            double diffDistance = MyRadius * 0.75 - minDistance;
+            //●の面積、色相円の0.01～0.00001倍
+            double maxArea = (Math.PI * MyRadius * MyRadius) * 0.01;
+            double minArea = (Math.PI * MyRadius * MyRadius) * 0.00001;
+            double diffArea = maxArea - minArea;
+
+            //色相カウント数から●作成
+            //配列のIndexが色相
             for (int i = 0; i < hues.Length; i++)
             {
-                var distance = hues[i] / max * MyRadius;//最大値からの割合を距離にする
-                var centerDeg = i * divDeg;//範囲の中間角度、配列のIndexが色相(角度)の割合になっている
-                var start = centerDeg - divdivDeg;//範囲の半分の角度マイナスが開始角度になる
-                var stop = start + divDeg;
-                //??PathGeometry作成して追加
-                clip.AddGeometry(PieGeometry(center, distance, start, stop, SweepDirection.Clockwise));
+                //面積から半径を求める
+                //面積=   パイ*半径^2
+                //パイ*半径^2=  面積
+                //半径^2= 面積/パイ
+                //半径=   √(面積/パイ)
+
+                //●の面積と、その半径
+                double area = minArea + (diffArea * hues[i] / max);
+                double radius = Math.Sqrt(area / Math.PI);
+                //色相円中心からの距離、値が大きいほど遠くへ
+                double distance = minDistance + (diffDistance * hues[i] / max);
+                double degrees = i * divDeg;//●表示の角度
+                Point clipCenter = MakePoint(degrees, center, distance);
+                clip.AddGeometry(new EllipseGeometry(clipCenter, radius, radius));
             }
             return clip;
         }
@@ -149,41 +137,7 @@ namespace _20190408_色相円の_グラフ
 
         #region PathGeometry
 
-        //完成形、回転方向を指定できるように
-        /// <summary>
-        /// 扇(pie)型のPathGeometryを作成
-        /// </summary>
-        /// <param name="center">中心座標</param>
-        /// <param name="distance">中心点からの距離</param>
-        /// <param name="startDegrees">開始角度、0以上360以下で指定</param>
-        /// <param name="stopDegrees">終了角度、0以上360以下で指定</param>
-        /// <param name="direction">回転方向、Clockwiseが時計回り</param>
-        /// <returns></returns>
-        private PathGeometry PieGeometry(Point center, double distance, double startDegrees, double stopDegrees, SweepDirection direction)
-        {
-            Point start = MakePoint(startDegrees, center, distance);//始点座標
-            Point stop = MakePoint(stopDegrees, center, distance);//終点座標
-            //開始角度から終了角度までが180度を超えているかの判定
-            //超えていたらArcSegmentのIsLargeArcをtrue、なければfalseで作成
-            double diffDegrees = (direction == SweepDirection.Clockwise) ? stopDegrees - startDegrees : startDegrees - stopDegrees;
-            if (diffDegrees < 0) { diffDegrees += 360.0; }
-            bool isLarge = (diffDegrees >= 180) ? true : false;
-            var arc = new ArcSegment(stop, new Size(distance, distance), 0, isLarge, direction, true);
 
-            //PathFigure作成
-            //ArcSegmentとその両端と中心点をつなぐ直線LineSegment
-            var fig = new PathFigure();
-            fig.StartPoint = start;//始点座標
-            fig.Segments.Add(arc);//ArcSegment追加
-            fig.Segments.Add(new LineSegment(center, true));//円弧の終点から中心への直線
-            fig.Segments.Add(new LineSegment(start, true));//中心から円弧の始点への直線
-            fig.IsClosed = true;//Pathを閉じる、必須
-
-            //PathGeometryを作成してPathFigureを追加して完成
-            var pg = new PathGeometry();
-            pg.Figures.Add(fig);
-            return pg;
-        }
 
 
         /// <summary>
