@@ -1,0 +1,28 @@
+﻿<Window x:Class="_20190408_色相円の_グラフ.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:_20190408_色相円の_グラフ"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+    <DockPanel>
+      <Grid DockPanel.Dock="Left" Name="MyGrid" UseLayoutRounding="True" Background="Gray">
+        <Image Name="MyHueImage" Stretch="None" VerticalAlignment="Top"/>
+        <Path Name="MyAuxLine"/>
+      </Grid>
+      <GroupBox Header="分割数">
+        <StackPanel Margin="2,10,1,10">
+          <RadioButton Content="12" Click="RadioButton_Click"/>
+          <RadioButton Content="36" Click="RadioButton_Click"/>
+          <RadioButton Content="72" Click="RadioButton_Click"/>
+          <RadioButton Content="120" Click="RadioButton_Click" IsChecked="True"/>
+          <RadioButton Content="360" Click="RadioButton_Click"/>
+          <RadioButton Content="720" Click="RadioButton_Click"/>
+        </StackPanel>
+      </GroupBox>
+      <Image DockPanel.Dock="Right" Name="MyImage" Stretch="Uniform"/>
+    </DockPanel>
+  </Grid>
+</Window>
