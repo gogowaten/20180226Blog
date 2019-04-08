@@ -12,6 +12,7 @@
         <Image Name="MyHueImage" Stretch="None" VerticalAlignment="Top"/>
         <Path Name="MyAuxLine"/>
       </Grid>
+      <StackPanel>
       <GroupBox Header="分割数">
         <StackPanel Margin="2,10,1,10">
           <RadioButton Content="12" Click="RadioButton_Click"/>
@@ -20,8 +21,16 @@
           <RadioButton Content="120" Click="RadioButton_Click" IsChecked="True"/>
           <RadioButton Content="360" Click="RadioButton_Click"/>
           <RadioButton Content="720" Click="RadioButton_Click"/>
-        </StackPanel>
+          <Button Content="test" Click="Button_Click"/>
+          </StackPanel>
       </GroupBox>
+        <GroupBox Header="その他">
+          <StackPanel>
+            <CheckBox Name="CheckBoxLimited" Content="無彩色閾値" Click="CheckBox_Click"/>
+            
+          </StackPanel>
+        </GroupBox>
+      </StackPanel>
       <Image DockPanel.Dock="Right" Name="MyImage" Stretch="Uniform"/>
     </DockPanel>
   </Grid>

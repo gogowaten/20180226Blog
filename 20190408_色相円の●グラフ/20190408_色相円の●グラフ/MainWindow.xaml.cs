@@ -22,7 +22,9 @@ namespace _20190408_色相円の_グラフ
         Point MyCenter = new Point(MyRadius, MyRadius);//色相画像中心座標
         byte[] MyPixels;//画像のPixelの色情報、BitmapSourceのCopyPixelsより
         double[] MyHuesList;//全ピクセルの色相の配列
+        double[] MyHuesListLimit;//全ピクセルの色相の配列(無彩色判定制限有り)
         int DivideCount = 120;//色相分割数
+        //bool IsLimited;//制限有りのHueリストを使うかどうか
 
         public MainWindow()
         {
@@ -34,7 +36,7 @@ namespace _20190408_色相円の_グラフ
             MyGrid.Children.Add(MakeAuxLine(MyCenter));
             MyHueImage.Source = MakeHueBitmap((int)(MyRadius * 2));
             MyHueImage.Clip = new RectangleGeometry(new Rect(0, 0, 0, 0));
-
+            CheckBoxLimited.IsChecked = true;//初期は制限なしHueリストを使う
 
         }
 
@@ -45,7 +47,8 @@ namespace _20190408_色相円の_グラフ
             RadioButton rb = sender as RadioButton;
             int divCount = int.Parse((string)rb.Content);
             DivideCount = divCount;
-            MyHueImage.Clip = MakeClipEllipse(HuePixelCount(MyHuesList, divCount));
+            ChangeClip();//クリップ適用
+            //MyHueImage.Clip = MakeClipEllipse(HuePixelCount(MyHuesList, divCount));
         }
 
         private void MainWindow_Drop(object sender, DragEventArgs e)
@@ -61,10 +64,13 @@ namespace _20190408_色相円の_グラフ
             else
             {
                 MyPixels = pixels;
-                MyHuesList = GetHueList(pixels);
-                var neko = HuePixelCount(MyHuesList, DivideCount);
-                MyHueImage.Clip = MakeClipEllipse(neko);
+                //MyHuesList = GetHueList(pixels);
+                //MyHuesListLimit = GetHueList(pixels, 0.05, 0.15);
+                SetHueList(pixels, 0.05, 0.15);
+                //var neko = HuePixelCount(MyHuesList, DivideCount);
+                //MyHueImage.Clip = MakeClipEllipse(neko);
                 MyImage.Source = bitmap;
+                ChangeClip();//クリップ適用
             }
         }
         #endregion
@@ -83,12 +89,12 @@ namespace _20190408_色相円の_グラフ
 
             Point center = new Point(MyRadius, MyRadius);
             double divDeg = 360.0 / hues.Length;//  1分割あたりの角度
-           
+
             var clip = new PathGeometry();
             clip.FillRule = FillRule.Nonzero;
             //●の位置、中心から0.5～0.75の位置に配置
-            double minDistance = MyRadius * 0.5;
-            double diffDistance = MyRadius * 0.75 - minDistance;
+            double minDistance = MyRadius * 0.3725;//0.5
+            double diffDistance = MyRadius * 0.8725 - minDistance;//0.75
             //●の面積、色相円の0.01～0.00001倍
             double maxArea = (Math.PI * MyRadius * MyRadius) * 0.01;
             double minArea = (Math.PI * MyRadius * MyRadius) * 0.00001;
@@ -98,6 +104,9 @@ namespace _20190408_色相円の_グラフ
             //配列のIndexが色相
             for (int i = 0; i < hues.Length; i++)
             {
+                //ピクセル数が0ならパス
+                if (hues[i] == 0) { continue; }
+
                 //面積から半径を求める
                 //面積=   パイ*半径^2
                 //パイ*半径^2=  面積
@@ -221,19 +230,52 @@ namespace _20190408_色相円の_グラフ
         #region 画像系
 
 
-        //hueのリスト作成
-        private double[] GetHueList(byte[] pixels)
+        ////hueのリスト作成
+        //private double[] GetHueList(byte[] pixels)
+        //{
+        //    double[] hueList = new double[pixels.Length / 4];
+        //    int count = 0;
+        //    for (int i = 0; i < pixels.Length; i += 4)
+        //    {
+        //        //ピクセルの色相取得
+        //        hueList[count] = HSV.Color2HSV(pixels[i + 2], pixels[i + 1], pixels[i]).Hue;
+        //        count++;
+        //    }
+        //    return hueList;
+        //}
+
+        ////hueのリスト作成、リミット付き
+        ////彩度と明度が指定値以下なら無彩色判定        
+        //private double[] GetHueList(byte[] pixels, double sLimit, double vLimit)
+        //{
+        //    double[] hueList = new double[pixels.Length / 4];
+        //    int count = 0;
+        //    for (int i = 0; i < pixels.Length; i += 4)
+        //    {
+        //        //ピクセルの色相取得
+        //        HSV iHsv = HSV.Color2HSV(pixels[i + 2], pixels[i + 1], pixels[i]);
+        //        var hue = (iHsv.Saturation < sLimit | iHsv.Value < vLimit) ? 360.0 : iHsv.Hue;
+        //        hueList[count] = hue;
+        //        count++;
+        //    }
+        //    return hueList;
+        //}
+        //hueのリスト作成、リミット付きは彩度と明度が指定値以下なら無彩色判定
+        private void SetHueList(byte[] pixels,double sLimit,double vLimit)
         {
-            double[] hueList = new double[pixels.Length / 4];
+            MyHuesList = new double[pixels.Length / 4];
+            MyHuesListLimit = new double[pixels.Length / 4];
             int count = 0;
             for (int i = 0; i < pixels.Length; i += 4)
             {
                 //ピクセルの色相取得
-                hueList[count] = HSV.Color2HSV(pixels[i + 2], pixels[i + 1], pixels[i]).Hue;
+                HSV iHsv = HSV.Color2HSV(pixels[i + 2], pixels[i + 1], pixels[i]);
+                MyHuesList[count] = iHsv.Hue;
+                var hue = (iHsv.Saturation < sLimit | iHsv.Value < vLimit) ? 360.0 : iHsv.Hue;
+                MyHuesListLimit[count] = hue;
                 count++;
-                //if (hue == 360.0) { continue; }//色相360は無彩色なのでパス
             }
-            return hueList;
+
         }
 
         /// <summary>
@@ -305,5 +347,25 @@ namespace _20190408_色相円の_グラフ
         }
         #endregion
 
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            MyHueImage.Clip = MakeClipEllipse(HuePixelCount(MyHuesListLimit, DivideCount));
+        }
+
+        private void CheckBox_Click(object sender, RoutedEventArgs e)
+        {
+            ChangeClip();
+        }
+        private void ChangeClip()
+        {
+            if (CheckBoxLimited.IsChecked==true)
+            {
+                MyHueImage.Clip = MakeClipEllipse(HuePixelCount(MyHuesListLimit, DivideCount));
+            }
+            else
+            {
+                MyHueImage.Clip = MakeClipEllipse(HuePixelCount(MyHuesList, DivideCount));
+            }
+        }
     }
 }
