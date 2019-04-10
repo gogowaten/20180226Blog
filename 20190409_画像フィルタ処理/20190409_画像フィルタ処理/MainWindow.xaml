@@ -9,6 +9,7 @@
   <Grid>
     <DockPanel>
       <StackPanel DockPanel.Dock="Left" Width="100">
+        <Button Content="リセット" Click="Button_Click_10"/>
         <Button Content="ぼかし" Click="MyButton1_Click"/>
         <Button Content="ラプラシアン" Click="Button_Click"/>
         <Button Content="シャープネス" Click="Button_Click_1"/>
@@ -19,6 +20,9 @@
         <Button Content="Test2" Click="Button_Click_6"/>
         <Button Content="Test3" Click="Button_Click_7"/>
         <Button Content="Test4" Click="Button_Click_8"/>
+        <Button Content="Test5" Click="Button_Click_9"/>
+        <Button Content="Test6" Click="Button_Click_11"/>
+        <Button Content="Test7" Click="Button_Click_12"/>
       </StackPanel>
       <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
         <Grid MouseLeftButtonDown="Grid_MouseLeftButtonDown" MouseLeftButtonUp="Grid_MouseLeftButtonUp">
