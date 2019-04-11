@@ -16,10 +16,10 @@
         <Button Content="エンボス" Click="Button_Click_2"/>
         <Button Content="ぼかし2" Click="Button_Click_4"/>
         <Button Content="メディアン" Click="Button_Click_3"/>
-        <Button Content="Test" Click="Button_Click_5"/>
-        <Button Content="Test2" Click="Button_Click_6"/>
-        <Button Content="Test3" Click="Button_Click_7"/>
-        <Button Content="Test4" Click="Button_Click_8"/>
+        <Button Content="ソーベルフィルタ縦横" Click="Button_Click_5"/>
+        <Button Content="ソーベルフィルタ横" Click="Button_Click_6"/>
+        <Button Content="ソーベルフィルタ縦" Click="Button_Click_7"/>
+        <Button Content="ソーベルフィルタ縦横2乗和の平方根" Click="Button_Click_8"/>
         <Button Content="Test5" Click="Button_Click_9"/>
         <Button Content="Test6" Click="Button_Click_11"/>
         <Button Content="Test7" Click="Button_Click_12"/>

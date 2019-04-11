@@ -141,323 +141,506 @@ namespace _20190411_画像フィルタ
             return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
         }
 
-        private (byte[] pixesl, BitmapSource bitmap) TestFilter(byte[] pixels, int width, int height, byte threshold)
+        private (byte[] pixels, BitmapSource bitmap) SobelFilterソーベルフィルタ(byte[] pixels, int width, int height)
         {
-            //ノイズ除去のつもりだったけどぼかし効果になった
-            //自身と周辺8画素を比較して輝度が10以上離れていたら、周辺8画素の平均輝度に変更する
-            //byte threshold = 10;//小さいほどぼやける
+            //int[] xWeight = new int[] {
+            //    -1, 0, 1,
+            //    -2, 0, 2,
+            //    -1, 0, 1 };
+            //int[] yWeight = new int[] {
+            //    -1, -2, -1,
+            //    0, 0, 0,
+            //    1, 2, 1 };
+
+            //めんどくさいので上下左右1ラインは処理しない
             byte[] filtered = new byte[pixels.Length];
-            //めんどくさいので上下左右1ピクセルは処理しない
+            int p, vX, vY;
             for (int y = 1; y < height - 1; y++)
             {
                 for (int x = 1; x < width - 1; x++)
                 {
-                    int pp;
-                    List<byte> around = new List<byte>();
-                    for (int a = 0; a < 3; a++)
-                    {
-                        for (int b = 0; b < 3; b++)
-                        {
-                            pp = (x + b - 1) + ((y + a - 1) * width);
-                            around.Add(pixels[pp]);
-                        }
-                    }
-                    byte current = around[4];//自身の値
-                    around.RemoveAt(4);//自身の値を除去して平均値を求める
-                    double average = around.Average(z => z);
-                    if (Math.Abs(average - current) > threshold) { current = (byte)average; }
-                    filtered[x + y * width] = current;
-                }
-            }
-            return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
-        }
-
-        private (byte[] pixesl, BitmapSource bitmap) Filter上下左右(byte[] pixels, int width, int height, byte threshold)
-        {
-            //上下左右の平均との差がしきい値以上ならノイズと判定して
-            //平均値に変更する
-
-            byte[] filtered = new byte[pixels.Length];
-            //めんどくさいので上下左右1ピクセルは処理しない
-            for (int y = 1; y < height - 1; y++)
-            {
-                for (int x = 1; x < width - 1; x++)
-                {
-                    byte current = pixels[y * width + x];//自身の値
-                    double ave = 0;
-                    ave += pixels[(y - 1) * width + x];//top
-                    ave += pixels[(y + 1) * width + x];//bottom
-                    ave += pixels[y * width + x - 1];//left
-                    ave += pixels[y * width + x + 1];//right
-                    ave /= 4;
-                    //double average = around.Average(z => z);
-                    if (Math.Abs(ave - current) > threshold)
-                    {
-                        current = (byte)ave;
-                    }
-                    filtered[x + y * width] = current;
-                }
-            }
-            return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
-        }
-
-        private (byte[] pixesl, BitmapSource bitmap) TestFilter3(byte[] pixels, int width, int height)
-        {
-            //イマイチ
-            //ノイズ除去のつもりだったけどぼかし効果になった
-            //自身と斜めの4画素を比較して輝度が閾値以上離れていたら、周辺4画素の平均輝度に変更する
-            byte threshold = 100;//これ以上離れていたら平均値にする
-            byte[] filtered = new byte[pixels.Length];
-            //めんどくさいので上下左右1ピクセルは処理しない
-            for (int y = 1; y < height - 1; y++)
-            {
-                for (int x = 1; x < width - 1; x++)
-                {
-                    List<byte> around = new List<byte>();
-                    byte current = pixels[y * width + x];//自身の値
-                    around.Add(pixels[(y - 1) * width + x - 1]);//topLeft
-                    around.Add(pixels[(y + 1) * width + x - 1]);//bottomLeft
-                    around.Add(pixels[(y - 1) * width + x + 1]);//topRignt
-                    around.Add(pixels[(y + 1) * width + x + 1]);//bottomRight
-
-                    double average = around.Average(z => z);
-                    if (Math.Abs(average - current) > threshold)
-                    {
-                        current = (byte)average;
-                    }
-                    filtered[x + y * width] = current;
-                }
-            }
-            return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
-        }
-
-        private (byte[] pixesl, BitmapSource bitmap) TestFilter4(byte[] pixels, int width, int height)
-        {
-            //かなりいまいち
-            //ノイズ除去のつもりだったけどぼかし効果になった
-            //自身と上下左右4画素を比較して輝度が10以上離れていたら、周辺4画素の平均輝度に変更する
-            //上下左右どれかに自身と似た輝度があれば、そのままにする
-            byte threshold = 10;//これ以上離れていたら平均値にする
-            byte similar = 1;//似た輝度の閾値、これ以下なら似ている
-            byte[] filtered = new byte[pixels.Length];
-            //めんどくさいので上下左右1ピクセルは処理しない
-            for (int y = 1; y < height - 1; y++)
-            {
-                for (int x = 1; x < width - 1; x++)
-                {
-                    List<byte> around = new List<byte>();
-                    byte current = pixels[y * width + x];//自身の値
-                    around.Add(pixels[(y - 1) * width + x]);//top
-                    around.Add(pixels[(y + 1) * width + x]);//bottom
-                    around.Add(pixels[y * width + x - 1]);//left
-                    around.Add(pixels[y * width + x + 1]);//right
-                    //平均値からかけ離れていて
-                    double average = around.Average(z => z);
-                    double diff = Math.Abs(average - current);
-                    if (diff > threshold)
-                    {
-                        //上下左右のどれか
-                        if (similar < Math.Abs(around[0] - current) &&
-                            similar < Math.Abs(around[1] - current) &&
-                            similar < Math.Abs(around[2] - current) &&
-                            similar < Math.Abs(around[3] - current))
-                        {
-                            //平均値に変更
-                            current = (byte)average;
-                        }
-                    }
-                    filtered[x + y * width] = current;
-                }
-            }
-            return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
-        }
-
-        //エッジ抽出後、メディアンフィルタ
-        private (byte[] pixels, BitmapSource bitmap) Filterラプラシアンとメディアン(byte[] pixels, int width, int height)
-        {
-            //ラプラシアン、エッジ抽出
-            int[][] weight = new int[][] {
-                new int[] { 0, -1, 0 },
-                new int[] { -1, 4, -1 },
-                new int[] { 0, -1, 0 } };
-
-            byte threshold = 100;//絶対値でこれ以上のエッジならメディアンフィルタで変更しない
-            bool[] IsFilter = new bool[pixels.Length];//判定結果用
-            int p;
-            //めんどくさいので上下左右1ピクセルは処理しない
-            //ラプラシアンでエッジ判定
-            for (int y = 1; y < height - 1; y++)
-            {
-                for (int x = 1; x < width - 1; x++)
-                {
-                    int edge = 0;
+                    vX = vY = 0;
                     p = x + y * width;
-                    int pp;
-                    for (int a = 0; a < 3; a++)
-                    {
-                        for (int b = 0; b < 3; b++)
-                        {
-                            pp = (x + b - 1) + ((y + a - 1) * width);
-                            edge += pixels[pp] * weight[a][b];
-                        }
-                    }
-                    //エッジ判定結果
-                    byte moto = pixels[p];
-                    int diff = Math.Abs(edge - moto);
-                    //IsFilter[p] = (Math.Abs(edge) < threshold) ? true : false;
-                    if (Math.Abs(edge) < threshold) { IsFilter[p] = true; }
+                    //中段X
+                    vX += pixels[p - 1] * -2;
+                    vX += pixels[p + 1] * 2;
+                    //上段X
+                    vX += pixels[p - width - 1] * -1;
+                    vX += pixels[p - width + 1] * 1;
+                    //下段X
+                    vX += pixels[p + width - 1] * -1;
+                    vX += pixels[p + width + 1] * 1;
 
-                    ////差が小さければメディアンフィルタする(true)
-                    //if (diff < threshold) { IsFilter[p] = true; }
-                    //else IsFilter[p] = false;
-                }
-            }
-            //メディアンフィルタ
-            byte[] filtered = new byte[pixels.Length];
-            for (int y = 1; y < height - 1; y++)
-            {
-                for (int x = 1; x < width - 1; x++)
-                {
-                    p = x + y * width;
-                    //エッジはパス
-                    if (IsFilter[p] == false)
-                    {
-                        filtered[p] = pixels[p];
-                        continue;//パス
-                    }
+                    //上段Y
+                    vY += pixels[p - width - 1] * -1;
+                    vY += pixels[p - width] * -2;
+                    vY += pixels[p - width + 1] * -1;
+                    //下段Y
+                    vY += pixels[p + width - 1] * 1;
+                    vY += pixels[p + width] * 2;
+                    vY += pixels[p + width + 1] * 1;
 
-                    int pp;
-                    List<byte> sort = new List<byte>();
-                    for (int a = 0; a < 3; a++)
-                    {
-                        for (int b = 0; b < 3; b++)
-                        {
-                            pp = (x + b - 1) + ((y + a - 1) * width);
-                            sort.Add(pixels[pp]);
-                        }
-                    }
-                    //ソートして中央値を採用
-                    var sorted = sort.OrderBy(z => z);
-                    filtered[p] = sorted.ToList()[4];
+                    int v = Math.Abs(vX) + Math.Abs(vY);
+                    v = (v < 0) ? 0 : (v > 255) ? 255 : v;
+                    filtered[p] = (byte)v;
+
+
                 }
             }
             return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+
         }
 
-
-        private (byte[] pixesl, BitmapSource bitmap) Filter上下左右2(byte[] pixels, int width, int height, byte threshold)
+        private (byte[] pixels, BitmapSource bitmap) SobelFilterソーベルフィルタ横(byte[] pixels, int width, int height)
         {
-            //上下左右の平均との差がしきい値以上ならノイズと判定して
-            //平均値に変更するけど
-            //左右の色と似ているか、上下の色が似ていたら変更しない、第2しきい値
-            byte similer = 50;//これ以下なら変更なし
+            //int[] yWeight = new int[] {
+            //    -1, -2, -1,
+            //    0, 0, 0,
+            //    1, 2, 1 };
+
+            //めんどくさいので上下左右1ラインは処理しない
             byte[] filtered = new byte[pixels.Length];
-
-            //めんどくさいので上下左右1ピクセルは処理しない
+            int p, vY;
             for (int y = 1; y < height - 1; y++)
             {
                 for (int x = 1; x < width - 1; x++)
                 {
-
-                    byte current = pixels[y * width + x];//自身の値
-                    double ave = 0;
-                    int top = pixels[(y - 1) * width + x];//top
-                    int bottom = pixels[(y + 1) * width + x];//bottom
-                    int left = pixels[y * width + x - 1];//left
-                    int right = pixels[y * width + x + 1];//right
-
-                    int dTop = Math.Abs(current - top);
-                    int dBottom = Math.Abs(current - bottom);
-                    int dLeft = Math.Abs(current - left);
-                    int dRight = Math.Abs(current - right);
-                    if ((dTop < similer & dBottom < similer) | (dLeft < similer & dRight < similer))
-                    {
-                    }
-                    else if (Math.Abs(ave - current) < threshold)
-                    {
-                        current = (byte)((top + bottom + left + right) / 4);
-                    }
-                    filtered[x + y * width] = current;
-                    if (top == bottom) { }
-                }
-            }
-            return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
-        }
-
-        //エッジ抽出後、上下左右フィルタ
-        private (byte[] pixels, BitmapSource bitmap) Filterラプラシアンと上下左右(byte[] pixels, int width, int height, int threshold)
-        {
-            //ラプラシアン、エッジ抽出
-            int[][] weight = new int[][] {
-                new int[] { 0, -1, 0 },
-                new int[] { -1, 4, -1 },
-                new int[] { 0, -1, 0 } };
-
-            bool[] IsFilter = new bool[pixels.Length];//判定結果用
-            int p;
-            //めんどくさいので上下左右1ピクセルは処理しない
-            //ラプラシアンでエッジ判定
-            for (int y = 1; y < height - 1; y++)
-            {
-                for (int x = 1; x < width - 1; x++)
-                {
-                    int edge = 0;
+                    vY = 0;
                     p = x + y * width;
-                    int pp;
-                    for (int a = 0; a < 3; a++)
-                    {
-                        for (int b = 0; b < 3; b++)
-                        {
-                            pp = (x + b - 1) + ((y + a - 1) * width);
-                            edge += pixels[pp] * weight[a][b];
-                        }
-                    }
-                    //エッジ判定結果
-                    byte moto = pixels[p];
-                    int diff = Math.Abs(edge - moto);
-                    //IsFilter[p] = (Math.Abs(edge) < threshold) ? true : false;
-                    if (Math.Abs(edge) < threshold) { IsFilter[p] = true; }
 
-                    ////差が小さければフィルタする(true)
-                    //if (diff < threshold) { IsFilter[p] = true; }
-                    //else IsFilter[p] = false;
+                    //上段Y
+                    vY += pixels[p - width - 1] * -1;
+                    vY += pixels[p - width] * -2;
+                    vY += pixels[p - width + 1] * -1;
+                    //下段Y
+                    vY += pixels[p + width - 1] * 1;
+                    vY += pixels[p + width] * 2;
+                    vY += pixels[p + width + 1] * 1;
+
+                    int v = Math.Abs(vY);
+                    v = (v < 0) ? 0 : (v > 255) ? 255 : v;
+                    filtered[p] = (byte)v;
+
                 }
             }
+            return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
 
-            var neko = IsFilter.Count(zz => zz == false);
+        }
+
+        private (byte[] pixels, BitmapSource bitmap) SobelFilterソーベルフィルタ縦(byte[] pixels, int width, int height)
+        {
+            //int[] xWeight = new int[] {
+            //    -1, 0, 1,
+            //    -2, 0, 2,
+            //    -1, 0, 1 };
+
+            //めんどくさいので上下左右1ラインは処理しない
             byte[] filtered = new byte[pixels.Length];
-            //めんどくさいので上下左右1ピクセルは処理しない
+            int p, vX;
             for (int y = 1; y < height - 1; y++)
             {
                 for (int x = 1; x < width - 1; x++)
                 {
-                    p = x + (y * width);
-                    //エッジはパス
-                    if (IsFilter[p] == false)
-                    {
-                        filtered[p] = pixels[p];
-                        continue;//パス
-                    }
+                    vX = 0;
+                    p = x + y * width;
+                    //中段X
+                    vX += pixels[p - 1] * -2;
+                    vX += pixels[p + 1] * 2;
+                    //上段X
+                    vX += pixels[p - width - 1] * -1;
+                    vX += pixels[p - width + 1] * 1;
+                    //下段X
+                    vX += pixels[p + width - 1] * -1;
+                    vX += pixels[p + width + 1] * 1;
 
-                    //ノイズなら平均値に変更
-                    byte current = pixels[p];//自身の値                    
-                    int top = pixels[(y - 1) * width + x];//top
-                    int bottom = pixels[(y + 1) * width + x];//bottom
-                    int left = pixels[p - 1];//left
-                    int right = pixels[p + 1];//right
-                    double ave = (top + bottom + left + right) / 4;
-                    double diff = Math.Abs(current - ave);
+                    int v = Math.Abs(vX);
+                    v = (v < 0) ? 0 : (v > 255) ? 255 : v;
+                    filtered[p] = (byte)v;
 
-                    if (Math.Abs(ave - current) > 1)
-                    {
-                        current = (byte)ave;
-                    }
-                    filtered[p] = current;
                 }
             }
             return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+
         }
 
+        private (byte[] pixels, BitmapSource bitmap) SobelFilterソーベルフィルタ2乗和の平方根(byte[] pixels, int width, int height)
+        {
+            //int[] xWeight = new int[] {
+            //    -1, 0, 1,
+            //    -2, 0, 2,
+            //    -1, 0, 1 };
+            //int[] yWeight = new int[] {
+            //    -1, -2, -1,
+            //    0, 0, 0,
+            //    1, 2, 1 };
+
+            //めんどくさいので上下左右1ラインは処理しない
+            byte[] filtered = new byte[pixels.Length];
+            int p, vX, vY;
+            for (int y = 1; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+                    vX = vY = 0;
+                    p = x + y * width;
+                    //中段X
+                    vX += pixels[p - 1] * -2;
+                    vX += pixels[p + 1] * 2;
+                    //上段X
+                    vX += pixels[p - width - 1] * -1;
+                    vX += pixels[p - width + 1] * 1;
+                    //下段X
+                    vX += pixels[p + width - 1] * -1;
+                    vX += pixels[p + width + 1] * 1;
+
+                    //上段Y
+                    vY += pixels[p - width - 1] * -1;
+                    vY += pixels[p - width] * -2;
+                    vY += pixels[p - width + 1] * -1;
+                    //下段Y
+                    vY += pixels[p + width - 1] * 1;
+                    vY += pixels[p + width] * 2;
+                    vY += pixels[p + width + 1] * 1;
+
+                    int v = (int)Math.Sqrt(vX * vX + vY * vY);// Math.Abs(vX) + Math.Abs(vY);
+                    v = (v < 0) ? 0 : (v > 255) ? 255 : v;
+                    filtered[p] = (byte)v;
+
+
+                }
+            }
+            return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+
+        }
+
+
+
+
+
+        //#region 未使用フィルタ
+
+        //private (byte[] pixesl, BitmapSource bitmap) TestFilter(byte[] pixels, int width, int height, byte threshold)
+        //{
+        //    //ノイズ除去のつもりだったけどぼかし効果になった
+        //    //自身と周辺8画素を比較して輝度が10以上離れていたら、周辺8画素の平均輝度に変更する
+        //    //byte threshold = 10;//小さいほどぼやける
+        //    byte[] filtered = new byte[pixels.Length];
+        //    //めんどくさいので上下左右1ピクセルは処理しない
+        //    for (int y = 1; y < height - 1; y++)
+        //    {
+        //        for (int x = 1; x < width - 1; x++)
+        //        {
+        //            int pp;
+        //            List<byte> around = new List<byte>();
+        //            for (int a = 0; a < 3; a++)
+        //            {
+        //                for (int b = 0; b < 3; b++)
+        //                {
+        //                    pp = (x + b - 1) + ((y + a - 1) * width);
+        //                    around.Add(pixels[pp]);
+        //                }
+        //            }
+        //            byte current = around[4];//自身の値
+        //            around.RemoveAt(4);//自身の値を除去して平均値を求める
+        //            double average = around.Average(z => z);
+        //            if (Math.Abs(average - current) > threshold) { current = (byte)average; }
+        //            filtered[x + y * width] = current;
+        //        }
+        //    }
+        //    return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+        //}
+
+        //private (byte[] pixesl, BitmapSource bitmap) Filter上下左右(byte[] pixels, int width, int height, byte threshold)
+        //{
+        //    //上下左右の平均との差がしきい値以上ならノイズと判定して
+        //    //平均値に変更する
+
+        //    byte[] filtered = new byte[pixels.Length];
+        //    //めんどくさいので上下左右1ピクセルは処理しない
+        //    for (int y = 1; y < height - 1; y++)
+        //    {
+        //        for (int x = 1; x < width - 1; x++)
+        //        {
+        //            byte current = pixels[y * width + x];//自身の値
+        //            double ave = 0;
+        //            ave += pixels[(y - 1) * width + x];//top
+        //            ave += pixels[(y + 1) * width + x];//bottom
+        //            ave += pixels[y * width + x - 1];//left
+        //            ave += pixels[y * width + x + 1];//right
+        //            ave /= 4;
+        //            //double average = around.Average(z => z);
+        //            if (Math.Abs(ave - current) > threshold)
+        //            {
+        //                current = (byte)ave;
+        //            }
+        //            filtered[x + y * width] = current;
+        //        }
+        //    }
+        //    return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+        //}
+
+        //private (byte[] pixesl, BitmapSource bitmap) TestFilter3(byte[] pixels, int width, int height)
+        //{
+        //    //イマイチ
+        //    //ノイズ除去のつもりだったけどぼかし効果になった
+        //    //自身と斜めの4画素を比較して輝度が閾値以上離れていたら、周辺4画素の平均輝度に変更する
+        //    byte threshold = 100;//これ以上離れていたら平均値にする
+        //    byte[] filtered = new byte[pixels.Length];
+        //    //めんどくさいので上下左右1ピクセルは処理しない
+        //    for (int y = 1; y < height - 1; y++)
+        //    {
+        //        for (int x = 1; x < width - 1; x++)
+        //        {
+        //            List<byte> around = new List<byte>();
+        //            byte current = pixels[y * width + x];//自身の値
+        //            around.Add(pixels[(y - 1) * width + x - 1]);//topLeft
+        //            around.Add(pixels[(y + 1) * width + x - 1]);//bottomLeft
+        //            around.Add(pixels[(y - 1) * width + x + 1]);//topRignt
+        //            around.Add(pixels[(y + 1) * width + x + 1]);//bottomRight
+
+        //            double average = around.Average(z => z);
+        //            if (Math.Abs(average - current) > threshold)
+        //            {
+        //                current = (byte)average;
+        //            }
+        //            filtered[x + y * width] = current;
+        //        }
+        //    }
+        //    return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+        //}
+
+        //private (byte[] pixesl, BitmapSource bitmap) TestFilter4(byte[] pixels, int width, int height)
+        //{
+        //    //かなりいまいち
+        //    //ノイズ除去のつもりだったけどぼかし効果になった
+        //    //自身と上下左右4画素を比較して輝度が10以上離れていたら、周辺4画素の平均輝度に変更する
+        //    //上下左右どれかに自身と似た輝度があれば、そのままにする
+        //    byte threshold = 10;//これ以上離れていたら平均値にする
+        //    byte similar = 1;//似た輝度の閾値、これ以下なら似ている
+        //    byte[] filtered = new byte[pixels.Length];
+        //    //めんどくさいので上下左右1ピクセルは処理しない
+        //    for (int y = 1; y < height - 1; y++)
+        //    {
+        //        for (int x = 1; x < width - 1; x++)
+        //        {
+        //            List<byte> around = new List<byte>();
+        //            byte current = pixels[y * width + x];//自身の値
+        //            around.Add(pixels[(y - 1) * width + x]);//top
+        //            around.Add(pixels[(y + 1) * width + x]);//bottom
+        //            around.Add(pixels[y * width + x - 1]);//left
+        //            around.Add(pixels[y * width + x + 1]);//right
+        //            //平均値からかけ離れていて
+        //            double average = around.Average(z => z);
+        //            double diff = Math.Abs(average - current);
+        //            if (diff > threshold)
+        //            {
+        //                //上下左右のどれか
+        //                if (similar < Math.Abs(around[0] - current) &&
+        //                    similar < Math.Abs(around[1] - current) &&
+        //                    similar < Math.Abs(around[2] - current) &&
+        //                    similar < Math.Abs(around[3] - current))
+        //                {
+        //                    //平均値に変更
+        //                    current = (byte)average;
+        //                }
+        //            }
+        //            filtered[x + y * width] = current;
+        //        }
+        //    }
+        //    return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+        //}
+
+        ////エッジ抽出後、メディアンフィルタ
+        //private (byte[] pixels, BitmapSource bitmap) Filterラプラシアンとメディアン(byte[] pixels, int width, int height)
+        //{
+        //    //ラプラシアン、エッジ抽出
+        //    int[][] weight = new int[][] {
+        //        new int[] { 0, -1, 0 },
+        //        new int[] { -1, 4, -1 },
+        //        new int[] { 0, -1, 0 } };
+
+        //    byte threshold = 100;//絶対値でこれ以上のエッジならメディアンフィルタで変更しない
+        //    bool[] IsFilter = new bool[pixels.Length];//判定結果用
+        //    int p;
+        //    //めんどくさいので上下左右1ピクセルは処理しない
+        //    //ラプラシアンでエッジ判定
+        //    for (int y = 1; y < height - 1; y++)
+        //    {
+        //        for (int x = 1; x < width - 1; x++)
+        //        {
+        //            int edge = 0;
+        //            p = x + y * width;
+        //            int pp;
+        //            for (int a = 0; a < 3; a++)
+        //            {
+        //                for (int b = 0; b < 3; b++)
+        //                {
+        //                    pp = (x + b - 1) + ((y + a - 1) * width);
+        //                    edge += pixels[pp] * weight[a][b];
+        //                }
+        //            }
+        //            //エッジ判定結果
+        //            byte moto = pixels[p];
+        //            int diff = Math.Abs(edge - moto);
+        //            //IsFilter[p] = (Math.Abs(edge) < threshold) ? true : false;
+        //            if (Math.Abs(edge) < threshold) { IsFilter[p] = true; }
+
+        //            ////差が小さければメディアンフィルタする(true)
+        //            //if (diff < threshold) { IsFilter[p] = true; }
+        //            //else IsFilter[p] = false;
+        //        }
+        //    }
+        //    //メディアンフィルタ
+        //    byte[] filtered = new byte[pixels.Length];
+        //    for (int y = 1; y < height - 1; y++)
+        //    {
+        //        for (int x = 1; x < width - 1; x++)
+        //        {
+        //            p = x + y * width;
+        //            //エッジはパス
+        //            if (IsFilter[p] == false)
+        //            {
+        //                filtered[p] = pixels[p];
+        //                continue;//パス
+        //            }
+
+        //            int pp;
+        //            List<byte> sort = new List<byte>();
+        //            for (int a = 0; a < 3; a++)
+        //            {
+        //                for (int b = 0; b < 3; b++)
+        //                {
+        //                    pp = (x + b - 1) + ((y + a - 1) * width);
+        //                    sort.Add(pixels[pp]);
+        //                }
+        //            }
+        //            //ソートして中央値を採用
+        //            var sorted = sort.OrderBy(z => z);
+        //            filtered[p] = sorted.ToList()[4];
+        //        }
+        //    }
+        //    return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+        //}
+
+
+        //private (byte[] pixesl, BitmapSource bitmap) Filter上下左右2(byte[] pixels, int width, int height, byte threshold)
+        //{
+        //    //上下左右の平均との差がしきい値以上ならノイズと判定して
+        //    //平均値に変更するけど
+        //    //左右の色と似ているか、上下の色が似ていたら変更しない、第2しきい値
+        //    byte similer = 50;//これ以下なら変更なし
+        //    byte[] filtered = new byte[pixels.Length];
+
+        //    //めんどくさいので上下左右1ピクセルは処理しない
+        //    for (int y = 1; y < height - 1; y++)
+        //    {
+        //        for (int x = 1; x < width - 1; x++)
+        //        {
+
+        //            byte current = pixels[y * width + x];//自身の値
+        //            double ave = 0;
+        //            int top = pixels[(y - 1) * width + x];//top
+        //            int bottom = pixels[(y + 1) * width + x];//bottom
+        //            int left = pixels[y * width + x - 1];//left
+        //            int right = pixels[y * width + x + 1];//right
+
+        //            int dTop = Math.Abs(current - top);
+        //            int dBottom = Math.Abs(current - bottom);
+        //            int dLeft = Math.Abs(current - left);
+        //            int dRight = Math.Abs(current - right);
+        //            if ((dTop < similer & dBottom < similer) | (dLeft < similer & dRight < similer))
+        //            {
+        //            }
+        //            else if (Math.Abs(ave - current) < threshold)
+        //            {
+        //                current = (byte)((top + bottom + left + right) / 4);
+        //            }
+        //            filtered[x + y * width] = current;
+        //            if (top == bottom) { }
+        //        }
+        //    }
+        //    return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+        //}
+
+        ////エッジ抽出後、上下左右フィルタ
+        //private (byte[] pixels, BitmapSource bitmap) Filterラプラシアンと上下左右(byte[] pixels, int width, int height, int threshold)
+        //{
+        //    //ラプラシアン、エッジ抽出
+        //    int[][] weight = new int[][] {
+        //        new int[] { 0, -1, 0 },
+        //        new int[] { -1, 4, -1 },
+        //        new int[] { 0, -1, 0 } };
+
+        //    bool[] IsFilter = new bool[pixels.Length];//判定結果用
+        //    int p;
+        //    //めんどくさいので上下左右1ピクセルは処理しない
+        //    //ラプラシアンでエッジ判定
+        //    for (int y = 1; y < height - 1; y++)
+        //    {
+        //        for (int x = 1; x < width - 1; x++)
+        //        {
+        //            int edge = 0;
+        //            p = x + y * width;
+        //            int pp;
+        //            for (int a = 0; a < 3; a++)
+        //            {
+        //                for (int b = 0; b < 3; b++)
+        //                {
+        //                    pp = (x + b - 1) + ((y + a - 1) * width);
+        //                    edge += pixels[pp] * weight[a][b];
+        //                }
+        //            }
+        //            //エッジ判定結果
+        //            byte moto = pixels[p];
+        //            int diff = Math.Abs(edge - moto);
+        //            //IsFilter[p] = (Math.Abs(edge) < threshold) ? true : false;
+        //            if (Math.Abs(edge) < threshold) { IsFilter[p] = true; }
+
+        //            ////差が小さければフィルタする(true)
+        //            //if (diff < threshold) { IsFilter[p] = true; }
+        //            //else IsFilter[p] = false;
+        //        }
+        //    }
+
+        //    var neko = IsFilter.Count(zz => zz == false);
+        //    byte[] filtered = new byte[pixels.Length];
+        //    //めんどくさいので上下左右1ピクセルは処理しない
+        //    for (int y = 1; y < height - 1; y++)
+        //    {
+        //        for (int x = 1; x < width - 1; x++)
+        //        {
+        //            p = x + (y * width);
+        //            //エッジはパス
+        //            if (IsFilter[p] == false)
+        //            {
+        //                filtered[p] = pixels[p];
+        //                continue;//パス
+        //            }
+
+        //            //ノイズなら平均値に変更
+        //            byte current = pixels[p];//自身の値                    
+        //            int top = pixels[(y - 1) * width + x];//top
+        //            int bottom = pixels[(y + 1) * width + x];//bottom
+        //            int left = pixels[p - 1];//left
+        //            int right = pixels[p + 1];//right
+        //            double ave = (top + bottom + left + right) / 4;
+        //            double diff = Math.Abs(current - ave);
+
+        //            if (Math.Abs(ave - current) > 1)
+        //            {
+        //                current = (byte)ave;
+        //            }
+        //            filtered[p] = current;
+        //        }
+        //    }
+        //    return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+        //}
+
+        //#endregion 未使用フィルタ
+
+
+
+        #region その他
 
         private void MainWindow_Drop(object sender, DragEventArgs e)
         {
@@ -538,6 +721,8 @@ namespace _20190411_画像フィルタ
             MyImage.Source = MyImageOrigin.Source;
             MyPixels = MyPixelsOrigin;
         }
+
+        #endregion
 
         private void MyButton1_Click(object sender, RoutedEventArgs e)
         {
@@ -622,29 +807,32 @@ namespace _20190411_画像フィルタ
 
         private void Button_Click_5(object sender, RoutedEventArgs e)
         {
-            (byte[] pixels, BitmapSource bitmap) = TestFilter(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight, 10);
+            //ソーベルフィルタ
+            (byte[] pixels, BitmapSource bitmap) = SobelFilterソーベルフィルタ(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
             MyImage.Source = bitmap;
             MyPixels = pixels;
         }
 
         private void Button_Click_6(object sender, RoutedEventArgs e)
         {
-            //上下左右
-            (byte[] pixels, BitmapSource bitmap) = Filter上下左右(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight, 100);
+            //ソーベルフィルタ横
+            (byte[] pixels, BitmapSource bitmap) = SobelFilterソーベルフィルタ横(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
             MyImage.Source = bitmap;
             MyPixels = pixels;
         }
 
         private void Button_Click_7(object sender, RoutedEventArgs e)
         {
-            (byte[] pixels, BitmapSource bitmap) = TestFilter3(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
+            //ソーベルフィルタ縦
+            (byte[] pixels, BitmapSource bitmap) = SobelFilterソーベルフィルタ縦(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
             MyImage.Source = bitmap;
             MyPixels = pixels;
         }
 
         private void Button_Click_8(object sender, RoutedEventArgs e)
         {
-            (byte[] pixels, BitmapSource bitmap) = TestFilter4(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
+            //ソーベルフィルタ2乗和の平方根
+            (byte[] pixels, BitmapSource bitmap) = SobelFilterソーベルフィルタ2乗和の平方根(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
             MyImage.Source = bitmap;
             MyPixels = pixels;
         }
@@ -652,25 +840,25 @@ namespace _20190411_画像フィルタ
         private void Button_Click_9(object sender, RoutedEventArgs e)
         {
             //ラプラシアン、エッジ抽出
-            (byte[] pixels, BitmapSource bitmap) = Filterラプラシアンとメディアン(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
-            MyImage.Source = bitmap;
-            MyPixels = pixels;
+            //(byte[] pixels, BitmapSource bitmap) = Filterラプラシアンとメディアン(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
+            //MyImage.Source = bitmap;
+            //MyPixels = pixels;
 
         }
 
         private void Button_Click_11(object sender, RoutedEventArgs e)
         {
-            (byte[] pixels, BitmapSource bitmap) = Filter上下左右2(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight, 100);
-            MyImage.Source = bitmap;
-            MyPixels = pixels;
+            //(byte[] pixels, BitmapSource bitmap) = Filter上下左右2(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight, 100);
+            //MyImage.Source = bitmap;
+            //MyPixels = pixels;
 
         }
 
         private void Button_Click_12(object sender, RoutedEventArgs e)
         {
-            (byte[] pixels, BitmapSource bitmap) = Filterラプラシアンと上下左右(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight, 100);
-            MyImage.Source = bitmap;
-            MyPixels = pixels;
+            //(byte[] pixels, BitmapSource bitmap) = Filterラプラシアンと上下左右(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight, 100);
+            //MyImage.Source = bitmap;
+            //MyPixels = pixels;
         }
     }
 }
