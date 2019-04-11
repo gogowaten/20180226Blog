@@ -184,14 +184,13 @@ namespace _20190411_画像フィルタ
                     v = (v < 0) ? 0 : (v > 255) ? 255 : v;
                     filtered[p] = (byte)v;
 
-
                 }
             }
             return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
 
         }
 
-        private (byte[] pixels, BitmapSource bitmap) SobelFilterソーベルフィルタ横(byte[] pixels, int width, int height)
+        private (byte[] pixels, BitmapSource bitmap) SobelFilterソーベルフィルタ縦(byte[] pixels, int width, int height)
         {
             //int[] yWeight = new int[] {
             //    -1, -2, -1,
@@ -227,7 +226,7 @@ namespace _20190411_画像フィルタ
 
         }
 
-        private (byte[] pixels, BitmapSource bitmap) SobelFilterソーベルフィルタ縦(byte[] pixels, int width, int height)
+        private (byte[] pixels, BitmapSource bitmap) SobelFilterソーベルフィルタ横(byte[] pixels, int width, int height)
         {
             //int[] xWeight = new int[] {
             //    -1, 0, 1,
@@ -277,6 +276,7 @@ namespace _20190411_画像フィルタ
             //めんどくさいので上下左右1ラインは処理しない
             byte[] filtered = new byte[pixels.Length];
             int p, vX, vY;
+
             for (int y = 1; y < height - 1; y++)
             {
                 for (int x = 1; x < width - 1; x++)
@@ -302,10 +302,398 @@ namespace _20190411_画像フィルタ
                     vY += pixels[p + width] * 2;
                     vY += pixels[p + width + 1] * 1;
 
-                    int v = (int)Math.Sqrt(vX * vX + vY * vY);// Math.Abs(vX) + Math.Abs(vY);
+                    int v = (int)Math.Sqrt(vX * vX + vY * vY);
+                    v = (v < 0) ? 0 : (v > 255) ? 255 : v;
+                    filtered[p] = (byte)v;
+                }
+            }
+            return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+
+        }
+
+        private (byte[] pixels, BitmapSource bitmap) SobelFilterソーベルフィルタ斜め和(byte[] pixels, int width, int height)
+        {
+            //    A            B
+            // 0,  1, 2     2,  1,  0
+            //-1,  0, 1     1,  0, -1
+            //-2, -1, 0     0, -1, -2
+
+            //めんどくさいので上下左右1ラインは処理しない
+            byte[] filtered = new byte[pixels.Length];
+            int p, vA, vB;
+            for (int y = 1; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+                    vA = vB = 0;
+                    p = x + y * width;//中心Index
+                    //a上段
+                    vA += pixels[p - width];//中
+                    vA += pixels[p - width + 1] * 2;//右
+                    //a中段
+                    vA += pixels[p - 1] * -1;//左
+                    vA += pixels[p + 1];//右
+                    //a下段
+                    vA += pixels[p + width - 1] * -2;//左
+                    vA += pixels[p + width] * -1;//中
+
+                    //b上段
+                    vB += pixels[p - width - 1] * 2;//左
+                    vB += pixels[p - width];//中
+                    //b中断
+                    vB += pixels[p - 1];//左
+                    vB += pixels[p + 1] * -1;//右
+                    //b下段
+                    vB += pixels[p + width] * -1;//中
+                    vB += pixels[p + width + 1] * -2;//右
+
+                    //和
+                    int v = Math.Abs(vA) + Math.Abs(vB);
                     v = (v < 0) ? 0 : (v > 255) ? 255 : v;
                     filtered[p] = (byte)v;
 
+                }
+            }
+            return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+
+        }
+
+        private (byte[] pixels, BitmapSource bitmap) SobelFilterソーベルフィルタ斜め2乗和の平方根(byte[] pixels, int width, int height)
+        {
+            //    A            B
+            // 0,  1, 2     2,  1,  0
+            //-1,  0, 1     1,  0, -1
+            //-2, -1, 0     0, -1, -2
+
+            //めんどくさいので上下左右1ラインは処理しない
+            byte[] filtered = new byte[pixels.Length];
+            int p, vA, vB;
+            for (int y = 1; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+                    vA = vB = 0;
+                    p = x + y * width;//中心Index
+                    //a上段
+                    vA += pixels[p - width];//中
+                    vA += pixels[p - width + 1] * 2;//右
+                    //a中段
+                    vA += pixels[p - 1] * -1;//左
+                    vA += pixels[p + 1];//右
+                    //a下段
+                    vA += pixels[p + width - 1] * -2;//左
+                    vA += pixels[p + width] * -1;//中
+
+                    //b上段
+                    vB += pixels[p - width - 1] * 2;//左
+                    vB += pixels[p - width];//中
+                    //b中断
+                    vB += pixels[p - 1];//左
+                    vB += pixels[p + 1] * -1;//右
+                    //b下段
+                    vB += pixels[p + width] * -1;//中
+                    vB += pixels[p + width + 1] * -2;//右
+
+                    //2乗和の平方根
+                    int v = (int)Math.Sqrt(vA * vA + vB * vB);
+                    v = (v < 0) ? 0 : (v > 255) ? 255 : v;
+                    filtered[p] = (byte)v;
+
+                }
+            }
+            return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+
+        }
+
+        private (byte[] pixels, BitmapSource bitmap) EdgeFilter一次微分フィルタ和(byte[] pixels, int width, int height)
+        {
+            //            【画像処理】一次微分フィルタの原理・特徴・計算式 | アルゴリズム雑記
+            //https://algorithm.joho.info/image-processing/differential-filter/
+
+            //    横            縦
+            // 0,  0, 0     0, -1,  0
+            //-1,  0, 1     0,  0,  0
+            // 0,  0, 0     0,  1,  0
+
+            //めんどくさいので上下左右1ラインは処理しない
+            byte[] filtered = new byte[pixels.Length];
+            int p, vX, vY;
+            for (int y = 1; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+                    p = x + y * width;
+                    vX = 0;
+                    //上段X
+
+                    //中段X
+                    vX += pixels[p - 1] * -1;
+                    vX += pixels[p + 1];
+                    //下段X
+
+                    vY = 0;
+                    //上段Y
+                    vY += pixels[p - width] * -1;
+                    //中断Y
+
+                    //下段Y
+                    vY += pixels[p + width];
+
+                    int v = Math.Abs(vX) + Math.Abs(vY);
+                    v = (v < 0) ? 0 : (v > 255) ? 255 : v;
+                    filtered[p] = (byte)v;
+
+                }
+            }
+            return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+
+        }
+
+        private (byte[] pixels, BitmapSource bitmap) EdgeFilter一次微分フィルタ2乗和の平方根(byte[] pixels, int width, int height)
+        {
+            //    横            縦
+            // 0,  0, 0     0, -1,  0
+            //-1,  0, 1     0,  0,  0
+            // 0,  0, 0     0,  1,  0
+
+            //めんどくさいので上下左右1ラインは処理しない
+            byte[] filtered = new byte[pixels.Length];
+            int p, vX, vY;
+            for (int y = 1; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+                    p = x + y * width;
+                    vX = 0;
+                    //上段X
+
+                    //中段X
+                    vX += pixels[p - 1] * -1;
+                    vX += pixels[p + 1];
+                    //下段X
+
+                    vY = 0;
+                    //上段Y
+                    vY += pixels[p - width] * -1;
+                    //中断Y
+
+                    //下段Y
+                    vY += pixels[p + width];
+
+                    int v = (int)Math.Sqrt(vX * vX + vY * vY);
+                    v = (v < 0) ? 0 : (v > 255) ? 255 : v;
+                    filtered[p] = (byte)v;
+
+                }
+            }
+            return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+
+        }
+
+        private (byte[] pixels, BitmapSource bitmap) EdgeFilterプレウィットフィルタ和(byte[] pixels, int width, int height)
+        {
+            //            【画像処理】プレウィットフィルタの原理・特徴・計算式 | アルゴリズム雑記
+            //https://algorithm.joho.info/image-processing/prewitt-filter/
+
+            //    横            縦
+            // -1,  0, 1    -1, -1, -1
+            // -1,  0, 1     0,  0,  0
+            // -1,  0, 1     1,  1,  1
+
+            //めんどくさいので上下左右1ラインは処理しない
+            byte[] filtered = new byte[pixels.Length];
+            int p, vX, vY;
+            for (int y = 1; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+                    p = x + y * width;
+                    vX = 0;//横
+                    //上段X
+                    vX += pixels[p - width - 1] * -1;
+                    vX += pixels[p - width + 1];
+                    //中段X
+                    vX += pixels[p - 1] * -1;
+                    vX += pixels[p + 1];
+                    //下段X
+                    vX += pixels[p + width - 1] * -1;
+                    vX += pixels[p + width + 1];
+
+
+                    vY = 0;//縦
+                    //上段Y
+                    vY += pixels[p - width - 1] * -1;
+                    vY += pixels[p - width] * -1;
+                    vY += pixels[p - width + 1] * -1;
+                    //中断Y
+
+                    //下段Y
+                    vY += pixels[p + width - 1];
+                    vY += pixels[p + width];
+                    vY += pixels[p + width + 1];
+
+                    //和
+                    int v = Math.Abs(vX) + Math.Abs(vY);
+                    v = (v < 0) ? 0 : (v > 255) ? 255 : v;
+                    filtered[p] = (byte)v;
+
+                }
+            }
+            return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+
+        }
+
+        private (byte[] pixels, BitmapSource bitmap) EdgeFilterプレウィットフィルタ2乗和の平方根(byte[] pixels, int width, int height)
+        {
+            //    横            縦
+            // -1,  0, 1    -1, -1, -1
+            // -1,  0, 1     0,  0,  0
+            // -1,  0, 1     1,  1,  1
+
+            //めんどくさいので上下左右1ラインは処理しない
+            byte[] filtered = new byte[pixels.Length];
+            int p, vX, vY;
+            for (int y = 1; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+                    p = x + y * width;
+                    vX = 0;//横
+                    //上段X
+                    vX += pixels[p - width - 1] * -1;
+                    vX += pixels[p - width + 1];
+                    //中段X
+                    vX += pixels[p - 1] * -1;
+                    vX += pixels[p + 1];
+                    //下段X
+                    vX += pixels[p + width - 1] * -1;
+                    vX += pixels[p + width + 1];
+
+
+                    vY = 0;//縦
+                    //上段Y
+                    vY += pixels[p - width - 1] * -1;
+                    vY += pixels[p - width] * -1;
+                    vY += pixels[p - width + 1] * -1;
+                    //中断Y
+
+                    //下段Y
+                    vY += pixels[p + width - 1];
+                    vY += pixels[p + width];
+                    vY += pixels[p + width + 1];
+
+                    //2乗和の平方根
+                    int v = (int)Math.Sqrt(vX * vX + vY * vY);
+                    v = (v < 0) ? 0 : (v > 255) ? 255 : v;
+                    filtered[p] = (byte)v;
+
+                }
+            }
+            return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+
+        }
+
+        private (byte[] pixels, BitmapSource bitmap) EdgeFilterロバーツフィルタ和(byte[] pixels, int width, int height)
+        {
+            //            画像処理 - HexeRein
+            //http://www7a.biglobe.ne.jp/~fairytale/article/program/graphics.html#filtering
+
+            //    横            縦
+            //  0,  0,  0     0,  0,  0
+            //  0,  1,  0     0,  0,  1
+            //  0,  0, -1     0, -1,  0
+
+            //めんどくさいので上下左右1ラインは処理しない
+            byte[] filtered = new byte[pixels.Length];
+            int p, vX, vY;
+            for (int y = 1; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+                    p = x + y * width;
+                    vX = 0;//横
+                    //上段X
+                    //vX += pixels[p - width - 1] * -1;
+                    //vX += pixels[p - width + 1];
+                    //中段X
+                    //vX += pixels[p - 1] * -1;
+                    vX += pixels[p];
+                    //vX += pixels[p + 1];
+                    //下段X
+                    //vX += pixels[p + width - 1] * -1;
+                    vX += pixels[p + width + 1] * -1;
+
+
+                    vY = 0;//縦
+                    //上段Y
+                    //vY += pixels[p - width - 1] * -1;
+                    //vY += pixels[p - width] * -1;
+                    //vY += pixels[p - width + 1] * -1;
+                    //中段Y
+                    vY += pixels[p + 1];
+                    //下段Y
+                    //vY += pixels[p + width - 1];
+                    vY += pixels[p + width] * -1;
+                    //vY += pixels[p + width + 1];
+
+                    //和
+                    int v = Math.Abs(vX) + Math.Abs(vY);
+                    v = (v < 0) ? 0 : (v > 255) ? 255 : v;
+                    filtered[p] = (byte)v;
+
+                }
+            }
+            return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+
+        }
+
+        private (byte[] pixels, BitmapSource bitmap) EdgeFilterロバーツフィルタ2乗和の平方根(byte[] pixels, int width, int height)
+        {
+            //            画像処理 - HexeRein
+            //http://www7a.biglobe.ne.jp/~fairytale/article/program/graphics.html#filtering
+
+            //    横            縦
+            //  0,  0,  0     0,  0,  0
+            //  0,  1,  0     0,  0,  1
+            //  0,  0, -1     0, -1,  0
+
+            //めんどくさいので上下左右1ラインは処理しない
+            byte[] filtered = new byte[pixels.Length];
+            int p, vX, vY;
+            for (int y = 1; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+                    p = x + y * width;
+                    vX = 0;//横
+                    //上段X
+                    //vX += pixels[p - width - 1] * -1;
+                    //vX += pixels[p - width + 1];
+                    //中段X
+                    //vX += pixels[p - 1] * -1;
+                    vX += pixels[p];
+                    //vX += pixels[p + 1];
+                    //下段X
+                    //vX += pixels[p + width - 1] * -1;
+                    vX += pixels[p + width + 1] * -1;
+
+
+                    vY = 0;//縦
+                    //上段Y
+                    //vY += pixels[p - width - 1] * -1;
+                    //vY += pixels[p - width] * -1;
+                    //vY += pixels[p - width + 1] * -1;
+                    //中段Y
+                    vY += pixels[p + 1];
+                    //下段Y
+                    //vY += pixels[p + width - 1];
+                    vY += pixels[p + width] * -1;
+                    //vY += pixels[p + width + 1];
+
+                    //和
+                    int v = (int)Math.Sqrt(vX * vX + vY * vY);
+                    v = (v < 0) ? 0 : (v > 255) ? 255 : v;
+                    filtered[p] = (byte)v;
 
                 }
             }
@@ -839,26 +1227,84 @@ namespace _20190411_画像フィルタ
 
         private void Button_Click_9(object sender, RoutedEventArgs e)
         {
-            //ラプラシアン、エッジ抽出
-            //(byte[] pixels, BitmapSource bitmap) = Filterラプラシアンとメディアン(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
-            //MyImage.Source = bitmap;
-            //MyPixels = pixels;
+            //ソーベルフィルタ斜め和
+            (byte[] pixels, BitmapSource bitmap) = SobelFilterソーベルフィルタ斜め和(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
 
         }
 
         private void Button_Click_11(object sender, RoutedEventArgs e)
         {
-            //(byte[] pixels, BitmapSource bitmap) = Filter上下左右2(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight, 100);
-            //MyImage.Source = bitmap;
-            //MyPixels = pixels;
+            //ソーベルフィルタ斜め2乗和の平方根
+            (byte[] pixels, BitmapSource bitmap) = SobelFilterソーベルフィルタ斜め2乗和の平方根(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
 
         }
 
         private void Button_Click_12(object sender, RoutedEventArgs e)
         {
-            //(byte[] pixels, BitmapSource bitmap) = Filterラプラシアンと上下左右(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight, 100);
-            //MyImage.Source = bitmap;
-            //MyPixels = pixels;
+            //一次微分フィルタ和
+            (byte[] pixels, BitmapSource bitmap) = EdgeFilter一次微分フィルタ和(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
+        }
+
+        private void Button_Click_13(object sender, RoutedEventArgs e)
+        {
+            //一次微分フィルタ2乗和の平方根
+            (byte[] pixels, BitmapSource bitmap) = EdgeFilter一次微分フィルタ2乗和の平方根(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
+        }
+
+        private void Button_Click_14(object sender, RoutedEventArgs e)
+        {
+            //プレウィットフィルタ和
+            (byte[] pixels, BitmapSource bitmap) = EdgeFilterプレウィットフィルタ和(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
+        }
+
+        private void Button_Click_15(object sender, RoutedEventArgs e)
+        {
+            //プレウィットフィルタ2乗和の平方根
+            (byte[] pixels, BitmapSource bitmap) = EdgeFilterプレウィットフィルタ2乗和の平方根(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
+        }
+
+        private void Button_Click_16(object sender, RoutedEventArgs e)
+        {
+            //ロバーツフィルタ和
+            (byte[] pixels, BitmapSource bitmap) = EdgeFilterロバーツフィルタ和(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
+
+        }
+
+        private void Button_Click_17(object sender, RoutedEventArgs e)
+        {
+            //ロバーツフィルタ2乗和の平方根
+            (byte[] pixels, BitmapSource bitmap) = EdgeFilterロバーツフィルタ2乗和の平方根(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
+
+        }
+
+        private void Button_Click_18(object sender, RoutedEventArgs e)
+        {
+            //ラプラシアン近傍8
+            int[][] weight = new int[][] {
+                new int[] { 1, 1, 1 },
+                new int[] { 1, -8, 1 },
+                new int[] { 1, 1, 1 } };
+            int offset = 0;
+            int div = 1;
+            (byte[] pixels, BitmapSource bitmap) = Filter(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight, weight, div, offset);
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
         }
     }
 }

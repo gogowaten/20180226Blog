@@ -5,10 +5,16 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:_20190411_画像フィルタ"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="500" Width="800">
     <Grid>
     <DockPanel>
-      <StackPanel DockPanel.Dock="Left" Width="100">
+      <StackPanel DockPanel.Dock="Left" Width="180">
+        <StackPanel.Resources>
+          <Style TargetType="Button">
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Margin" Value="1"/>
+          </Style>
+        </StackPanel.Resources>
         <Button Content="リセット" Click="Button_Click_10"/>
         <Button Content="ぼかし" Click="MyButton1_Click"/>
         <Button Content="ラプラシアン" Click="Button_Click"/>
@@ -17,12 +23,18 @@
         <Button Content="ぼかし2" Click="Button_Click_4"/>
         <Button Content="メディアン" Click="Button_Click_3"/>
         <Button Content="ソーベルフィルタ縦横" Click="Button_Click_5"/>
-        <Button Content="ソーベルフィルタ横" Click="Button_Click_6"/>
-        <Button Content="ソーベルフィルタ縦" Click="Button_Click_7"/>
+        <Button Content="ソーベルフィルタ縦" Click="Button_Click_6"/>
+        <Button Content="ソーベルフィルタ横" Click="Button_Click_7"/>
         <Button Content="ソーベルフィルタ縦横2乗和の平方根" Click="Button_Click_8"/>
-        <Button Content="Test5" Click="Button_Click_9"/>
-        <Button Content="Test6" Click="Button_Click_11"/>
-        <Button Content="Test7" Click="Button_Click_12"/>
+        <Button Content="ソーベルフィルタ斜め和" Click="Button_Click_9"/>
+        <Button Content="ソーベルフィルタ斜め2乗和の平方根" Click="Button_Click_11"/>
+        <Button Content="一次微分フィルタ和" Click="Button_Click_12"/>
+        <Button Content="一次微分フィルタ2乗和の平方根" Click="Button_Click_13"/>
+        <Button Content="プレウィットフィルタ和" Click="Button_Click_14"/>
+        <Button Content="プレウィットフィルタ2乗和の平方根" Click="Button_Click_15"/>
+        <Button Content="ロバーツフィルタ和" Click="Button_Click_16"/>
+        <Button Content="ロバーツフィルタ2乗和の平方根" Click="Button_Click_17"/>
+        <Button Content="ラプラシアン近傍8" Click="Button_Click_18"/>
       </StackPanel>
       <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
         <Grid MouseLeftButtonDown="Grid_MouseLeftButtonDown" MouseLeftButtonUp="Grid_MouseLeftButtonUp">
