@@ -1,0 +1,35 @@
+﻿<Window x:Class="_20190411_画像フィルタ.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:_20190411_画像フィルタ"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+    <DockPanel>
+      <StackPanel DockPanel.Dock="Left" Width="100">
+        <Button Content="リセット" Click="Button_Click_10"/>
+        <Button Content="ぼかし" Click="MyButton1_Click"/>
+        <Button Content="ラプラシアン" Click="Button_Click"/>
+        <Button Content="シャープネス" Click="Button_Click_1"/>
+        <Button Content="エンボス" Click="Button_Click_2"/>
+        <Button Content="ぼかし2" Click="Button_Click_4"/>
+        <Button Content="メディアン" Click="Button_Click_3"/>
+        <Button Content="Test" Click="Button_Click_5"/>
+        <Button Content="Test2" Click="Button_Click_6"/>
+        <Button Content="Test3" Click="Button_Click_7"/>
+        <Button Content="Test4" Click="Button_Click_8"/>
+        <Button Content="Test5" Click="Button_Click_9"/>
+        <Button Content="Test6" Click="Button_Click_11"/>
+        <Button Content="Test7" Click="Button_Click_12"/>
+      </StackPanel>
+      <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+        <Grid MouseLeftButtonDown="Grid_MouseLeftButtonDown" MouseLeftButtonUp="Grid_MouseLeftButtonUp">
+          <Image Name="MyImageOrigin" Stretch="None" UseLayoutRounding="True"/>
+          <Image Name="MyImage" Stretch="None" UseLayoutRounding="True"/>
+        </Grid>
+      </ScrollViewer>
+    </DockPanel>
+  </Grid>
+</Window>

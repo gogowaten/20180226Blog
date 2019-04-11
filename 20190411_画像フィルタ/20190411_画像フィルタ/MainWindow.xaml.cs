@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace _20190409_画像フィルタ処理
+namespace _20190411_画像フィルタ
 {
     /// <summary>
     /// MainWindow.xaml の相互作用ロジック
@@ -385,14 +385,14 @@ namespace _20190409_画像フィルタ処理
         }
 
         //エッジ抽出後、上下左右フィルタ
-        private (byte[] pixels, BitmapSource bitmap) Filterラプラシアンと上下左右(byte[] pixels, int width, int height,int threshold)
+        private (byte[] pixels, BitmapSource bitmap) Filterラプラシアンと上下左右(byte[] pixels, int width, int height, int threshold)
         {
             //ラプラシアン、エッジ抽出
             int[][] weight = new int[][] {
                 new int[] { 0, -1, 0 },
                 new int[] { -1, 4, -1 },
                 new int[] { 0, -1, 0 } };
-            
+
             bool[] IsFilter = new bool[pixels.Length];//判定結果用
             int p;
             //めんどくさいので上下左右1ピクセルは処理しない
@@ -438,7 +438,7 @@ namespace _20190409_画像フィルタ処理
                         filtered[p] = pixels[p];
                         continue;//パス
                     }
-                    
+
                     //ノイズなら平均値に変更
                     byte current = pixels[p];//自身の値                    
                     int top = pixels[(y - 1) * width + x];//top
@@ -447,7 +447,7 @@ namespace _20190409_画像フィルタ処理
                     int right = pixels[p + 1];//right
                     double ave = (top + bottom + left + right) / 4;
                     double diff = Math.Abs(current - ave);
-                    
+
                     if (Math.Abs(ave - current) > 1)
                     {
                         current = (byte)ave;

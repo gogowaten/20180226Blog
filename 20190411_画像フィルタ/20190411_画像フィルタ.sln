@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.156
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "20190411_画像フィルタ", "20190411_画像フィルタ\20190411_画像フィルタ.csproj", "{F1A484B4-5B6F-44D9-894D-B6534D3ADD0F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F1A484B4-5B6F-44D9-894D-B6534D3ADD0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F1A484B4-5B6F-44D9-894D-B6534D3ADD0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F1A484B4-5B6F-44D9-894D-B6534D3ADD0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F1A484B4-5B6F-44D9-894D-B6534D3ADD0F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {78B2E754-6732-46A6-A212-806192D6B639}
+	EndGlobalSection
+EndGlobal
