@@ -701,7 +701,47 @@ namespace _20190411_画像フィルタ
 
         }
 
+        private (byte[] pixels, BitmapSource bitmap) ScaleFilter膨張(byte[] pixels, int width, int height)
+        {
+            //9マス中最大の値にする
+            byte[] filtered = new byte[pixels.Length];
+            int p;
+            for (int y = 1; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+                    p = x + (y * width);
+                    filtered[p] =
+                        Math.Max(pixels[p - width - 1], Math.Max(pixels[p - width], Math.Max(pixels[p - width + 1],
+                        Math.Max(pixels[p - 1], Math.Max(pixels[p], Math.Max(pixels[p + 1],
+                        Math.Max(pixels[p + width - 1], Math.Max(pixels[p + width], pixels[p + width + 1]))))))));
 
+                }
+            }
+            return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+
+        }
+
+        private (byte[] pixels, BitmapSource bitmap) ScaleFilter収縮(byte[] pixels, int width, int height)
+        {
+            //9マス中最大の値にする
+            byte[] filtered = new byte[pixels.Length];
+            int p;
+            for (int y = 1; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+                    p = x + (y * width);
+                    filtered[p] =
+                        Math.Min(pixels[p - width - 1], Math.Min(pixels[p - width], Math.Min(pixels[p - width + 1],
+                        Math.Min(pixels[p - 1], Math.Min(pixels[p], Math.Min(pixels[p + 1],
+                        Math.Min(pixels[p + width - 1], Math.Min(pixels[p + width], pixels[p + width + 1]))))))));
+
+                }
+            }
+            return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+
+        }
 
 
 
@@ -1305,6 +1345,24 @@ namespace _20190411_画像フィルタ
             (byte[] pixels, BitmapSource bitmap) = Filter(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight, weight, div, offset);
             MyImage.Source = bitmap;
             MyPixels = pixels;
+        }
+
+        private void Button_Click_19(object sender, RoutedEventArgs e)
+        {
+            //膨張
+            (byte[] pixels, BitmapSource bitmap) = ScaleFilter膨張(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
+
+        }
+
+        private void Button_Click_20(object sender, RoutedEventArgs e)
+        {
+            //収縮
+            (byte[] pixels, BitmapSource bitmap) = ScaleFilter収縮(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
+
         }
     }
 }

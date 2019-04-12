@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:_20190411_画像フィルタ"
         mc:Ignorable="d"
-        Title="MainWindow" Height="500" Width="800">
+        Title="MainWindow" Height="550" Width="800">
     <Grid>
     <DockPanel>
       <StackPanel DockPanel.Dock="Left" Width="180">
@@ -35,6 +35,8 @@
         <Button Content="ロバーツフィルタ和" Click="Button_Click_16"/>
         <Button Content="ロバーツフィルタ2乗和の平方根" Click="Button_Click_17"/>
         <Button Content="ラプラシアン近傍8" Click="Button_Click_18"/>
+        <Button Content="膨張" Click="Button_Click_19"/>
+        <Button Content="収縮" Click="Button_Click_20"/>
       </StackPanel>
       <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
         <Grid MouseLeftButtonDown="Grid_MouseLeftButtonDown" MouseLeftButtonUp="Grid_MouseLeftButtonUp">
