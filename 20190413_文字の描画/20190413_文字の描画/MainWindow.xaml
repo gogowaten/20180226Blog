@@ -1,0 +1,19 @@
+﻿<Window x:Class="_20190413_文字の描画.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:_20190413_文字の描画"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+  <Grid Name="MyGrid" UseLayoutRounding="True" RenderOptions.EdgeMode="Aliased">
+    <Canvas UseLayoutRounding="True" RenderOptions.EdgeMode="Aliased">
+      <Image Name="MyImage" Stretch="None" UseLayoutRounding="True"/>
+      <Image Name="MyImage2" Stretch="None" UseLayoutRounding="True"/>
+      <Path Name="MyPath"/>
+      <Path Name="MyPath2"/>
+      <!--<TextBlock Name="MyTextBlock" Text="MS ゴシック" FontSize="50" UseLayoutRounding="True" RenderOptions.EdgeMode="Aliased"/>
+      <TextBox Text="text" FontSize="50" RenderOptions.EdgeMode="Aliased" UseLayoutRounding="True"/>-->
+    </Canvas>
+  </Grid>
+</Window>

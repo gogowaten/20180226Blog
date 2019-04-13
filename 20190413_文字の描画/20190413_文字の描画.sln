@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.156
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "20190413_文字の描画", "20190413_文字の描画\20190413_文字の描画.csproj", "{532D3E6D-EF54-4FFF-852A-4F1D5DB5792A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{532D3E6D-EF54-4FFF-852A-4F1D5DB5792A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{532D3E6D-EF54-4FFF-852A-4F1D5DB5792A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{532D3E6D-EF54-4FFF-852A-4F1D5DB5792A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{532D3E6D-EF54-4FFF-852A-4F1D5DB5792A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {25B09D8F-30B9-4CB2-B3B2-54CA5F8C1C55}
+	EndGlobalSection
+EndGlobal
