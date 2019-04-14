@@ -23,6 +23,7 @@ namespace _20190411_画像フィルタ
         byte[] MyPixelsOrigin;
         byte[] MyPixels;
         BitmapSource MyBitmap;
+        string ImageFileFullPath;
 
         public MainWindow()
         {
@@ -35,10 +36,14 @@ namespace _20190411_画像フィルタ
 
         private void MyTest()
         {
-            string filePath = "";
-            filePath = @"E:\オレ\雑誌スキャン\2003年pc雑誌\20030115_dosvmag_003.jpg";
-            //filePath = @" D:\ブログ用\テスト用画像\border_row.bmp";
-            (MyPixels, MyBitmap) = MakeBitmapSourceAndByteArray(filePath, PixelFormats.Gray8, 96, 96);
+            //string filePath = "";
+            ImageFileFullPath = @"E:\オレ\雑誌スキャン\2003年pc雑誌\20030115_dosvmag_003.jpg";
+            //ImageFileFullPath = @" D:\ブログ用\テスト用画像\border_row.bmp";
+            //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_003_.png";
+            //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_003_重.png";
+            //ImageFileFullPath = @"D:\ブログ用\Lenna_(test_image).png";
+
+            (MyPixels, MyBitmap) = MakeBitmapSourceAndByteArray(ImageFileFullPath, PixelFormats.Gray8, 96, 96);
 
             MyImageOrigin.Source = MyBitmap;
             MyPixelsOrigin = MyPixels;
@@ -70,6 +75,7 @@ namespace _20190411_画像フィルタ
                             v += pixels[pp] * weight[a][b];
                         }
                     }
+                    //v = Math.Abs(v);
                     v /= div;
                     v += offset;
                     v = (v > 255) ? 255 : (v < 0) ? 0 : v;
@@ -102,6 +108,7 @@ namespace _20190411_画像フィルタ
                         v += pixels[pp] * weight[a + 1][b + 1];
                     }
                 }
+                v = Math.Abs(v);
                 v /= div;
                 v += offset;
                 v = (v > 255) ? 255 : (v < 0) ? 0 : v;
@@ -743,7 +750,46 @@ namespace _20190411_画像フィルタ
 
         }
 
+        private (byte[] pixels, BitmapSource bitmap) FilterAndFilter(byte[] isFilter, int threshold, byte[] pixels, int width, int height, int[][] weight, int div, int offset)
+        {
+            //int[][] weight = new int[][] {
+            //    new int[] { 0, 1, 0 },
+            //    new int[] { 1, 1, 1 },
+            //    new int[] { 0, 1, 0 } };
+            //int offset = 0;
+            //int div = 5;
+            byte[] filtered = new byte[pixels.Length];
+            int p;
 
+            //上下左右1ピクセルは処理しない
+            for (int y = 1; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+                    double v = 0.0;
+                    p = x + y * width;
+                    //しきい値以上なら無処理
+                    if (threshold < isFilter[p]) { filtered[p] = pixels[p]; continue; }
+
+                    int pp;
+                    for (int a = 0; a < 3; a++)
+                    {
+                        for (int b = 0; b < 3; b++)
+                        {
+                            pp = (x + b - 1) + ((y + a - 1) * width);
+                            v += pixels[pp] * weight[a][b];
+                        }
+                    }
+                    //v = Math.Abs(v);
+                    v /= div;
+                    v += offset;
+                    v = (v > 255) ? 255 : (v < 0) ? 0 : v;
+                    filtered[p] = (byte)v;
+                }
+            }
+
+            return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+        }
 
         //#region 未使用フィルタ
 
@@ -1070,6 +1116,43 @@ namespace _20190411_画像フィルタ
 
         #region その他
 
+
+        private void Button_Click_21(object sender, RoutedEventArgs e)
+        {
+            SaveImage((BitmapSource)MyImage.Source);
+        }
+
+        private void SaveImage(BitmapSource source)
+        {
+            var saveFileDialog = new Microsoft.Win32.SaveFileDialog();
+            saveFileDialog.Filter = "*.png|*.png|*.bmp|*.bmp|*.tiff|*.tiff";
+            saveFileDialog.AddExtension = true;
+            saveFileDialog.FileName = System.IO.Path.GetFileNameWithoutExtension(ImageFileFullPath) + "_";
+            saveFileDialog.InitialDirectory = System.IO.Path.GetDirectoryName(ImageFileFullPath);
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                BitmapEncoder encoder = new BmpBitmapEncoder();
+                if (saveFileDialog.FilterIndex == 1)
+                {
+                    encoder = new PngBitmapEncoder();
+                }
+                else if (saveFileDialog.FilterIndex == 2)
+                {
+                    encoder = new BmpBitmapEncoder();
+                }
+                else if (saveFileDialog.FilterIndex == 3)
+                {
+                    encoder = new TiffBitmapEncoder();
+                }
+                encoder.Frames.Add(BitmapFrame.Create(source));
+
+                using (var fs = new System.IO.FileStream(saveFileDialog.FileName, System.IO.FileMode.Create, System.IO.FileAccess.Write))
+                {
+                    encoder.Save(fs);
+                }
+            }
+        }
+
         private void MainWindow_Drop(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop) == false) { return; }
@@ -1363,6 +1446,45 @@ namespace _20190411_画像フィルタ
             MyImage.Source = bitmap;
             MyPixels = pixels;
 
+        }
+
+        private void Button_Click_22(object sender, RoutedEventArgs e)
+        {
+            //
+            int[][] weight = new int[][] {
+                new int[] { -1, 2, -1 },
+                new int[] { 2, -4, 2 },
+                new int[] { -1, 2, -1 } };
+            int offset = 0;
+            int div = 1;
+            (byte[] pixels, BitmapSource bitmap) = Filter(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight, weight, div, offset);
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
+        }
+
+        private void Button_Click_23(object sender, RoutedEventArgs e)
+        {
+            (byte[] pixels, BitmapSource bitmap) = EdgeFilter一次微分フィルタ和(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
+            //(byte[] pixels, BitmapSource bitmap) = EdgeFilterプレウィットフィルタ和(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
+            //(byte[] pixels, BitmapSource bitmap) = SobelFilterソーベルフィルタ(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
+            ////ラプラシアン、エッジ抽出
+            int[][] weight = new int[][] {
+                new int[] { 0, -1, 0 },
+                new int[] { -1, 4, -1 },
+                new int[] { 0, -1, 0 } };
+            int offset = 0;
+            int div = 1;
+            //(byte[] pixels, BitmapSource bitmap) = Filter(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight, weight, div, offset);
+            //ぼかし
+            weight = new int[][] {
+                new int[] { 0, 1, 0 },
+                new int[] { 1, 1, 1 },
+                new int[] { 0, 1, 0 } };
+            offset = 0;
+            div = 5;
+            (pixels, bitmap) = FilterAndFilter(pixels, 150, MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight, weight, div, offset);
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
         }
     }
 }

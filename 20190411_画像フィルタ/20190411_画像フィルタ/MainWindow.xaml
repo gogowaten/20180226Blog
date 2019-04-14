@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:_20190411_画像フィルタ"
         mc:Ignorable="d"
-        Title="MainWindow" Height="550" Width="800">
+        Title="MainWindow" Height="600" Width="800">
     <Grid>
     <DockPanel>
       <StackPanel DockPanel.Dock="Left" Width="180">
@@ -15,6 +15,7 @@
             <Setter Property="Margin" Value="1"/>
           </Style>
         </StackPanel.Resources>
+        <Button Content="保存" Click="Button_Click_21"/>
         <Button Content="リセット" Click="Button_Click_10"/>
         <Button Content="ぼかし" Click="MyButton1_Click"/>
         <Button Content="ラプラシアン" Click="Button_Click"/>
@@ -37,6 +38,8 @@
         <Button Content="ラプラシアン近傍8" Click="Button_Click_18"/>
         <Button Content="膨張" Click="Button_Click_19"/>
         <Button Content="収縮" Click="Button_Click_20"/>
+        <Button Content="test" Click="Button_Click_22"/>
+        <Button Content="フィルターANDフィルター" Click="Button_Click_23"/>
       </StackPanel>
       <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
         <Grid MouseLeftButtonDown="Grid_MouseLeftButtonDown" MouseLeftButtonUp="Grid_MouseLeftButtonUp">
