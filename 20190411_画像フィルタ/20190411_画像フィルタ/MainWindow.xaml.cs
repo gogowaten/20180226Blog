@@ -40,7 +40,7 @@ namespace _20190411_画像フィルタ
             ImageFileFullPath = @"E:\オレ\雑誌スキャン\2003年pc雑誌\20030115_dosvmag_003.jpg";
             //ImageFileFullPath = @" D:\ブログ用\テスト用画像\border_row.bmp";
             //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_003_.png";
-            //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_003_重.png";
+            ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_003_重.png";
             //ImageFileFullPath = @"D:\ブログ用\Lenna_(test_image).png";
 
             (MyPixels, MyBitmap) = MakeBitmapSourceAndByteArray(ImageFileFullPath, PixelFormats.Gray8, 96, 96);
@@ -117,6 +117,38 @@ namespace _20190411_画像フィルタ
             }
             return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
 
+        }
+
+        private (byte[] pixels, BitmapSource bitmap) Filter5x5(byte[] pixels, int width, int height, int[][] weight, int div, int offset)
+        {
+            //カーネルサイズが5x5
+            byte[] filtered = new byte[pixels.Length];
+            int p;
+            //上下左右2ピクセルラインは処理しない
+            for (int y = 2; y < height - 2; y++)
+            {
+                for (int x = 2; x < width - 2; x++)
+                {
+                    double v = 0.0;
+                    p = x + y * width;
+                    int pp;
+                    for (int a = 0; a < 5; a++)
+                    {
+                        for (int b = 0; b < 5; b++)
+                        {
+                            pp = (x + b - 2) + ((y + a - 2) * width);
+                            v += pixels[pp] * weight[a][b];
+                        }
+                    }
+                    //v = Math.Abs(v);
+                    v /= div;
+                    v += offset;
+                    v = (v > 255) ? 255 : (v < 0) ? 0 : v;
+                    filtered[p] = (byte)v;
+                }
+            }
+
+            return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
         }
 
         //メディアンフィルタ、自身と周辺8画素の中央値をそのまま適用
@@ -790,6 +822,54 @@ namespace _20190411_画像フィルタ
 
             return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
         }
+
+
+        private (byte[] pixels, BitmapSource bitmap) MyFilterHorizontal(byte[] pixels, int width, int height)
+        {
+            //2つ右との差分だけ計算
+            byte[] filtered = new byte[pixels.Length];
+            int p;
+            for (int y = 0; y < height; y++)
+            {
+                //右2ピクセルラインは処理しない
+                for (int x = 0; x < width - 2; x++)
+                {
+                    p = x + y * width;
+                    //v = (v > 255) ? 255 : (v < 0) ? 0 : v;
+                    filtered[p] = (byte)Math.Abs(pixels[p] - pixels[p + 2]);
+                }
+            }
+
+            return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+        }
+
+        private (byte[] pixels, BitmapSource bitmap) MyFilterVertical(byte[] pixels, int width, int height)
+        {
+            //2つ下との差分だけ計算
+            byte[] filtered = new byte[pixels.Length];
+            int p;
+            int bottom2line = width * 2;
+            //下2ピクセルラインは処理しない
+            for (int y = 0; y < height - 2; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    p = x + y * width;
+                    //v = (v > 255) ? 255 : (v < 0) ? 0 : v;
+                    filtered[p] = (byte)Math.Abs(pixels[p] - pixels[p + bottom2line]);
+                }
+            }
+
+            return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+        }
+
+
+
+
+
+
+
+
 
         //#region 未使用フィルタ
 
@@ -1485,6 +1565,41 @@ namespace _20190411_画像フィルタ
             (pixels, bitmap) = FilterAndFilter(pixels, 150, MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight, weight, div, offset);
             MyImage.Source = bitmap;
             MyPixels = pixels;
+        }
+
+        private void Button_Click_24(object sender, RoutedEventArgs e)
+        {
+            //            ラプラシアン・フィルタをVerilog HDLで実装する -メモ置き場
+            //https://okchan08.hateblo.jp/entry/2019/01/21/120000
+
+            //ラプラシアン、エッジ抽出
+            int[][] weight = new int[][] {
+                new int[] { -1, -3, -4, -3, -1 },
+                new int[] { -3,  0,  6,  0, -3 },
+                new int[] { -4,  6, 20,  6, -4 },
+                new int[] { -3,  0,  6,  0, -1 },
+                new int[] { -1, -3, -4, -3, -1 } };
+            int offset = 0;
+            int div = 1;
+            (byte[] pixels, BitmapSource bitmap) = Filter5x5(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight, weight, div, offset);
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
+        }
+
+        private void Button_Click_25(object sender, RoutedEventArgs e)
+        {
+            (byte[] pixels, BitmapSource bitmap) = MyFilterHorizontal(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
+
+        }
+
+        private void Button_Click_26(object sender, RoutedEventArgs e)
+        {
+            (byte[] pixels, BitmapSource bitmap) = MyFilterVertical(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
+
         }
     }
 }
