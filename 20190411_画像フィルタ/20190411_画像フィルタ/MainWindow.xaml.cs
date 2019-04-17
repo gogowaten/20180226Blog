@@ -45,11 +45,12 @@ namespace _20190411_画像フィルタ
         {
             //string filePath = "";
             ImageFileFullPath = @"E:\オレ\雑誌スキャン\2003年pc雑誌\20030115_dosvmag_003.jpg";
-            ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_114.jpg";
+            //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_114.jpg";
             //ImageFileFullPath = @" D:\ブログ用\テスト用画像\border_row.bmp";
             //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_003_.png";
             //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_003_重.png";
             //ImageFileFullPath = @"D:\ブログ用\Lenna_(test_image).png";
+            
 
             (MyPixels, MyBitmap) = MakeBitmapSourceAndByteArray(ImageFileFullPath, PixelFormats.Gray8, 96, 96);
 
@@ -1320,9 +1321,41 @@ namespace _20190411_画像フィルタ
         #region その他
 
 
+        private void Button_Click_30(object sender, RoutedEventArgs e)
+        {
+            (byte[] pixels, BitmapSource bitmap) = ToReduceColor(MyPixels, 3, MyBitmap.PixelWidth, MyBitmap.PixelHeight, MyBitmap.PixelWidth);
+            MyPixels = pixels;
+            MyPixels膨張収縮 = pixels;
+            MyImage.Source = bitmap;
+        }
+        private (byte[] pixels, BitmapSource bitmap) ToReduceColor(byte[] pixels, int bit, int width, int height, int stride)
+        {
+            var pixelsNew = new byte[pixels.Length];
+            var table = new byte[256];
+            double step = 255.0 / (Math.Pow(2, bit) - 1);//1階調ぶんの値
+            int shift = 8 - bit;
+            for (int i = 0; i < 256; i++)
+            {
+                table[i] = (byte)((i >> shift) * step);
+            }
+
+            for (int i = 0; i < pixels.Length; i++)
+            {
+                pixelsNew[i] = table[pixels[i]];
+            }
+
+            //SetPalette(ColorBit);
+            //SetPalette2(ColorBit);
+
+            var source = BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, pixelsNew, stride);
+            return (pixelsNew, source);
+
+        }
+
         private void Button_Click_21(object sender, RoutedEventArgs e)
         {
-            SaveImage((BitmapSource)MyImage.Source);
+            BitmapSource source = (BitmapSource)MyImage.Source;
+            SaveImage(new FormatConvertedBitmap(source,PixelFormats.Indexed4,null,0));
         }
 
         private void SaveImage(BitmapSource source)
@@ -1780,5 +1813,6 @@ namespace _20190411_画像フィルタ
             MyPixels膨張収縮 = pixels;
             //MyEdge = pixels;
         }
+
     }
 }

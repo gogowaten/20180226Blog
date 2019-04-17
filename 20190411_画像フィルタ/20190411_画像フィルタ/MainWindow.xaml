@@ -15,6 +15,7 @@
             <Setter Property="Margin" Value="1"/>
           </Style>
         </StackPanel.Resources>
+        <Button Content="8色" Click="Button_Click_30"/>
         <Button Content="保存" Click="Button_Click_21"/>
         <Button Content="リセット" Click="Button_Click_10"/>
         <GroupBox Header="エッジ抽出してから実行">
