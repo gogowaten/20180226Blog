@@ -17,10 +17,16 @@
         </StackPanel.Resources>
         <Button Content="保存" Click="Button_Click_21"/>
         <Button Content="リセット" Click="Button_Click_10"/>
+        <GroupBox Header="エッジ抽出してから実行">
+          <StackPanel>
         <DockPanel>
           <TextBlock DockPanel.Dock="Right" Text="{Binding ElementName= MyThreshold, Path=Value, StringFormat=000}"/>
-          <Slider Name="MyThreshold" Minimum="0" Maximum="255" IsMoveToPointEnabled="True" SmallChange="1"/>
+          <Slider Name="MyThreshold" Value="100" Minimum="0" Maximum="255" IsMoveToPointEnabled="True" SmallChange="1"/>
         </DockPanel>
+        <Button Content="しきい値以上をぼかし" Click="Button_Click_28"/>
+        <Button Content="しきい値以下をぼかし" Click="Button_Click_29"/>
+          </StackPanel>
+        </GroupBox>
         <Button Content="ぼかし" Click="MyButton1_Click"/>
         <Button Content="ラプラシアン" Click="Button_Click"/>
         <Button Content="シャープネス" Click="Button_Click_1"/>
@@ -47,6 +53,7 @@
         <Button Content="5x5ラプラシアン" Click="Button_Click_24"/>
         <Button Content="2つ右横だけ" Click="Button_Click_25"/>
         <Button Content="2つ下縦だけ" Click="Button_Click_26"/>
+        <Button Content="5x5中心と外周の差" Click="Button_Click_27"/>
       </StackPanel>
       <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
         <Grid MouseLeftButtonDown="Grid_MouseLeftButtonDown" MouseLeftButtonUp="Grid_MouseLeftButtonUp">

@@ -20,10 +20,17 @@ namespace _20190411_画像フィルタ
     /// </summary>
     public partial class MainWindow : Window
     {
-        byte[] MyPixelsOrigin;
-        byte[] MyPixels;
+        byte[] MyPixelsOrigin;//元画像、リセット用
+        byte[] MyPixels;//一時保存用、エッジを元にぼかすときに使う
+        byte[] MyEdge;//エッジ抽出した画像、フィルタ用
+        byte[] MyPixels膨張収縮;//
+        byte[] MyFiltered;//フィルタを掛けた画像＆フィルタを掛ける用の画像
+
         BitmapSource MyBitmap;
         string ImageFileFullPath;
+        //エッジ抽出、ぼかし、エッジ抽出、ぼかし
+        //元を使ってエッジ抽出、元にエッジを使ってぼかし、ぼかしたものからエッジ抽出、ぼかしたものをエッジを使ってぼかし
+        //
 
         public MainWindow()
         {
@@ -38,18 +45,31 @@ namespace _20190411_画像フィルタ
         {
             //string filePath = "";
             ImageFileFullPath = @"E:\オレ\雑誌スキャン\2003年pc雑誌\20030115_dosvmag_003.jpg";
+            ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_114.jpg";
             //ImageFileFullPath = @" D:\ブログ用\テスト用画像\border_row.bmp";
             //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_003_.png";
-            ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_003_重.png";
+            //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_003_重.png";
             //ImageFileFullPath = @"D:\ブログ用\Lenna_(test_image).png";
 
             (MyPixels, MyBitmap) = MakeBitmapSourceAndByteArray(ImageFileFullPath, PixelFormats.Gray8, 96, 96);
 
             MyImageOrigin.Source = MyBitmap;
             MyPixelsOrigin = MyPixels;
+            MyPixels膨張収縮 = MyPixels;
         }
 
-        private (byte[] pixels, BitmapSource bitmap) Filter(byte[] pixels, int width, int height, int[][] weight, int div, int offset)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pixels"></param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <param name="weight"></param>
+        /// <param name="div"></param>
+        /// <param name="offset"></param>
+        /// <param name="absolute">ラプラシアンは絶対値で計算したほうがいい気がする</param>
+        /// <returns></returns>
+        private (byte[] pixels, BitmapSource bitmap) Filter(byte[] pixels, int width, int height, int[][] weight, int div, int offset, bool absolute = false)
         {
             //int[][] weight = new int[][] {
             //    new int[] { 0, 1, 0 },
@@ -75,6 +95,7 @@ namespace _20190411_画像フィルタ
                             v += pixels[pp] * weight[a][b];
                         }
                     }
+                    if (absolute) { v = Math.Abs(v); }
                     //v = Math.Abs(v);
                     v /= div;
                     v += offset;
@@ -863,6 +884,108 @@ namespace _20190411_画像フィルタ
             return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
         }
 
+        private (byte[] pixels, BitmapSource bitmap) MyFilter5x5エッジ抽出1マス先(byte[] pixels, int width, int height)
+        {
+            //外周の4ライン平均との差から一番小さい値
+            //
+            byte[] filtered = new byte[pixels.Length];
+            int p;
+            int line1 = width;
+            int lines2 = width * 2;
+
+            //2ピクセルラインは処理しない
+            for (int y = 2; y < height - 2; y++)
+            {
+                for (int x = 2; x < width - 2; x++)
+                {
+                    p = x + y * width;
+                    byte current = pixels[p];//中心
+                    //1マス離れた4ラインとの差
+                    double upper = Math.Abs(current - ((pixels[p - lines2 - 2]
+                                                       + pixels[p - lines2 - 1]
+                                                       + pixels[p - lines2]
+                                                       + pixels[p - lines2 + 1]
+                                                       + pixels[p - lines2 + 2]) / 5.0));
+                    double lower = Math.Abs(current - ((pixels[p + lines2 - 2]
+                                                        + pixels[p + lines2 - 1]
+                                                        + pixels[p + lines2]
+                                                        + pixels[p + lines2 + 1]
+                                                        + pixels[p + lines2 + 2]) / 5.0));
+                    double left = Math.Abs(current - ((pixels[p - lines2 - 2]
+                                                       + pixels[p - line1 - 2]
+                                                       + pixels[p - 2]
+                                                       + pixels[p + line1 - 2]
+                                                       + pixels[p + lines2 - 2]) / 5.0));
+                    double right = Math.Abs(current - ((pixels[p - lines2 + 2]
+                                                        + pixels[p - line1 + 2]
+                                                        + pixels[p + 2]
+                                                        + pixels[p + line1 + 2]
+                                                        + pixels[p + lines2 + 2]) / 5.0));
+                    //4ラインとの差で一番小さい値
+                    double v = Math.Min(upper, Math.Min(lower, Math.Min(left, right)));
+
+                    //v = (v > 255) ? 255 : (v < 0) ? 0 : v;
+                    filtered[p] = (byte)Math.Abs(v);
+                    //filtered[p] = (byte)v;
+                }
+            }
+
+            return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+        }
+
+        /// <summary>
+        /// ノイズ(エッジ)判定を元にぼかし
+        /// </summary>
+        /// <param name="isFilter">ノイズ判定結果</param>
+        /// <param name="threshold">処理判定</param>
+        /// <param name="isUpper">trueでしきい値以上をぼかし処理、falseで以下を処理</param>
+        /// <param name="pixels">元画像</param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <returns></returns>
+        private (byte[] pixels, BitmapSource bitmap) FilterAndFilter(byte[] isFilter, int threshold, bool isUpper, byte[] pixels, int width, int height)
+        {
+            int[][] weight = new int[][] {
+                new int[] { 0, 1, 0 },
+                new int[] { 1, 1, 1 },
+                new int[] { 0, 1, 0 } };
+            //int offset = 0;
+            int div = 5;
+            byte[] filtered = new byte[pixels.Length];
+            int p;
+
+            //上下左右1ピクセルは処理しない
+            for (int y = 1; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+                    double v = 0.0;
+                    p = x + y * width;
+                    //しきい値以上をぼかしか、しきい値以下をぼかし
+                    if ((isUpper & isFilter[p] > threshold) | (isUpper == false & isFilter[p] < threshold))
+                    {
+                        int pp;
+                        for (int a = 0; a < 3; a++)
+                        {
+                            for (int b = 0; b < 3; b++)
+                            {
+                                pp = (x + b - 1) + ((y + a - 1) * width);
+                                v += pixels[pp] * weight[a][b];
+                            }
+                        }
+                        v /= div;
+                        v = (v > 255) ? 255 : (v < 0) ? 0 : v;
+                        filtered[p] = (byte)v;
+                    }
+                    //無処理
+                    else { filtered[p] = pixels[p]; }
+
+                }
+            }
+
+            return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+        }
+
 
 
 
@@ -1251,6 +1374,8 @@ namespace _20190411_画像フィルタ
                 MyImage.Source = MyBitmap;
                 MyImageOrigin.Source = MyBitmap;
                 MyPixelsOrigin = MyPixels;
+                MyEdge = MyPixels;
+                MyPixels膨張収縮 = MyPixels;
             }
         }
 
@@ -1311,6 +1436,8 @@ namespace _20190411_画像フィルタ
             //リセット
             MyImage.Source = MyImageOrigin.Source;
             MyPixels = MyPixelsOrigin;
+            MyPixels膨張収縮 = MyPixelsOrigin;
+            //MyPixelsBackup = MyPixelsOrigin;
         }
 
         #endregion
@@ -1325,8 +1452,9 @@ namespace _20190411_画像フィルタ
             int div = 5;
             (byte[] pixels, BitmapSource bitmap) = Filter(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight, weight, div, offset);
             MyImage.Source = bitmap;
-            MyPixels = pixels;
-
+            //MyPixels = pixels;
+            MyEdge = pixels;
+            //MyPixelsBackup = pixels;
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -1339,9 +1467,10 @@ namespace _20190411_画像フィルタ
             int offset = 0;
             int div = 1;
             (byte[] pixels, BitmapSource bitmap) = Filter(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight,
-                weight, div, offset);
+                weight, div, offset, true);
             MyImage.Source = bitmap;
-            MyPixels = pixels;
+            //MyPixels = pixels;
+            MyEdge = pixels;
         }
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
@@ -1353,10 +1482,11 @@ namespace _20190411_画像フィルタ
                 new int[] { 0, -1, 0 } };
             int offset = 0;
             int div = 1;
-            (byte[] pixels, BitmapSource bitmap) = Filter(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight,
-                weight, div, offset);
+            (byte[] pixels, BitmapSource bitmap) = Filter(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight, weight, div, offset);
+            //(byte[] pixels, BitmapSource bitmap) = Filter(MyPixels膨張収縮, MyBitmap.PixelWidth, MyBitmap.PixelHeight, weight, div, offset);
             MyImage.Source = bitmap;
-            MyPixels = pixels;
+            //MyPixels膨張収縮 = pixels;
+            MyEdge = pixels;
         }
 
         private void Button_Click_2(object sender, RoutedEventArgs e)
@@ -1371,7 +1501,8 @@ namespace _20190411_画像フィルタ
             (byte[] pixels, BitmapSource bitmap) = Filter(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight,
                 weight, div, offset);
             MyImage.Source = bitmap;
-            MyPixels = pixels;
+            //MyPixels = pixels;
+            MyEdge = pixels;
         }
 
         private void Button_Click_3(object sender, RoutedEventArgs e)
@@ -1379,7 +1510,8 @@ namespace _20190411_画像フィルタ
             //メディアン、ノイズ除去
             (byte[] pixels, BitmapSource bitmap) = MedianFilter(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
             MyImage.Source = bitmap;
-            MyPixels = pixels;
+            //MyPixels = pixels;
+            MyEdge = pixels;
         }
 
         private void Button_Click_4(object sender, RoutedEventArgs e)
@@ -1392,8 +1524,8 @@ namespace _20190411_画像フィルタ
             int div = 5;
             (byte[] pixels, BitmapSource bitmap) = Filter2(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight, weight, div, offset);
             MyImage.Source = bitmap;
-            MyPixels = pixels;
-
+            //MyPixels = pixels;
+            MyEdge = pixels;
         }
 
         private void Button_Click_5(object sender, RoutedEventArgs e)
@@ -1401,7 +1533,8 @@ namespace _20190411_画像フィルタ
             //ソーベルフィルタ
             (byte[] pixels, BitmapSource bitmap) = SobelFilterソーベルフィルタ(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
             MyImage.Source = bitmap;
-            MyPixels = pixels;
+            //MyPixels = pixels;
+            MyEdge = pixels;
         }
 
         private void Button_Click_6(object sender, RoutedEventArgs e)
@@ -1409,7 +1542,8 @@ namespace _20190411_画像フィルタ
             //ソーベルフィルタ横
             (byte[] pixels, BitmapSource bitmap) = SobelFilterソーベルフィルタ横(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
             MyImage.Source = bitmap;
-            MyPixels = pixels;
+            //MyPixels = pixels;
+            MyEdge = pixels;
         }
 
         private void Button_Click_7(object sender, RoutedEventArgs e)
@@ -1417,7 +1551,8 @@ namespace _20190411_画像フィルタ
             //ソーベルフィルタ縦
             (byte[] pixels, BitmapSource bitmap) = SobelFilterソーベルフィルタ縦(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
             MyImage.Source = bitmap;
-            MyPixels = pixels;
+            //MyPixels = pixels;
+            MyEdge = pixels;
         }
 
         private void Button_Click_8(object sender, RoutedEventArgs e)
@@ -1425,7 +1560,8 @@ namespace _20190411_画像フィルタ
             //ソーベルフィルタ2乗和の平方根
             (byte[] pixels, BitmapSource bitmap) = SobelFilterソーベルフィルタ2乗和の平方根(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
             MyImage.Source = bitmap;
-            MyPixels = pixels;
+            //MyPixels = pixels;
+            MyEdge = pixels;
         }
 
         private void Button_Click_9(object sender, RoutedEventArgs e)
@@ -1433,8 +1569,8 @@ namespace _20190411_画像フィルタ
             //ソーベルフィルタ斜め和
             (byte[] pixels, BitmapSource bitmap) = SobelFilterソーベルフィルタ斜め和(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
             MyImage.Source = bitmap;
-            MyPixels = pixels;
-
+            //MyPixels = pixels;
+            MyEdge = pixels;
         }
 
         private void Button_Click_11(object sender, RoutedEventArgs e)
@@ -1442,8 +1578,8 @@ namespace _20190411_画像フィルタ
             //ソーベルフィルタ斜め2乗和の平方根
             (byte[] pixels, BitmapSource bitmap) = SobelFilterソーベルフィルタ斜め2乗和の平方根(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
             MyImage.Source = bitmap;
-            MyPixels = pixels;
-
+            //MyPixels = pixels;
+            MyEdge = pixels;
         }
 
         private void Button_Click_12(object sender, RoutedEventArgs e)
@@ -1451,7 +1587,8 @@ namespace _20190411_画像フィルタ
             //一次微分フィルタ和
             (byte[] pixels, BitmapSource bitmap) = EdgeFilter一次微分フィルタ和(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
             MyImage.Source = bitmap;
-            MyPixels = pixels;
+            //MyPixels = pixels;
+            MyEdge = pixels;
         }
 
         private void Button_Click_13(object sender, RoutedEventArgs e)
@@ -1459,7 +1596,8 @@ namespace _20190411_画像フィルタ
             //一次微分フィルタ2乗和の平方根
             (byte[] pixels, BitmapSource bitmap) = EdgeFilter一次微分フィルタ2乗和の平方根(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
             MyImage.Source = bitmap;
-            MyPixels = pixels;
+            //MyPixels = pixels;
+            MyEdge = pixels;
         }
 
         private void Button_Click_14(object sender, RoutedEventArgs e)
@@ -1467,7 +1605,8 @@ namespace _20190411_画像フィルタ
             //プレウィットフィルタ和
             (byte[] pixels, BitmapSource bitmap) = EdgeFilterプレウィットフィルタ和(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
             MyImage.Source = bitmap;
-            MyPixels = pixels;
+            //MyPixels = pixels;
+            MyEdge = pixels;
         }
 
         private void Button_Click_15(object sender, RoutedEventArgs e)
@@ -1475,7 +1614,8 @@ namespace _20190411_画像フィルタ
             //プレウィットフィルタ2乗和の平方根
             (byte[] pixels, BitmapSource bitmap) = EdgeFilterプレウィットフィルタ2乗和の平方根(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
             MyImage.Source = bitmap;
-            MyPixels = pixels;
+            //MyPixels = pixels;
+            MyEdge = pixels;
         }
 
         private void Button_Click_16(object sender, RoutedEventArgs e)
@@ -1483,8 +1623,8 @@ namespace _20190411_画像フィルタ
             //ロバーツフィルタ和
             (byte[] pixels, BitmapSource bitmap) = EdgeFilterロバーツフィルタ和(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
             MyImage.Source = bitmap;
-            MyPixels = pixels;
-
+            //MyPixels = pixels;
+            MyEdge = pixels;
         }
 
         private void Button_Click_17(object sender, RoutedEventArgs e)
@@ -1492,8 +1632,8 @@ namespace _20190411_画像フィルタ
             //ロバーツフィルタ2乗和の平方根
             (byte[] pixels, BitmapSource bitmap) = EdgeFilterロバーツフィルタ2乗和の平方根(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
             MyImage.Source = bitmap;
-            MyPixels = pixels;
-
+            //MyPixels = pixels;
+            MyEdge = pixels;
         }
 
         private void Button_Click_18(object sender, RoutedEventArgs e)
@@ -1505,27 +1645,28 @@ namespace _20190411_画像フィルタ
                 new int[] { 1, 1, 1 } };
             int offset = 0;
             int div = 1;
-            (byte[] pixels, BitmapSource bitmap) = Filter(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight, weight, div, offset);
+            (byte[] pixels, BitmapSource bitmap) = Filter(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight, weight, div, offset, true);
             MyImage.Source = bitmap;
-            MyPixels = pixels;
+            //MyPixels = pixels;
+            MyEdge = pixels;
         }
 
         private void Button_Click_19(object sender, RoutedEventArgs e)
         {
             //膨張
-            (byte[] pixels, BitmapSource bitmap) = ScaleFilter膨張(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
+            (byte[] pixels, BitmapSource bitmap) = ScaleFilter膨張(MyPixels膨張収縮, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
             MyImage.Source = bitmap;
-            MyPixels = pixels;
-
+            MyPixels膨張収縮 = pixels;
+            MyEdge = pixels;
         }
 
         private void Button_Click_20(object sender, RoutedEventArgs e)
         {
             //収縮
-            (byte[] pixels, BitmapSource bitmap) = ScaleFilter収縮(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
+            (byte[] pixels, BitmapSource bitmap) = ScaleFilter収縮(MyPixels膨張収縮, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
             MyImage.Source = bitmap;
-            MyPixels = pixels;
-
+            MyPixels膨張収縮 = pixels;
+            MyEdge = pixels;
         }
 
         private void Button_Click_22(object sender, RoutedEventArgs e)
@@ -1539,7 +1680,8 @@ namespace _20190411_画像フィルタ
             int div = 1;
             (byte[] pixels, BitmapSource bitmap) = Filter(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight, weight, div, offset);
             MyImage.Source = bitmap;
-            MyPixels = pixels;
+            //MyPixels = pixels;
+            MyEdge = pixels;
         }
 
         private void Button_Click_23(object sender, RoutedEventArgs e)
@@ -1564,7 +1706,8 @@ namespace _20190411_画像フィルタ
             div = 5;
             (pixels, bitmap) = FilterAndFilter(pixels, 150, MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight, weight, div, offset);
             MyImage.Source = bitmap;
-            MyPixels = pixels;
+            //MyPixels = pixels;
+            MyEdge = pixels;
         }
 
         private void Button_Click_24(object sender, RoutedEventArgs e)
@@ -1583,23 +1726,59 @@ namespace _20190411_画像フィルタ
             int div = 1;
             (byte[] pixels, BitmapSource bitmap) = Filter5x5(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight, weight, div, offset);
             MyImage.Source = bitmap;
-            MyPixels = pixels;
+            //MyPixels = pixels;
+            MyEdge = pixels;
         }
 
         private void Button_Click_25(object sender, RoutedEventArgs e)
         {
+            //2ライン右との差
             (byte[] pixels, BitmapSource bitmap) = MyFilterHorizontal(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
             MyImage.Source = bitmap;
-            MyPixels = pixels;
-
+            //MyPixels = pixels;
+            MyEdge = pixels;
         }
 
         private void Button_Click_26(object sender, RoutedEventArgs e)
         {
+            //2ライン下とだけの差
             (byte[] pixels, BitmapSource bitmap) = MyFilterVertical(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
             MyImage.Source = bitmap;
-            MyPixels = pixels;
+            //MyPixels = pixels;
+            MyEdge = pixels;
+        }
 
+        private void Button_Click_27(object sender, RoutedEventArgs e)
+        {
+            (byte[] pixels, BitmapSource bitmap) = MyFilter5x5エッジ抽出1マス先(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
+            MyImage.Source = bitmap;
+            //MyPixels = pixels;
+            MyEdge = pixels;
+
+        }
+
+        private void Button_Click_28(object sender, RoutedEventArgs e)
+        {
+            if (MyEdge == null) { return; }
+            //しきい値以上のノイズ(エッジ)判定を元にぼかし
+            //エッジだけをぼかし
+            (byte[] pixels, BitmapSource bitmap) = FilterAndFilter(MyEdge, (int)MyThreshold.Value, true, MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
+            MyPixels膨張収縮 = pixels;
+            //MyEdge = pixels;
+        }
+
+        private void Button_Click_29(object sender, RoutedEventArgs e)
+        {
+            if (MyEdge == null) { return; }
+            //しきい値以上のノイズ(エッジ)判定を元にぼかし
+            //エッジ以外をぼかし
+            (byte[] pixels, BitmapSource bitmap) = FilterAndFilter(MyEdge, (int)MyThreshold.Value, false, MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
+            MyPixels膨張収縮 = pixels;
+            //MyEdge = pixels;
         }
     }
 }
