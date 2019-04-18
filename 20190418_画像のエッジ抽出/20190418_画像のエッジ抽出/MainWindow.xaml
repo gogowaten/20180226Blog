@@ -16,12 +16,21 @@
           </Style>
         </StackPanel.Resources>
         <Button Content="8色"/>
-        <Button Content="保存"/>
-        <Button Content="リセット" />       
-        <Button Content="ぼかし" />
-        <StackPanel Name="MyStackPanel">
-          
-        </StackPanel>
+        <Button Content="保存" Click="Button_Click_3"/>
+        <Button Content="元の画像に戻す" Click="Button_Click_2"/>       
+        <Button Content="フィルタ処理実行" Click="Button_Click"/>
+        <Button Content="フィルタ処理実行(絶対値)" Click="Button_Click_1"/>
+        <StackPanel Name="MyStackPanel"/>
+        <Button Content="ぼかし" Click="Button_Click_ぼかし1"/>
+        <Button Content="ぼかし2" Click="Button_Click_ぼかし2"/>
+        <Button Content="シャープネス" Click="Button_Click_シャープネス"/>
+        <Button Content="ラプラシアン" Click="Button_Click_ラプラシアン"/>
+        <Button Content="ガウシアン" Click="Button_Click_ガウシアン"/>
+        <!--<Button Content="" Click="Button_Click_5"/>
+        <Button Content="" Click="Button_Click_6"/>
+        <Button Content="" Click="Button_Click_7"/>
+        <Button Content="" Click="Button_Click_8"/>
+        <Button Content="" Click="Button_Click_9"/>-->
       </StackPanel>
       <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
         <Grid MouseLeftButtonDown="Grid_MouseLeftButtonDown" MouseLeftButtonUp="Grid_MouseLeftButtonUp">
