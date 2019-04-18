@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:_20190411_画像フィルタ"
         mc:Ignorable="d"
-        Title="MainWindow" Height="800" Width="800">
+        Title="MainWindow" Height="900" Width="800">
   <Grid>
     <DockPanel>
       <StackPanel DockPanel.Dock="Left" Width="180">
@@ -55,6 +55,10 @@
         <Button Content="2つ右横だけ" Click="Button_Click_25"/>
         <Button Content="2つ下縦だけ" Click="Button_Click_26"/>
         <Button Content="5x5中心と外周の差" Click="Button_Click_27"/>
+        <Button Content="ガウシアン5x5" Click="Button_Click_31"/>
+        <Button Content="ガウシアン3x3" Click="Button_Click_32"/>
+        <Button Content="ノイズ表示？" Click="Button_Click_33"/>
+        <Button Content="バイラテラルフィルタ3x3" Click="Button_Click_34"/>
       </StackPanel>
       <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
         <Grid MouseLeftButtonDown="Grid_MouseLeftButtonDown" MouseLeftButtonUp="Grid_MouseLeftButtonUp">

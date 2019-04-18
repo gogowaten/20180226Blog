@@ -48,9 +48,10 @@ namespace _20190411_画像フィルタ
             //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_114.jpg";
             //ImageFileFullPath = @" D:\ブログ用\テスト用画像\border_row.bmp";
             //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_003_.png";
-            //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_003_重.png";
+            ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_003_重.png";
+            ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_003_重_上半分.png";
             //ImageFileFullPath = @"D:\ブログ用\Lenna_(test_image).png";
-            
+
 
             (MyPixels, MyBitmap) = MakeBitmapSourceAndByteArray(ImageFileFullPath, PixelFormats.Gray8, 96, 96);
 
@@ -987,8 +988,129 @@ namespace _20190411_画像フィルタ
             return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
         }
 
+        private (byte[] pixels, BitmapSource bitmap) MyFilterガウシアン5x5(byte[] pixels, int width, int height)
+        {
+            int[][] weight = new int[][] {
+                new int[] { 1,  4,  6, 4, 1 },
+                new int[] { 4, 16, 24, 16, 4 },
+                new int[] { 6, 24, 36, 24, 6 },
+                new int[] { 4, 16, 24, 16, 4 },
+                new int[] { 1, 4, 6, 4, 1 } };
 
+            int div = 256;
+            byte[] filtered = new byte[pixels.Length];
+            int p;
 
+            //外周2ピクセルラインは処理しない
+            for (int y = 2; y < height - 2; y++)
+            {
+                for (int x = 2; x < width - 2; x++)
+                {
+                    double v = 0.0;
+                    p = x + y * width;
+                    int pp;
+                    for (int a = 0; a < 5; a++)
+                    {
+                        for (int b = 0; b < 5; b++)
+                        {
+                            pp = (x + b - 2) + ((y + a - 2) * width);
+                            v += pixels[pp] * weight[a][b];
+                        }
+                    }
+                    v /= div;
+                    v = (v > 255) ? 255 : (v < 0) ? 0 : v;
+                    filtered[p] = (byte)v;
+                }
+            }
+
+            return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+        }
+
+        private (byte[] pixels, BitmapSource bitmap) MyFilterバイラテラルフィルタ失敗だけどかっこいい3x3(byte[] pixels, int width, int height)
+        {
+            int[][] weight = new int[][] {
+                new int[] { 1, 2, 1 },
+                new int[] { 2, 4, 2 },
+                new int[] { 1, 2, 1 } };
+
+            int div = 16;
+            byte[] filtered = new byte[pixels.Length];
+            int p;
+            int diffBrightness;
+            double weightBrightness;
+            byte pValue;
+            //外周1ピクセルラインは処理しない
+            for (int y = 1; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+                    double v = 0.0;
+                    p = x + y * width;
+                    pValue = pixels[p];
+                    int pp;
+                    for (int a = 0; a < 3; a++)
+                    {
+                        for (int b = 0; b < 3; b++)
+                        {
+                            pp = (x + b - 1) + ((y + a - 1) * width);
+                            diffBrightness = 255 - Math.Abs(pValue - pixels[pp]);
+                            weightBrightness = diffBrightness / 255;
+                            v += pixels[pp] * weight[a][b] * weightBrightness;
+                        }
+                    }
+                    v /= div;
+                    v = (v > 255) ? 255 : (v < 0) ? 0 : v;
+                    filtered[p] = (byte)v;
+                }
+            }
+
+            return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+        }
+
+        private (byte[] pixels, BitmapSource bitmap) MyFilterバイラテラルフィルタ3x3(byte[] pixels, int width, int height)
+        {
+            int[][] weight = new int[][] {
+                new int[] { 1, 2, 1 },
+                new int[] { 2, 4, 2 },
+                new int[] { 1, 2, 1 } };
+
+            int div = 16;
+            byte[] filtered = new byte[pixels.Length];
+            int p;
+            double diffBrightness;
+            double weightBrightness;
+            byte pValue;
+            //外周1ピクセルラインは処理しない
+            for (int y = 1; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+                    double v = 0.0;
+                    p = x + y * width;
+                    pValue = pixels[p];
+                    int pp;
+                    byte ppValue;
+                    double nekoWeight;
+                    for (int a = 0; a < 3; a++)
+                    {
+                        for (int b = 0; b < 3; b++)
+                        {
+                            pp = (x + b - 1) + ((y + a - 1) * width);
+                            ppValue = pixels[pp];
+                            diffBrightness = 255 - Math.Abs(pValue - ppValue);
+                            weightBrightness = diffBrightness / 255;
+                            nekoWeight = weight[a][b] * weightBrightness;
+                            v += ppValue * weight[a][b] * weightBrightness;
+                        }
+                    }
+                    v /= div;
+                    v = (v > 255) ? 255 : (v < 0) ? 0 : v;
+                    filtered[p] = (byte)v;
+                }
+            }
+
+            return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+        }
 
 
 
@@ -1355,7 +1477,9 @@ namespace _20190411_画像フィルタ
         private void Button_Click_21(object sender, RoutedEventArgs e)
         {
             BitmapSource source = (BitmapSource)MyImage.Source;
-            SaveImage(new FormatConvertedBitmap(source,PixelFormats.Indexed4,null,0));
+            //SaveImage(new FormatConvertedBitmap(source, PixelFormats.Indexed4, new BitmapPalette(source, 16), 0));
+            //SaveImage(new FormatConvertedBitmap(source, PixelFormats.Indexed4, null, 0));
+            SaveImage((BitmapSource)MyImage.Source);
         }
 
         private void SaveImage(BitmapSource source)
@@ -1814,5 +1938,50 @@ namespace _20190411_画像フィルタ
             //MyEdge = pixels;
         }
 
+        private void Button_Click_31(object sender, RoutedEventArgs e)
+        {
+            //ガウシアン5x5
+            int[][] weight = new int[][] {
+                new int[] { 1,  4,  6, 4, 1 },
+                new int[] { 4, 16, 24, 16, 4 },
+                new int[] { 6, 24, 36, 24, 6 },
+                new int[] { 4, 16, 24, 16, 4 },
+                new int[] { 1, 4, 6, 4, 1 } };
+            int div = 256;
+            int offset = 0;
+            (byte[] pixels, BitmapSource bitmap) = Filter5x5(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight, weight, div, offset);
+            MyImage.Source = bitmap;
+            MyEdge = pixels;
+
+        }
+
+        private void Button_Click_32(object sender, RoutedEventArgs e)
+        {
+            //ガウシアン3x3
+            int[][] weight = new int[][] {
+                new int[] { 1, 2, 1 },
+                new int[] { 2, 4, 2 },
+                new int[] { 1, 2, 1 } };
+            int div = 16;
+            (byte[] pixels, BitmapSource bitmap) = Filter(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight, weight, div, 0);
+            MyImage.Source = bitmap;
+            MyEdge = pixels;
+        }
+
+        private void Button_Click_33(object sender, RoutedEventArgs e)
+        {
+            (byte[] pixels, BitmapSource bitmap) = MyFilterバイラテラルフィルタ失敗だけどかっこいい3x3(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
+            MyImage.Source = bitmap;
+            MyEdge = pixels;
+
+        }
+
+        private void Button_Click_34(object sender, RoutedEventArgs e)
+        {
+            (byte[] pixels, BitmapSource bitmap) = MyFilterバイラテラルフィルタ3x3(MyPixels, MyBitmap.PixelWidth, MyBitmap.PixelHeight);
+            MyImage.Source = bitmap;
+            MyEdge = pixels;
+
+        }
     }
 }
