@@ -6,7 +6,29 @@
         xmlns:local="clr-namespace:_20190418_画像のエッジ抽出"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        
-    </Grid>
+  <Grid>
+    <DockPanel>
+      <StackPanel DockPanel.Dock="Left" Width="180">
+        <StackPanel.Resources>
+          <Style TargetType="Button">
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Margin" Value="1"/>
+          </Style>
+        </StackPanel.Resources>
+        <Button Content="8色"/>
+        <Button Content="保存"/>
+        <Button Content="リセット" />       
+        <Button Content="ぼかし" />
+        <StackPanel Name="MyStackPanel">
+          
+        </StackPanel>
+      </StackPanel>
+      <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+        <Grid MouseLeftButtonDown="Grid_MouseLeftButtonDown" MouseLeftButtonUp="Grid_MouseLeftButtonUp">
+          <Image Name="MyImageOrigin" Stretch="None" UseLayoutRounding="True"/>
+          <Image Name="MyImage" Stretch="None" UseLayoutRounding="True"/>
+        </Grid>
+      </ScrollViewer>
+    </DockPanel>
+  </Grid>
 </Window>

@@ -35,6 +35,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="MyNumericUpDownInteger">
+      <HintPath>..\..\..\..\..\..\Documents\Visual Studio 2017\Projects\20171224_MVVM\20180402_NumericDllTest\20180402_NumericDllTest\bin\Release\MyNumericUpDownInteger.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
