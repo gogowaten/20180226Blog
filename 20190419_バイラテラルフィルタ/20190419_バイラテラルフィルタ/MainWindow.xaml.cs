@@ -45,7 +45,10 @@ namespace _20190419_バイラテラルフィルタ
             //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_003_重.png";
             //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_003_重_上半分.png";
             //ImageFileFullPath = @"D:\ブログ用\Lenna_(test_image).png";
-            ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\蓮の花.png";
+            //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\蓮の花.png";
+            ImageFileFullPath = @"D:\ブログ用\テスト用画像\SIDBA\Girl.bmp";
+            ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\とり.png";
+            ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\風車.png";
 
 
             (MyPixels, MyBitmapOrigin) = MakeBitmapSourceAndByteArray(ImageFileFullPath, PixelFormats.Gray8, 96, 96);
@@ -85,14 +88,15 @@ namespace _20190419_バイラテラルフィルタ
             return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
         }
 
-        private (byte[] pixels, BitmapSource bitmap) Filter5x5バイラテラル(byte[] pixels, int width, int height, int[][] weight, int div)
+        private (byte[] pixels, BitmapSource bitmap) Filter5x5バイラテラル偽(byte[] pixels, int width, int height, int[][] weight, int div)
         {
             if (div == 0) { return (pixels, MyBitmapOrigin); }
             byte[] filtered = new byte[pixels.Length];
             int p;
             byte pValue;
             byte ppValue;
-            double diffValue;
+            double diffValue;//輝度差
+
             //上下左右2ラインは処理しない
             for (int y = 2; y < height - 2; y++)
             {
@@ -107,12 +111,12 @@ namespace _20190419_バイラテラルフィルタ
                     {
                         for (int b = 0; b < 5; b++)
                         {
+                            //中心との輝度差が少ないほど重みをつける
                             pp = (x + b - 2) + ((y + a - 2) * width);
                             ppValue = pixels[pp];
                             diffValue = Math.Abs(ppValue - pValue);
-                            //var aa = (127 - diffValue) / 127;
-                            var aa = (255 - diffValue) / 255;
-                            v += ppValue * weight[a][b] * aa;
+                            var weightValue = (255 - diffValue) / 255;//輝度差による重み0.0～1.0
+                            v += ppValue * weight[a][b] * weightValue;
                         }
                     }
 
@@ -124,6 +128,152 @@ namespace _20190419_バイラテラルフィルタ
 
             return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
         }
+
+        private (byte[] pixels, BitmapSource bitmap) Filter5x5バイラテラル(byte[] pixels, int width, int height, int[][] weight, int div)
+        {
+            if (div == 0) { return (pixels, MyBitmapOrigin); }
+            byte[] filtered = new byte[pixels.Length];
+            int p;
+            byte pValue;//処理中の中心輝度
+            byte ppValue;//5x5の処理中の輝度            
+            const double SD = 0.5;//輝度差による重みに使う係数、大きくするとぼやける1.0だとガウシアンと同じくらいぼやける、0.5くらいがいい
+            double exp2;
+            //double nekoWeight;
+            int totalValue;//5x5ピクセルの合計輝度
+            double pNormValue, ppNormValue;//正規化した輝度
+            //上下左右2ラインは処理しない
+            for (int y = 2; y < height - 2; y++)
+            {
+                for (int x = 2; x < width - 2; x++)
+                {
+                    double v = 0.0;
+                    p = x + y * width;
+
+                    (double[][] nekow, double nekodiv) = GetWeightAndDiv2(SD, weight, pixels, width, p);
+                    int pp;
+                    for (int a = 0; a < 5; a++)
+                    {
+                        for (int b = 0; b < 5; b++)
+                        {
+                            pp = (x + b - 2) + ((y + a - 2) * width);
+                            ppValue = pixels[pp];
+                            v += ppValue * nekow[a][b];
+                            
+                        }
+                    }
+
+                    v /= nekodiv;
+                    v = (v > 255) ? 255 : (v < 0) ? 0 : v;
+                    filtered[p] = (byte)v;
+                }
+            }
+
+            return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+        }
+
+
+        private (double[][], double) GetWeightAndDiv2(double SD, int[][] gaussian, byte[] pixels, int stride, int p)
+        {
+            double[][] weight = new double[5][];//入れ物
+            //5x5ピクセルの値とその合計を取得
+            (byte[][] range, int totalValue) = Get5x5PixlesAndTolal(pixels, stride, p);
+
+            double pValue = range[2][2] / 255.0;//中心の値
+            double div = 0;
+            double exp2, rate;
+            for (int y = 0; y < 5; y++)
+            {
+                weight[y] = new double[5];
+                for (int x = 0; x < 5; x++)
+                {
+                    exp2 = -(Math.Pow(pValue - (range[y][x] / 255.0), 2)
+                        / (2 * SD * SD));
+                    rate = Math.Pow(totalValue, exp2) * gaussian[y][x];
+                    weight[y][x] = rate;
+                    div += rate;
+
+                    double a1 = pValue - range[y][x];
+                    double a2 = Math.Pow(a1, 2);
+                    double a3 = 2 * Math.Pow(SD, 2);
+                    double a4 = -(a2 / a3);
+                }
+            }
+            return (weight, div);
+        }
+
+
+        private (byte[] pixels, BitmapSource bitmap) Filter5x5バイラテラル2(byte[] pixels, int width, int height, int[][] weight, int div)
+        {
+            //上の2つをまとめたもの
+
+            if (div == 0) { return (pixels, MyBitmapOrigin); }
+            byte[] filtered = new byte[pixels.Length];
+            int p;
+            byte pValue;//処理中の中心輝度
+            byte ppValue;//5x5の処理中の輝度            
+            const double SD = 0.5;//輝度差による重みに使う係数、大きくするとぼやける1.0だとガウシアンと同じくらいぼやける、0.5くらいがいい
+            double exp2;
+            //double nekoWeight;
+            int totalValue;//5x5ピクセルの合計輝度
+            double pNormValue, ppNormValue;//正規化した輝度
+            double nekoWeight;//新しいウェイト
+            byte[][] range;
+            //上下左右2ラインは処理しない
+            for (int y = 2; y < height - 2; y++)
+            {
+                for (int x = 2; x < width - 2; x++)
+                {
+                    double v = 0.0;
+                    p = x + y * width;
+                    //5x5ピクセルの値とその合計を取得
+                    (range, totalValue) = Get5x5PixlesAndTolal(pixels, width, p);
+                    pValue = pixels[p];
+                    int pp;
+                    for (int a = 0; a < 5; a++)
+                    {
+                        for (int b = 0; b < 5; b++)
+                        {
+                            exp2 = -(Math.Pow(pValue - (range[a][b] / 255.0), 2.0)
+                                / (2 * SD * SD));
+                            var rate = Math.Pow(totalValue, exp2) * weight[a][b];
+
+
+                            pp = (x + b - 2) + ((y + a - 2) * width);
+                            ppValue = pixels[pp];
+                            //v += ppValue * nekow[a][b];
+
+                        }
+                    }
+
+                    //v /= nekodiv;
+                    v = (v > 255) ? 255 : (v < 0) ? 0 : v;
+                    filtered[p] = (byte)v;
+                }
+            }
+
+            return (filtered, BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+        }
+
+
+        //指定したピクセルを中心にした5x5ピクセルの値とその合計を返す
+        private (byte[][], int) Get5x5PixlesAndTolal(byte[] pixels, int stride, int p)
+        {
+            byte[][] vs = new byte[5][];
+            int total = 0;
+            for (int y = 0; y < 5; y++)
+            {
+                int yy = (y - 2) * stride;
+                vs[y] = new byte[5];
+                for (int x = 0; x < 5; x++)
+                {
+                    vs[y][x] = pixels[p + yy + x - 2];
+                    total += pixels[p + yy + x - 2];
+                }
+            }
+            return (vs, total);
+        }
+
+
 
 
         #region その他
