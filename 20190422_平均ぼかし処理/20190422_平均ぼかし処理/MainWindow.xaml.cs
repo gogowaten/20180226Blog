@@ -12,6 +12,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+//画像のぼかし処理、注目ピクセルとその上下左右の平均値に変換(ソフトウェア ) - 午後わてんのブログ - Yahoo!ブログ
+//https://blogs.yahoo.co.jp/gogowaten/15938990.html
 
 namespace _20190422_平均ぼかし処理
 {
