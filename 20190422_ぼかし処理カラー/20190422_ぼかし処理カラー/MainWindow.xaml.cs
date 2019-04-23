@@ -22,8 +22,8 @@ namespace _20190422_ぼかし処理カラー
     {
         string ImageFileFullPath;//ファイルパス、画像保存時に使う
         BitmapSource MyBitmapOrigin;//元画像、リセット用
-        byte[] MyPixelsOrigin;//元画像、リセット用
-        byte[] MyPixels;//処理後画像
+        byte[] MyPixelsOrigin;//元画像のピクセルの色データ配列、リセット用
+        byte[] MyPixels;//処理後画像のピクセルの色データ配列
 
         public MainWindow()
         {
@@ -31,34 +31,33 @@ namespace _20190422_ぼかし処理カラー
 
             this.Drop += MainWindow_Drop;
             this.AllowDrop = true;
-            MyTest();
-            MyTest2();
+            //MyTest();            
 
         }
 
 
 
-        private void MyTest()
-        {
-            //string filePath = "";
-            ImageFileFullPath = @"E:\オレ\雑誌スキャン\2003年pc雑誌\20030115_dosvmag_003.jpg";
-            //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_114.jpg";
-            //ImageFileFullPath = @" D:\ブログ用\テスト用画像\border_row.bmp";
-            //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_003_.png";
-            //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_003_重.png";
-            //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_003_重_上半分.png";
-            //ImageFileFullPath = @"D:\ブログ用\Lenna_(test_image).png";
-            ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\蓮の花.png";
-            //ImageFileFullPath = @"D:\ブログ用\テスト用画像\SIDBA\Girl.bmp";
-            //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\とり.png";
-            //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\風車.png";
+        //private void MyTest()
+        //{
+        //    //string filePath = "";
+        //    ImageFileFullPath = @"E:\オレ\雑誌スキャン\2003年pc雑誌\20030115_dosvmag_003.jpg";
+        //    //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_114.jpg";
+        //    //ImageFileFullPath = @" D:\ブログ用\テスト用画像\border_row.bmp";
+        //    //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_003_.png";
+        //    //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_003_重.png";
+        //    //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_003_重_上半分.png";
+        //    //ImageFileFullPath = @"D:\ブログ用\Lenna_(test_image).png";
+        //    //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\蓮の花.png";
+        //    //ImageFileFullPath = @"D:\ブログ用\テスト用画像\SIDBA\Girl.bmp";
+        //    //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\とり.png";
+        //    //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\風車.png";
 
 
-            (MyPixels, MyBitmapOrigin) = MakeBitmapSourceAndByteArray(ImageFileFullPath, PixelFormats.Rgb24, 96, 96);
+        //    (MyPixels, MyBitmapOrigin) = MakeBitmapSourceAndByteArray(ImageFileFullPath, PixelFormats.Rgb24, 96, 96);
 
-            MyImageOrigin.Source = MyBitmapOrigin;
-            MyPixelsOrigin = MyPixels;
-        }
+        //    MyImageOrigin.Source = MyBitmapOrigin;
+        //    MyPixelsOrigin = MyPixels;
+        //}
 
         /// <summary>
         /// ぼかしフィルタ、上下左右との平均値に変換、PixelFormat.Rgb24
@@ -83,10 +82,9 @@ namespace _20190422_ぼかし処理カラー
                     {
                         filtered[p + i] = (byte)GetAverage(p + i);
                     }
-
                 }
             }
-
+            //注目ピクセルの値と、その上下左右の合計の平均値を新しい値にする
             int GetAverage(int p)
             {
                 int total = 0;
@@ -101,6 +99,13 @@ namespace _20190422_ぼかし処理カラー
                 width, height, 96, 96, PixelFormats.Rgb24, null, filtered, stride));
         }
 
+        /// <summary>
+        /// ぼかし処理、PixelFormats.Rgb24専用、色の補正をするのできれいなぼかしになるはず、そのぶん処理は重い
+        /// </summary>
+        /// <param name="pixels">ピクセルの色データ配列</param>
+        /// <param name="width">画像の横ピクセル数</param>
+        /// <param name="height">縦ピクセル数</param>
+        /// <returns></returns>
         private (byte[] pixels, BitmapSource bitmap) Filter上下左右補正あり(byte[] pixels, int width, int height)
         {
             byte[] filtered = new byte[pixels.Length];//処理結果用
@@ -110,18 +115,17 @@ namespace _20190422_ぼかし処理カラー
             {
                 for (int x = 1; x < width - 1; x++)
                 {
-                    //注目ピクセルの値と、その上下左右の合計の平均値を新しい値にする
                     int p = x * 3 + y * stride;//注目ピクセルの位置
                     //RGBそれぞれを処理
                     for (int i = 0; i < 3; i++)
                     {
-                        filtered[p + i] = (byte)GetAverage(p + i);
+                        filtered[p + i] = (byte)GetNewValue(p + i);
                     }
-
                 }
             }
 
-            int GetAverage(int p)
+            //注目ピクセルの値と、その上下左右それぞれの2乗の合計の平均値の平方根を新しい値にする
+            int GetNewValue(int p)
             {
                 double total = 0;
                 total += Math.Pow(pixels[p - stride], 2);//上
@@ -135,66 +139,7 @@ namespace _20190422_ぼかし処理カラー
                 width, height, 96, 96, PixelFormats.Rgb24, null, filtered, stride));
         }
 
-        private (byte[] pixels, BitmapSource bitmap) Filter上下左右補正あり2(byte[] pixels, int width, int height)
-        {
-            byte[] filtered = new byte[pixels.Length];//処理結果用
-            int stride = width * 3;//一行のbyte数
-            //上下左右1ラインは処理しない(めんどくさい)
-            for (int y = 1; y < height - 1; y++)
-            {
-                for (int x = 1; x < width - 1; x++)
-                {
-                    //注目ピクセルの値と、その上下左右の合計の平均値を新しい値にする
-                    int p = x * 3 + y * stride;//注目ピクセルの位置
-                    //RGBそれぞれを処理
-                    for (int i = 0; i < 3; i++)
-                    {
-                        filtered[p + i] = (byte)GetAverage(p + i);
-                    }
 
-                }
-            }
-
-            int GetAverage(int p)
-            {
-                int min, max, diff;
-                double A, B, C, D;
-                double average;
-                byte ue, hidari, migi, sita, ima;
-                ue = pixels[p - stride];//上
-                hidari = pixels[p - 3];     //左
-                ima = pixels[p];        //注目ピクセル
-                migi = pixels[p + 3];     //右
-                sita = pixels[p + stride];//下
-                min = Math.Min(ue, Math.Min(hidari, Math.Min(ima, Math.Min(migi, sita))));
-                max = Math.Max(ue, Math.Max(hidari, Math.Max(ima, Math.Max(migi, sita))));
-                average = (ue + hidari + ima + migi + sita) / 5.0;
-                diff = max - min;
-                A = average - min;
-                B = (diff != 0) ? A / diff : 1.0;
-                C = Math.Pow(B, 1 / 2.2);
-                D = C * max;
-
-                return (int)D;
-            }
-            return (filtered, BitmapSource.Create(
-                width, height, 96, 96, PixelFormats.Rgb24, null, filtered, stride));
-        }
-
-        private void MyTest2()
-        {
-            int w = 6;
-            int h = 4;
-            var wb = new WriteableBitmap(w, h, 96, 96, PixelFormats.Rgb24, null);
-            int stride = w * 3;
-            byte[] pixels = new byte[] {
-                128,0,255, 128, 0, 255,128, 0, 255, 0,255,0,0,255,0,0,255,0,
-                128,0,255, 128, 0, 255,128, 0, 255, 0,255,0,0,255,0,0,255,0,
-                128,0,255, 128, 0, 255,128, 0, 255, 0,255,0,0,255,0,0,255,0,
-                128,0,255, 128, 0, 255,128, 0, 255, 0,255,0,0,255,0,0,255,0};
-            //wb.CopyPixels(pixels, stride, 0);
-            Filter上下左右補正あり2(pixels, w, h);
-        }
 
         #region その他
 
@@ -326,7 +271,7 @@ namespace _20190422_ぼかし処理カラー
 
         #endregion
 
-        //ぼかしフィルタ処理、ガンマ補正なし
+        //ぼかしフィルタ処理、補正なし
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             if (MyPixels == null) { return; }
@@ -340,7 +285,7 @@ namespace _20190422_ぼかし処理カラー
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
             if (MyPixels == null) { return; }
-            (byte[] pixels, BitmapSource bitmap) = Filter上下左右補正あり2(
+            (byte[] pixels, BitmapSource bitmap) = Filter上下左右補正あり(
                 MyPixels, MyBitmapOrigin.PixelWidth, MyBitmapOrigin.PixelHeight);
             MyImage.Source = bitmap;
             MyPixels = pixels;
