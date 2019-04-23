@@ -13,6 +13,9 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
+//画像ぼかし処理、普通のぼかし処理では画像によってイマイチな結果になる(ソフトウェア ) - 午後わてんのブログ - Yahoo!ブログ
+//https://blogs.yahoo.co.jp/gogowaten/15940003.html
+
 namespace _20190422_ぼかし処理カラー
 {
     /// <summary>
