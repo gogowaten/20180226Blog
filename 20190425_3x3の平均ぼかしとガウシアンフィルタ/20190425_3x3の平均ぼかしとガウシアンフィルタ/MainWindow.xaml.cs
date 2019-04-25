@@ -15,6 +15,7 @@ using System.Windows.Shapes;
 //画像のぼかし処理、8近傍平均とガウスぼかし、グレースケールで処理(ソフトウェア ) - 午後わてんのブログ - Yahoo!ブログ
 //https://blogs.yahoo.co.jp/gogowaten/15941552.html
 
+
 namespace _20190425_3x3の平均ぼかしとガウシアンフィルタ
 {
     /// <summary>
