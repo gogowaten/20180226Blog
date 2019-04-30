@@ -32,8 +32,7 @@ namespace _20190427_ガウス関数
             this.Drop += MainWindow_Drop;
             this.AllowDrop = true;
             //MyTest();
-            //MakeKernel1zi(1, 5);
-            MakeKernel2zi(1, 5);
+
         }
 
 
@@ -60,72 +59,60 @@ namespace _20190427_ガウス関数
         //    MyPixelsOrigin = MyPixels;
         //}
 
+
         /// <summary>
-        /// 
+        /// ガウスぼかし用のカーネル作成
         /// </summary>
-        /// <param name="stdev">standard deviation標準偏差</param>
-        private void MakeKernel1zi(double stdev, int kernelSize)
+        /// <param name="stdev">標準偏差(standard deviation)、0より大きい数値を指定
+        /// 0.1～3くらい、大きくするとよりぼやける、</param>
+        /// <param name="size">Kernelサイズ、3以上の奇数を指定、3か5が適当</param>
+        /// <returns></returns>
+        private (double[,] kernel, double div) Makeガウシアンカーネル(double stdev, int size)
         {
-            var variance = stdev * stdev;//分散
-            var f = 1 / Math.Sqrt(2 * Math.PI * variance);//expの前            
-            int length = kernelSize / 2;//0からの距離
-            double[] kernel = new double[kernelSize];
+            //1次のガウス関数の配列作成
+            double variance = stdev * stdev;//分散
+            double f = 1 / Math.Sqrt(2 * Math.PI * variance);//expの前
+            int length = size / 2;//0からの距離
+            double[] temp = new double[size];
             //確率密度関数(ガウス関数)
-            for (int i = 0; i < kernelSize; i++)
+            for (int i = 0; i < size; i++)
             {
                 var f2 = -(Math.Pow(i - length, 2) / (2 * variance));//expの指数
-                var f3 = f * Math.Pow(Math.E, f2);//自然対数の底^指数
-                kernel[i] = f3;
-            }
-
-            //最低値が1になるように調整してから四捨五入
-            double min = kernel[0];//最小値
-            for (int i = 0; i < kernel.Length; i++)
-            {
-                kernel[i] /= min;
-                kernel[i] = Math.Round(kernel[i], MidpointRounding.AwayFromZero);
-            }
-        }
-
-        private void MakeKernel2zi(double stdev, int kernelSize)
-        {
-            var variance = stdev * stdev;//分散
-            var f = 1 / Math.Sqrt(2 * Math.PI * variance);//expの前            
-            int length = kernelSize / 2;//0からの距離
-            double[] temp = new double[kernelSize];
-            //確率密度関数(ガウス関数)
-            for (int i = 0; i < kernelSize; i++)
-            {
-                var f2 = -(Math.Pow(i - length, 2) / (2 * variance));//expの指数
-                var f3 = f * Math.Pow(Math.E, f2);//自然対数の底^指数
+                var f3 = f * Math.Pow(Math.E, f2);//ガウス関数
                 temp[i] = f3;
             }
 
-            //最低値が1になるように調整してから四捨五入
-            double min = temp[0] * temp[0];//最小値
-            double[,] kernel = new double[kernelSize, kernelSize];
-            for (int i = 0; i < temp.Length; i++)
+            //1次*1次から2次のガウス関数作成
+            double[,] kernel = new double[size, size];
+            double div = 0;//割るときに使う総和
+            for (int i = 0; i < size; i++)
             {
-                for (int j = 0; j < temp.Length; j++)
+                for (int j = 0; j < size; j++)
                 {
-                    kernel[i, j] = temp[i] * temp[j] / min;
-                    kernel[i, j] = Math.Round(kernel[i, j], MidpointRounding.AwayFromZero);
+                    kernel[i, j] = temp[i] * temp[j];
+                    div += kernel[i, j];
                 }
             }
-            
+
+            return (kernel, div);
         }
 
 
 
-
-        private (byte[] pixels, BitmapSource bitmap) Filterガウシアンフィルタ(int[,] weight, byte[] pixels, int width, int height)
+        /// <summary>
+        /// Kernelサイズ3x3専用、PixelFormats.Gray8専用
+        /// </summary>
+        /// <param name="stdev">標準偏差</param>
+        /// <param name="size">カーネルのサイズ</param>
+        /// <param name="pixels">ピクセルの輝度の配列</param>
+        /// <param name="width">画像の横ピクセル数</param>
+        /// <param name="height">画像の縦ピクセル数</param>
+        /// <returns></returns>
+        private (byte[] pixels, BitmapSource bitmap) Filterガウシアンフィルタ3x3(
+            double stdev, int size, byte[] pixels, int width, int height)
         {
-            ////重み
-            //int[][] weight = new int[][] {
-            //    new int[] { 1, 2, 1 },
-            //    new int[] { 2, 4, 2 },
-            //    new int[] { 1, 2, 1 } };
-
+            //カーネル作成とその合計値を取得
+            (double[,] kernel, double div) = Makeガウシアンカーネル(stdev, size);
             byte[] filtered = new byte[pixels.Length];//処理結果用
             int stride = width;//一行のbyte数
             //上下左右1ラインは処理しない(めんどくさい)
@@ -133,18 +120,18 @@ namespace _20190427_ガウス関数
             {
                 for (int x = 1; x < width - 1; x++)
                 {
-                    //注目ピクセルの値と、その周囲8ピクセルに重みをかけた合計の平均値を新しい値にする
-                    int total = 0;
-                    for (int i = -1; i < 2; i++)
+                    //Kernelサイズ範囲のピクセルに重みをかけた合計の平均値を新しい値にする
+                    double total = 0;
+                    for (int i = 0; i < 3; i++)
                     {
-                        int p = x + ((y + i) * stride);//注目ピクセルの位置
-                        for (int j = -1; j < 2; j++)
+                        int p = x + ((y + i - 1) * stride);//注目ピクセルの位置
+                        for (int j = 0; j < 3; j++)
                         {
-                            total += pixels[p + j] * weight[i + 1, j + 1];
+                            total += pixels[p + j - 1] * kernel[i, j];
                         }
                     }
 
-                    int average = total / 16;
+                    int average = (int)(total / div);
                     filtered[x + y * stride] = (byte)average;
                 }
             }
@@ -152,6 +139,75 @@ namespace _20190427_ガウス関数
             return (filtered, BitmapSource.Create(
                 width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
         }
+
+
+        private (byte[] pixels, BitmapSource bitmap) Filterガウシアンフィルタ2サイズ指定(
+             double stdev, int size, byte[] pixels, int width, int height)
+        {
+            //カーネル作成とその合計値を取得
+            (double[,] kernel, double div) = Makeガウシアンカーネル(stdev, size);
+
+            byte[] filtered = new byte[pixels.Length];//処理結果用
+            int stride = width;//一行のbyte数            
+            //Kernelの範囲外になるピクセルは処理しない(めんどくさい)
+            int range = kernel.GetLength(0) / 2;//範囲外ピクセルのライン数
+            for (int y = range; y < height - range; y++)
+            {
+                for (int x = range; x < width - range; x++)
+                {
+                    //Kernelサイズ範囲のピクセルに重みをかけた合計の平均値を新しい値にする
+                    double total = 0;
+                    for (int i = 0; i < size; i++)
+                    {
+                        int p = x + ((y + i - range) * stride);//注目ピクセルの位置
+                        for (int j = 0; j < size; j++)
+                        {
+                            total += pixels[p + j - range] * kernel[i, j];
+                        }
+                    }
+                    int average = (int)(total / div);
+                    average = average < 0 ? 0 : average > 255 ? 255 : average;
+                    filtered[x + y * stride] = (byte)average;
+                }
+            }
+            return (filtered, BitmapSource.Create(
+                width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+        }
+
+
+        //補正あり
+        private (byte[] pixels, BitmapSource bitmap) Filterガウシアンフィルタサイズ指定色補正あり(
+             double stdev, int size, byte[] pixels, int width, int height)
+        {
+            //カーネル作成とその合計値を取得
+            (double[,] kernel, double div) = Makeガウシアンカーネル(stdev, size);
+
+            byte[] filtered = new byte[pixels.Length];//処理結果用
+            int stride = width;//一行のbyte数            
+            //Kernelの範囲外になるピクセルは処理しない(めんどくさい)
+            int range = kernel.GetLength(0) / 2;//範囲外ピクセルのライン数
+            for (int y = range; y < height - range; y++)
+            {
+                for (int x = range; x < width - range; x++)
+                {
+                    //Kernelサイズ範囲のピクセルに重みをかけた合計の平均値を新しい値にする
+                    double total = 0;
+                    for (int i = 0; i < size; i++)
+                    {
+                        int p = x + ((y + i - range) * stride);//注目ピクセルの位置
+                        for (int j = 0; j < size; j++)
+                        {
+                            total += Math.Pow(pixels[p + j - range], 2.0) * kernel[i, j];
+                        }
+                    }
+                    int average = (int)Math.Sqrt(total / div);
+                    filtered[x + y * stride] = (byte)average;
+                }
+            }
+            return (filtered, BitmapSource.Create(
+                width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+        }
+
 
 
         #region その他
@@ -288,41 +344,42 @@ namespace _20190427_ガウス関数
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             if (MyPixels == null) { return; }
-            //(byte[] pixels, BitmapSource bitmap) = Filter近傍8平均(
-            //    MyPixels, MyBitmapOrigin.PixelWidth, MyBitmapOrigin.PixelHeight);
-            //MyImage.Source = bitmap;
-            //MyPixels = pixels;
+            (byte[] pixels, BitmapSource bitmap) = Filterガウシアンフィルタ3x3(
+                Slider標準偏差.Value,
+                3,
+                MyPixels,
+                MyBitmapOrigin.PixelWidth,
+                MyBitmapOrigin.PixelHeight);
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
         }
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
             if (MyPixels == null) { return; }
-            //(byte[] pixels, BitmapSource bitmap) = Filter近傍8平均補正あり(
-            //    MyPixels, MyBitmapOrigin.PixelWidth, MyBitmapOrigin.PixelHeight);
-            //MyImage.Source = bitmap;
-            //MyPixels = pixels;
-
+            (byte[] pixels, BitmapSource bitmap) = Filterガウシアンフィルタ2サイズ指定(
+                Slider標準偏差.Value,
+                (int)SliderKernelサイズ.Value,
+                MyPixels,
+                MyBitmapOrigin.PixelWidth,
+                MyBitmapOrigin.PixelHeight);
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
         }
 
-
-        private void Button_Click_5(object sender, RoutedEventArgs e)
-        {
-            if (MyPixels == null) { return; }
-            //(byte[] pixels, BitmapSource bitmap) = Filterガウシアンフィルタ(
-            //    MyPixels, MyBitmapOrigin.PixelWidth, MyBitmapOrigin.PixelHeight);
-            //MyImage.Source = bitmap;
-            //MyPixels = pixels;
-
-        }
 
 
         private void Button_Click_7(object sender, RoutedEventArgs e)
         {
             if (MyPixels == null) { return; }
-            //(byte[] pixels, BitmapSource bitmap) = Filterガウシアンフィルタ補正あり(
-            //    MyPixels, MyBitmapOrigin.PixelWidth, MyBitmapOrigin.PixelHeight);
-            //MyImage.Source = bitmap;
-            //MyPixels = pixels;
+            (byte[] pixels, BitmapSource bitmap) = Filterガウシアンフィルタサイズ指定色補正あり(
+                Slider標準偏差.Value,
+                (int)SliderKernelサイズ.Value,
+                MyPixels,
+                MyBitmapOrigin.PixelWidth,
+                MyBitmapOrigin.PixelHeight);
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
 
         }
     }

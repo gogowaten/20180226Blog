@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:_20190427_ガウス関数"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="300" Width="540">
   <Grid>
     <DockPanel>
       <StackPanel DockPanel.Dock="Left" Width="140">
@@ -17,9 +17,19 @@
         </StackPanel.Resources>
         <Button Content="保存" Click="Button_Click_3"/>
         <Button Content="元の画像に戻す" Click="Button_Click_2"/>
-        <Button Content="ぼかし近傍8平均" Click="Button_Click"/>
-        <Button Content="ぼかし近傍8平均補正あり" Click="Button_Click_1"/>
-        <Button Content="ガウスぼかし" Click="Button_Click_5"/>
+        <Separator Height="20"/>
+        <DockPanel>
+          <TextBlock Text="{Binding ElementName=Slider標準偏差, Path=Value, StringFormat=標準偏差0.0}"/>          
+          <Slider Name="Slider標準偏差" Value="1.0" Minimum="0.1" Maximum="5.0" SmallChange="0.1" LargeChange="0.1" IsMoveToPointEnabled="False"/>
+        </DockPanel>
+        <Button Content="3x3ガウスぼかし" Click="Button_Click"/>
+        <Separator Height="20"/>
+        <DockPanel>
+          <TextBlock Text="{Binding ElementName=SliderKernelサイズ, Path=Value, StringFormat=Kernelサイズ0.0}"/>
+          <Slider Name="SliderKernelサイズ" Value="3.0" Minimum="3" Maximum="9" SmallChange="2" LargeChange="2"
+                  TickFrequency="2" IsSnapToTickEnabled="True" IsMoveToPointEnabled="False"/>
+        </DockPanel>
+        <Button Content="ガウスぼかし" Click="Button_Click_1"/>
         <Button Content="ガウスぼかし補正あり" Click="Button_Click_7"/>
       </StackPanel>
       <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
