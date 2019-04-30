@@ -12,6 +12,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+//ガウス関数からカーネル作成、標準偏差とカーネルサイズ、グレースケール画像のぼかし処理(ソフトウェア ) - 午後わてんのブログ - Yahoo!ブログ
+//https://blogs.yahoo.co.jp/gogowaten/15945699.html
 
 namespace _20190427_ガウス関数
 {
