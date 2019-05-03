@@ -17,20 +17,13 @@
         </StackPanel.Resources>
         <Button Content="保存" Click="Button_Click_3"/>
         <Button Content="元の画像に戻す" Click="Button_Click_2"/>
-        <Separator Height="20"/>
-        <DockPanel>
-          <TextBlock Text="{Binding ElementName=Slider標準偏差, Path=Value, StringFormat=標準偏差0.0}"/>
-          <Slider Name="Slider標準偏差" Value="1.0" Minimum="0.1" Maximum="5.0" SmallChange="0.1" LargeChange="0.1" IsMoveToPointEnabled="False"/>
-        </DockPanel>
-        <Button Content="3x3ガウスぼかし" Click="Button_Click"/>
-        <Separator Height="20"/>
-        <DockPanel>
-          <TextBlock Text="{Binding ElementName=SliderKernelサイズ, Path=Value, StringFormat=Kernelサイズ0.0}"/>
-          <Slider Name="SliderKernelサイズ" Value="3.0" Minimum="3" Maximum="9" SmallChange="2" LargeChange="2"
-                  TickFrequency="2" IsSnapToTickEnabled="True" IsMoveToPointEnabled="False"/>
-        </DockPanel>
-        <Button Content="ガウスぼかし" Click="Button_Click_1"/>
-        <Button Content="ガウスぼかし補正あり" Click="Button_Click_7"/>
+        <Separator Height="20"/>       
+        <Button Content="ラプラシアン" Click="Button_Click"/>
+        <Button Content="ラプラシアン？差の平均" Click="Button_Click_1"/>
+        <Button Content="ラプラシアンfor1" Click="Button_Click_7"/>
+        <Button Content="ラプラシアン8近傍" Click="Button_Click_4"/>
+        <Button Content="ラプラシアン8近傍重み" Click="Button_Click_5"/>
+        <Button Content="ラプラシアン8近傍重み差の平均" Click="Button_Click_6"/>
       </StackPanel>
       <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
         <Grid MouseLeftButtonDown="Grid_MouseLeftButtonDown" MouseLeftButtonUp="Grid_MouseLeftButtonUp">
