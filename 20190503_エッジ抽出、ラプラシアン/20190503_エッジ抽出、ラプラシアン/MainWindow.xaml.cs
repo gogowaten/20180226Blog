@@ -82,8 +82,13 @@ namespace _20190503_エッジ抽出_ラプラシアン
                     total += pixels[p - 1];//左
                     total += pixels[p + 1];//右
                     total += pixels[p + stride];//下
-                    total = Math.Abs(pixels[p] * 4 - total);//注目ピクセル*4-上下左右
+                    total = Math.Abs((pixels[p] * 4) - total);//注目ピクセル*4-上下左右
+                    total = total - pixels[p] * 4;
+                    //total = pixels[p] * 4 - total;
                     //0～255の間に収める
+                    var neko = total / 4.0;
+                    //if(total<0 | total > 255) { var uma = 0; }
+                    //total = (int)neko;
                     total = total < 0 ? 0 : total > 255 ? 255 : total;
                     filtered[p] = (byte)total;
                 }
@@ -220,7 +225,7 @@ namespace _20190503_エッジ抽出_ラプラシアン
                 total += Math.Abs(pValue - pixels[i - 1]) * 2;
                 total += Math.Abs(pValue - pixels[i + 1]) * 2;
                 total += Math.Abs(pValue - pixels[i + stride - 1]);
-                total += Math.Abs(pValue - pixels[i + stride] * 2);
+                total += Math.Abs(pValue - pixels[i + stride]) * 2;
                 total += Math.Abs(pValue - pixels[i + stride + 1]);
                 filtered[i] = (byte)Math.Round(total / 12.0, MidpointRounding.AwayFromZero);
             }
@@ -229,6 +234,140 @@ namespace _20190503_エッジ抽出_ラプラシアン
                 width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
         }
 
+        private (byte[] pixels, BitmapSource bitmap) Filterラプラシアン8近傍差の平均(byte[] pixels, int width, int height)
+        {
+            byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
+            int stride = width;//一行のbyte数、Gray8は1ピクセルあたりのbyte数は1byteなのでwidthとおなじになる
+            int total;
+            int start = stride + 1;
+            int end = pixels.Length - stride - 1;
+            int pValue;
+            for (int i = start; i < end; i++)
+            {
+                pValue = pixels[i];
+                total = 0;
+                total += Math.Abs(pValue - pixels[i - stride - 1]);
+                total += Math.Abs(pValue - pixels[i - stride]);
+                total += Math.Abs(pValue - pixels[i - stride + 1]);
+                total += Math.Abs(pValue - pixels[i - 1]);
+                total += Math.Abs(pValue - pixels[i + 1]);
+                total += Math.Abs(pValue - pixels[i + stride - 1]);
+                total += Math.Abs(pValue - pixels[i + stride]);
+                total += Math.Abs(pValue - pixels[i + stride + 1]);
+                filtered[i] = (byte)Math.Round(total / 8.0, MidpointRounding.AwayFromZero);
+            }
+
+            return (filtered, BitmapSource.Create(
+                width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+        }
+
+        private (byte[] pixels, BitmapSource bitmap) Filterラプラシアン8近傍重みあり差の平均ガンマ補正(byte[] pixels, int width, int height)
+        {
+            byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
+            int stride = width;//一行のbyte数、Gray8は1ピクセルあたりのbyte数は1byteなのでwidthとおなじになる
+            int total;
+            int start = stride + 1;
+            int end = pixels.Length - stride - 1;
+            int pValue;
+            double gamma = 1 / 2.2;
+            for (int i = start; i < end; i++)
+            {
+                pValue = pixels[i];
+                total = 0;
+                total += Math.Abs(pValue - pixels[i - stride - 1]);
+                total += Math.Abs(pValue - pixels[i - stride]) * 2;
+                total += Math.Abs(pValue - pixels[i - stride + 1]);
+                total += Math.Abs(pValue - pixels[i - 1]) * 2;
+                total += Math.Abs(pValue - pixels[i + 1]) * 2;
+                total += Math.Abs(pValue - pixels[i + stride - 1]);
+                total += Math.Abs(pValue - pixels[i + stride]) * 2;
+                total += Math.Abs(pValue - pixels[i + stride + 1]);
+                double g1 = total / 12.0 / 255;
+                double g2 = Math.Pow(g1, gamma);
+                filtered[i] = (byte)Math.Round(g2 * 255.0, MidpointRounding.AwayFromZero);
+            }
+
+            return (filtered, BitmapSource.Create(
+                width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+        }
+
+
+        private (byte[] pixels, BitmapSource bitmap) Filterラプラシアン5x5近傍(byte[] pixels, int width, int height)
+        {
+            //1, 1,  1, 1, 1
+            //1, 1,  1, 1, 1
+            //1, 1,-24, 1, 1
+            //1, 1,  1, 1, 1
+            //1, 1,  1, 1, 1
+            byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
+            int stride = width;//一行のbyte数、Gray8は1ピクセルあたりのbyte数は1byteなのでwidthとおなじになる
+            int total;
+            int diff1 = -stride * 2 - 2;
+            int diff2 = -stride - 2;
+            int diff3 = -2;
+            int diff4 = stride - 2;
+            int diff5 = stride * 2 - 2;
+
+            for (int y = 2; y < height - 2; y++)
+            {
+                for (int x = 2; x < width - 2; x++)
+                {
+                    int p = y * stride + x;
+                    total = 0;
+                    for (int z = 0; z < 5; z++)
+                    {
+                        total += pixels[p + diff1 + z];
+                        total += pixels[p + diff2 + z];
+                        total += pixels[p + diff3 + z];
+                        total += pixels[p + diff4 + z];
+                        total += pixels[p + diff5 + z];
+                    }
+                    total -= pixels[p];
+                    total = Math.Abs(pixels[p] * 24 - total);
+                    total = total < 0 ? 0 : total > 255 ? 255 : total;
+                    filtered[p] = (byte)total;
+                }
+            }
+            return (filtered, BitmapSource.Create(
+                width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+        }
+
+        private (byte[] pixels, BitmapSource bitmap) Filterラプラシアン5x5近傍2(byte[] pixels, int width, int height)
+        {
+            //-1, -4, -7, -4, -1
+            //-4,   ,  8,   , -4
+            //-7,  8, 32,  8, -7
+            //-4,   ,  8,   , -4
+            //-1, -4, -7, -4, -1
+            //int[,] w = { { -1, -4, -7, -4, -1 }, { -4, 0, 8, 0, -4 }, { -7, 8, 32, 8, -7 }, { -4, 0, 8, 0, -4 }, { -1, -4, -7, -4, -1 } };
+            //int[,] w = { { 0, -128, -128, -128, 0 }, { -128, 0, 256, 0, -128 }, { -128, 256, 512, 256, -128 }, { -128, 0, 256, 0, -128 }, { 0, -128, -128, -128, 0 } };
+            int[,] w = { { 0, -1, -1, -1, 0 }, { -1, 0, 2, 0, -1 }, { -1, 2, 4, 2, -1 }, { -1, 0, 2, 0, -1 }, { 0, -1, -1, -1, 0 } };
+            byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
+            int stride = width;//一行のbyte数、Gray8は1ピクセルあたりのbyte数は1byteなのでwidthとおなじになる
+            int total;
+
+            for (int y = 2; y < height - 2; y++)
+            {
+                for (int x = 2; x < width - 2; x++)
+                {
+                    int p = y * stride + x;
+                    total = 0;
+                    for (int i = 0; i < 5; i++)
+                    {
+                        int pp = p + stride * (i - 2);
+                        for (int j = 0; j < 5; j++)
+                        {
+                            total += pixels[pp + (j - 2)] * w[i, j];
+                        }
+                    }
+                    total = Math.Abs(total);
+                    total = total < 0 ? 0 : total > 255 ? 255 : total;
+                    filtered[p] = (byte)total;
+                }
+            }
+            return (filtered, BitmapSource.Create(
+                width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+        }
 
 
 
@@ -436,6 +575,54 @@ namespace _20190503_エッジ抽出_ラプラシアン
                 MyBitmapOrigin.PixelHeight);
             MyImage.Source = bitmap;
             MyPixels = pixels;
+        }
+
+        private void Button_Click_8(object sender, RoutedEventArgs e)
+        {
+            if (MyPixels == null) { return; }
+            (byte[] pixels, BitmapSource bitmap) = Filterラプラシアン8近傍差の平均(
+                MyPixels,
+                MyBitmapOrigin.PixelWidth,
+                MyBitmapOrigin.PixelHeight);
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
+
+        }
+
+        private void Button_Click_9(object sender, RoutedEventArgs e)
+        {
+            if (MyPixels == null) { return; }
+            (byte[] pixels, BitmapSource bitmap) = Filterラプラシアン8近傍重みあり差の平均ガンマ補正(
+                MyPixels,
+                MyBitmapOrigin.PixelWidth,
+                MyBitmapOrigin.PixelHeight);
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
+
+        }
+
+        private void Button_Click_10(object sender, RoutedEventArgs e)
+        {
+            if (MyPixels == null) { return; }
+            (byte[] pixels, BitmapSource bitmap) = Filterラプラシアン5x5近傍(
+                MyPixels,
+                MyBitmapOrigin.PixelWidth,
+                MyBitmapOrigin.PixelHeight);
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
+
+        }
+
+        private void Button_Click_11(object sender, RoutedEventArgs e)
+        {
+            if (MyPixels == null) { return; }
+            (byte[] pixels, BitmapSource bitmap) = Filterラプラシアン5x5近傍2(
+                MyPixels,
+                MyBitmapOrigin.PixelWidth,
+                MyBitmapOrigin.PixelHeight);
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
+
         }
     }
 }

@@ -5,10 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:_20190503_エッジ抽出_ラプラシアン"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="350" Width="500">
   <Grid>
     <DockPanel>
-      <StackPanel DockPanel.Dock="Left" Width="140">
+      <StackPanel DockPanel.Dock="Left" Width="180">
         <StackPanel.Resources>
           <Style TargetType="Button">
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
@@ -19,11 +19,16 @@
         <Button Content="元の画像に戻す" Click="Button_Click_2"/>
         <Separator Height="20"/>       
         <Button Content="ラプラシアン" Click="Button_Click"/>
-        <Button Content="ラプラシアン？差の平均" Click="Button_Click_1"/>
         <Button Content="ラプラシアンfor1" Click="Button_Click_7"/>
         <Button Content="ラプラシアン8近傍" Click="Button_Click_4"/>
         <Button Content="ラプラシアン8近傍重み" Click="Button_Click_5"/>
+        <Separator Height="20"/>
+        <Button Content="ラプラシアン？差の平均" Click="Button_Click_1"/>
+        <Button Content="ラプラシアン8近傍差の平均" Click="Button_Click_8"/>
         <Button Content="ラプラシアン8近傍重み差の平均" Click="Button_Click_6"/>
+        <Button Content="ラプラシアン8近傍重み差の平均ガンマ補正" Click="Button_Click_9"/>
+        <Button Content="ラプラシアン24近傍" Click="Button_Click_10"/>
+        <Button Content="ラプラシアン24近傍重み" Click="Button_Click_11"/>
       </StackPanel>
       <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
         <Grid MouseLeftButtonDown="Grid_MouseLeftButtonDown" MouseLeftButtonUp="Grid_MouseLeftButtonUp">
