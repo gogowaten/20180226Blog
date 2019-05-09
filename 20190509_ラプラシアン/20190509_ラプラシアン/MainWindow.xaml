@@ -1,0 +1,45 @@
+﻿<Window x:Class="_20190509_ラプラシアン.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:_20190509_ラプラシアン"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="350" Width="500">
+  <Grid>
+    <DockPanel>
+      <StackPanel DockPanel.Dock="Left" Width="180">
+        <StackPanel.Resources>
+          <Style TargetType="Button">
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Margin" Value="1"/>
+          </Style>
+        </StackPanel.Resources>
+        <Button Content="保存" Click="Button_Click_3"/>
+        <Button Content="元の画像に戻す" Click="Button_Click_2"/>
+        <Separator Height="20"/>
+        <CheckBox Name="CheckBoxAbsolute" Content="絶対値で計算"/>
+        <Button Content="ラプラシアン" Click="Button_Click"/>
+        <Button Content="ラプラシアンfor1" Click="Button_Click_7"/>
+        <Button Content="ラプラシアン8近傍" Click="Button_Click_4"/>
+        <Button Content="ラプラシアン8近傍重み" Click="Button_Click_5"/>
+        <Separator Height="20"/>
+        <!--<Button Content="ラプラシアン？差の平均" Click="Button_Click_1"/>
+        <Button Content="ラプラシアン8近傍差の平均" Click="Button_Click_8"/>
+        <Button Content="ラプラシアン8近傍重み差の平均" Click="Button_Click_6"/>
+        <Button Content="ラプラシアン8近傍重み差の平均ガンマ補正" Click="Button_Click_9"/>-->
+        <Button Content="ラプラシアン5x5(24近傍)" Click="Button_Click_10"/>
+        <Button Content="ラプラシアン5x5" Click="Button_Click_11"/>
+        <Button Content="ラプラシアン5x5" Click="Button_Click_1"/>
+        <Button Content="ラプラシアン5x5" Click="Button_Click_6"/>
+        <Button Content="ラプラシアン5x5" Click="Button_Click_8"/>
+      </StackPanel>
+      <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+        <Grid MouseLeftButtonDown="Grid_MouseLeftButtonDown" MouseLeftButtonUp="Grid_MouseLeftButtonUp">
+          <Image Name="MyImageOrigin" Stretch="None" UseLayoutRounding="True"/>
+          <Image Name="MyImage" Stretch="None" UseLayoutRounding="True"/>
+        </Grid>
+      </ScrollViewer>
+    </DockPanel>
+  </Grid>
+</Window>
