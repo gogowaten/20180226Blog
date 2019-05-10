@@ -31,7 +31,7 @@ namespace _20190509_ラプラシアン
 
             this.Drop += MainWindow_Drop;
             this.AllowDrop = true;
-            MyTest();
+            //MyTest();
 
         }
 
@@ -105,9 +105,9 @@ namespace _20190509_ラプラシアン
             byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
             int stride = width;//一行のbyte数、Gray8は1ピクセルあたりのbyte数は1byteなのでwidthとおなじになる
             int total;
-            int start = stride + 1;
+            int begin = stride + 1;
             int end = pixels.Length - stride - 1;
-            for (int i = start; i < end; i++)
+            for (int i = begin; i < end; i++)
             {
                 total = 0;
                 total += pixels[i - stride];
@@ -129,19 +129,19 @@ namespace _20190509_ラプラシアン
             byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
             int stride = width;//一行のbyte数、Gray8は1ピクセルあたりのbyte数は1byteなのでwidthとおなじになる
             int total;
-            int start = stride + 1;
+            int begin = stride + 1;
             int end = pixels.Length - stride - 1;
-            for (int i = start; i < end; i++)
+            for (int i = begin; i < end; i++)
             {
                 total = 0;
-                total += pixels[i - stride - 1];
-                total += pixels[i - stride];
-                total += pixels[i - stride + 1];
-                total += pixels[i - 1];
-                total += pixels[i + 1];
-                total += pixels[i + stride - 1];
-                total += pixels[i + stride];
-                total += pixels[i + stride + 1];
+                total += pixels[i - stride - 1];//注目ピクセルの左上
+                total += pixels[i - stride];    //上
+                total += pixels[i - stride + 1];//右上
+                total += pixels[i - 1];         //左
+                total += pixels[i + 1];         //右
+                total += pixels[i + stride - 1];//左下
+                total += pixels[i + stride];    //した
+                total += pixels[i + stride + 1];//右下
                 total -= pixels[i] * 8;
                 if (absolute) total = Math.Abs(total);
 
@@ -158,9 +158,9 @@ namespace _20190509_ラプラシアン
             byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
             int stride = width;//一行のbyte数、Gray8は1ピクセルあたりのbyte数は1byteなのでwidthとおなじになる
             int total;
-            int start = stride + 1;
+            int begin = stride + 1;
             int end = pixels.Length - stride - 1;
-            for (int i = start; i < end; i++)
+            for (int i = begin; i < end; i++)
             {
                 total = 0;
                 total += pixels[i - stride - 1];
@@ -227,14 +227,6 @@ namespace _20190509_ラプラシアン
 
         private (byte[] pixels, BitmapSource bitmap) Filterラプラシアン5x5近傍2(int[,] weight, byte[] pixels, int width, int height, bool absolute = false)
         {
-            //1, 4,  7, 4, 1
-            //4,  , -8,  , 4
-            //7,-8,-32,-8, 7
-            //4,  , -8,  , 4
-            //1, 4,  7, 4, 1
-            //int[,] w = { { -1, -4, -7, -4, -1 }, { -4, 0, 8, 0, -4 }, { -7, 8, 32, 8, -7 }, { -4, 0, 8, 0, -4 }, { -1, -4, -7, -4, -1 } };
-            //int[,] w = { { 0, -128, -128, -128, 0 }, { -128, 0, 256, 0, -128 }, { -128, 256, 512, 256, -128 }, { -128, 0, 256, 0, -128 }, { 0, -128, -128, -128, 0 } };
-            //int[,] w = { { 0, -1, -1, -1, 0 }, { -1, 0, 2, 0, -1 }, { -1, 2, 4, 2, -1 }, { -1, 0, 2, 0, -1 }, { 0, -1, -1, -1, 0 } };
             byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
             int stride = width;//一行のbyte数、Gray8は1ピクセルあたりのbyte数は1byteなのでwidthとおなじになる
             int total;
@@ -491,14 +483,14 @@ namespace _20190509_ラプラシアン
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
- //           ・空間フィルタ2 ラプラシアンフィルタ: 虹色の旋律
- //http://nijikarasu.cocolog-nifty.com/blog/2014/07/2-4d2e.html
+            //           ・空間フィルタ2 ラプラシアンフィルタ: 虹色の旋律
+            //http://nijikarasu.cocolog-nifty.com/blog/2014/07/2-4d2e.html
 
-            int[,] weight = { 
+            int[,] weight = {
                 { 0,    -128,   -128,   -128,      0 },
                 { -128,    0,    256,      0,   -128 },
                 { -128,  256,    512,    256,   -128 },
-                { -128,    0,    256,      0,   -128 }, 
+                { -128,    0,    256,      0,   -128 },
                 { 0,    -128,   -128,   -128,      0 } };
 
             (byte[] pixels, BitmapSource bitmap) = Filterラプラシアン5x5近傍2(
@@ -515,11 +507,11 @@ namespace _20190509_ラプラシアン
         private void Button_Click_6(object sender, RoutedEventArgs e)
         {
             int[,] weight = {
-                { 0, -1, -1, -1,  0 },
-                { -1, 0,  2,  0, -1 }, 
-                { -1, 2,  4,  2, -1 }, 
-                { -1, 0,  2,  0, -1 },
-                { 0, -1, -1, -1,  0 } };
+                {  0, -1, -1, -1,  0 },
+                { -1,  0,  2,  0, -1 },
+                { -1,  2,  4,  2, -1 },
+                { -1,  0,  2,  0, -1 },
+                {  0, -1, -1, -1,  0 } };
             (byte[] pixels, BitmapSource bitmap) = Filterラプラシアン5x5近傍2(
                 weight,
                 MyPixels,
@@ -533,8 +525,8 @@ namespace _20190509_ラプラシアン
 
         private void Button_Click_8(object sender, RoutedEventArgs e)
         {
-//            convolution - When should the sum of all elements of a gaussian kernel be zero? -Signal Processing Stack Exchange
-//https://dsp.stackexchange.com/questions/8501/when-should-the-sum-of-all-elements-of-a-gaussian-kernel-be-zero
+            //            convolution - When should the sum of all elements of a gaussian kernel be zero? -Signal Processing Stack Exchange
+            //https://dsp.stackexchange.com/questions/8501/when-should-the-sum-of-all-elements-of-a-gaussian-kernel-be-zero
 
             int[,] weight = {
                 { 0, 0,  1, 0, 0 },
