@@ -18,9 +18,11 @@
         <Button Content="保存" Click="Button_Click_3"/>
         <Button Content="元の画像に戻す" Click="Button_Click_2"/>
         <Separator Height="20"/>
-        <CheckBox Name="CheckBoxAbsolute" Content="絶対値で計算"/>
+        <CheckBox Name="CheckBoxAbsolute" Content="絶対値で計算" IsChecked="True"/>
         <Button Content="ラプラシアン＋しきい値" Click="Button_Click"/>
-        <Button Content="ラプラシアン" Click="Button_Click_7"/>
+        <Button Content="ラプラシアン割合1～10" Click="Button_Click_7"/>
+        <Button Content="ラプラシアン割合1～100" Click="Button_Click_9"/>
+        <Button Content="ラプラシアン8近傍しきい値" Click="Button_Click_12"/>
         <Button Content="ラプラシアン8近傍" Click="Button_Click_4"/>
         <Button Content="ラプラシアン8近傍重み" Click="Button_Click_5"/>
         <Separator Height="20"/>
