@@ -189,6 +189,7 @@ namespace _20190513_エッジを残してぼかし
             int end = pixels.Length - stride - 1;
             for (int i = begin; i < end; i++)
             {
+                if (i % stride == 0 | i % stride == stride - 1) { continue; }
                 total = 0;
                 total += pixels[i - stride - 1];//注目ピクセルの左上
                 total += pixels[i - stride];    //上
@@ -221,7 +222,7 @@ namespace _20190513_エッジを残してぼかし
 
 
 
-        private (byte[] pixels, BitmapSource bitmap) Filterラプラシアン8近傍(byte[] pixels, int width, int height, bool absolute = false)
+        private (byte[] pixels, BitmapSource bitmap) Filterラプラシアン8近傍(byte[] pixels, int width, int height,int threshold, bool absolute = false)
         {
             byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
             int stride = width;//一行のbyte数、Gray8は1ピクセルあたりのbyte数は1byteなのでwidthとおなじになる
@@ -230,6 +231,7 @@ namespace _20190513_エッジを残してぼかし
             int end = pixels.Length - stride - 1;
             for (int i = begin; i < end; i++)
             {
+                if (i % stride == 0 | i % stride == stride - 1) { continue; }
                 total = 0;
                 total += pixels[i - stride - 1];//注目ピクセルの左上
                 total += pixels[i - stride];    //上
@@ -241,9 +243,15 @@ namespace _20190513_エッジを残してぼかし
                 total += pixels[i + stride + 1];//右下
                 total -= pixels[i] * 8;
                 if (absolute) total = Math.Abs(total);
-
-                total = total < 0 ? 0 : total > 255 ? 255 : total;
-                filtered[i] = (byte)total;
+                if (total > threshold)
+                {
+                    total = total < 0 ? 0 : total > 255 ? 255 : total;
+                    filtered[i] = (byte)total;
+                }
+                else
+                {
+                    filtered[i] = 0;
+                }                
             }
 
             return (filtered, BitmapSource.Create(
@@ -525,6 +533,7 @@ namespace _20190513_エッジを残してぼかし
                 MyPixels,
                 MyBitmapOrigin.PixelWidth,
                 MyBitmapOrigin.PixelHeight,
+                (int)SliderThreshold2.Value,
                 (bool)CheckBoxAbsolute.IsChecked);
             MyImage.Source = bitmap;
             MyPixels = pixels;
