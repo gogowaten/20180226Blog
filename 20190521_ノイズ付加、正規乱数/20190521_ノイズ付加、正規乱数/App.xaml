@@ -1,0 +1,9 @@
+﻿<Application x:Class="_20190521_ノイズ付加_正規乱数.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:_20190521_ノイズ付加_正規乱数"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+         
+    </Application.Resources>
+</Application>
