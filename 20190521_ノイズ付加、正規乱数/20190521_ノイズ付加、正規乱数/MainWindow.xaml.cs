@@ -12,6 +12,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+//画像にノイズ付加するアプリ、一様分布乱数から正規分布乱数生成、エクセルのNORMINV関数で正規乱数(ソフトウェア ) - 午後わてんのブログ - Yahoo!ブログ
+//https://blogs.yahoo.co.jp/gogowaten/15961286.html
 
 namespace _20190521_ノイズ付加_正規乱数
 {
