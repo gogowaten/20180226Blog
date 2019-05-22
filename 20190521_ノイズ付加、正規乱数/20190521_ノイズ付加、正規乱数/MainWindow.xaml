@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:_20190521_ノイズ付加_正規乱数"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="320" Width="500">
   <Grid>
     <DockPanel>
       <StackPanel DockPanel.Dock="Left" Width="180">
@@ -18,24 +18,21 @@
         <Button Content="保存" Click="Button_Click_3"/>
         <Button Content="元の画像に戻す" Click="Button_Click_2"/>
         <Separator Height="20"/>
-        
-        <DockPanel>
-          <TextBlock DockPanel.Dock="Right" Text="{Binding ElementName=SliderThreshold, Path=Value, StringFormat=000}"/>
-          <Slider Name="SliderThreshold" Minimum="-1" Maximum="255" IsMoveToPointEnabled="False"/>
-        </DockPanel>
-        <Button Content="12回足して6引く" Click="Button_Click"/>
-        <Button Content="ボックス=ミュラー法" Click="Button_Click_1"/>
-        <Separator Height="20"/>
+       
         <Button Content="ノイズ付加(12回足して6引く)" Click="Button_Click_4"/>
         <Button Content="ノイズ付加(ボックス=ミュラー法cos)" Click="Button_Click_6"/>
+        <Button Content="ノイズ付加(一様分布乱数)" Click="Button_Click_8"/>
         <Button Content="ごま塩ノイズ付加" Click="Button_Click_7"/>
-        <Button Content="確認" Click="Button_Click_5"/>
         <DockPanel>
           <TextBlock DockPanel.Dock="Right" Text="{Binding ElementName=SliderSTDEV, Path=Value, StringFormat=000}"/>
-          <Slider Name="SliderSTDEV" Minimum="0" Maximum="128" IsMoveToPointEnabled="False" Value="20"/>
+          <Slider Name="SliderSTDEV" Minimum="1" Maximum="255" IsMoveToPointEnabled="False" Value="20"
+                  SmallChange="1" LargeChange="1"/>
         </DockPanel>
         
         <Separator Height="20"/>
+        <Button Content="確認" Click="Button_Click_5"/>
+        <Button Content="12回足して6引く" Click="Button_Click"/>
+        <Button Content="ボックス=ミュラー法" Click="Button_Click_1"/>
 
        
       </StackPanel>

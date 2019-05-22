@@ -95,33 +95,16 @@ namespace _20190521_ノイズ付加_正規乱数
         /// <summary>
         /// 画像にノイズ付加
         /// </summary>
-        /// <param name="pixels"></param>
-        /// <param name="width"></param>
-        /// <param name="height"></param>
-        /// <param name="sigma">標準偏差、0でノイズ付加なし</param>
+        /// <param name="pixels">輝度値の配列</param>
+        /// <param name="width">横ピクセル数</param>
+        /// <param name="height">縦ピクセル数</param>
+        /// <param name="sigma">標準偏差、輝度の変化幅になるので、それはノイズの大きさになる</param>
         /// <returns></returns>
         private (byte[] pixels, BitmapSource bitmap) Addノイズ12(byte[] pixels, int width, int height, double sigma)
         {
-            byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
-            int stride = width;//一行のbyte数、Gray8は1ピクセルあたりのbyte数は1byteなのでwidthとおなじになる
-
-            var random = new Random();
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    int p = y * stride + x;
-                    double v = sigma * MakeRandom() + pixels[p];
-                    v = v < 0 ? 0 : v > 255 ? 255 : v;
-                    filtered[p] = (byte)v;
-
-                }
-            }
-            return (filtered, BitmapSource.Create(
-                width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
-
             //疑似正規乱数生成
-            double MakeRandom()
+            var random = new Random();
+            double MyRandom()
             {
                 double temp = 0;
                 for (int i = 0; i < 12; i++)
@@ -130,21 +113,16 @@ namespace _20190521_ノイズ付加_正規乱数
                 }
                 return temp - 6.0;
             }
-        }
 
-
-        private (byte[] pixels, BitmapSource bitmap) Addボックスミュラー法cos(byte[] pixels, int width, int height, double sigma)
-        {
             byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
             int stride = width;//一行のbyte数、Gray8は1ピクセルあたりのbyte数は1byteなのでwidthとおなじになる
 
-            var random = new Random();
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
                     int p = y * stride + x;
-                    double v = sigma * MakeRandom() + pixels[p];
+                    double v = (sigma * MyRandom()) + pixels[p];
                     v = v < 0 ? 0 : v > 255 ? 255 : v;
                     filtered[p] = (byte)v;
 
@@ -152,16 +130,61 @@ namespace _20190521_ノイズ付加_正規乱数
             }
             return (filtered, BitmapSource.Create(
                 width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+        }
 
-            //乱数生成、ボックス=ミュラー法
-            double MakeRandom()
+        //sigmaは標準偏差、輝度の変化幅になるので、それはノイズの大きさになる
+        private (byte[] pixels, BitmapSource bitmap) Addボックスミュラー法cos(byte[] pixels, int width, int height, double sigma)
+        {
+            //乱数生成、ボックス=ミュラー法のCosを使う方だけ使用
+            var random = new Random();
+            double MyRandom()
             {
                 var x = random.NextDouble();
                 var y = random.NextDouble();
 
                 return Math.Sqrt(-2 * Math.Log(x)) * Math.Cos(2 * Math.PI * y);
             }
+
+            byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
+            int stride = width;//一行のbyte数、Gray8は1ピクセルあたりのbyte数は1byteなのでwidthとおなじになる
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int p = y * stride + x;
+                    double v = sigma * MyRandom() + pixels[p];
+                    v = v < 0 ? 0 : v > 255 ? 255 : v;
+                    filtered[p] = (byte)v;
+
+                }
+            }
+            return (filtered, BitmapSource.Create(
+                width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
         }
+
+        //一様分布乱数、noiseは1～255で指定
+        private (byte[] pixels, BitmapSource bitmap) AddNoise(byte[] pixels, int width, int height, int noise)
+        {
+            var random = new Random();
+            byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
+            int stride = width;//一行のbyte数、Gray8は1ピクセルあたりのbyte数は1byteなのでwidthとおなじになる
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int p = y * stride + x;
+                    double v = pixels[p] + random.Next(-noise, noise);
+                    v = v < 0 ? 0 : v > 255 ? 255 : v;
+                    filtered[p] = (byte)v;
+
+                }
+            }
+            return (filtered, BitmapSource.Create(
+                width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+        }
+
 
         /// <summary>
         /// 
@@ -169,9 +192,9 @@ namespace _20190521_ノイズ付加_正規乱数
         /// <param name="pixels"></param>
         /// <param name="width"></param>
         /// <param name="height"></param>
-        /// <param name="rate">ノイズの割合、0.0～1.0で指定</param>
+        /// <param name="noise">ノイズの割合、0.0～1.0で指定</param>
         /// <returns></returns>
-        private (byte[] pixels, BitmapSource bitmap) Addごま塩ノイズ(byte[] pixels, int width, int height, double rate)
+        private (byte[] pixels, BitmapSource bitmap) Addごま塩ノイズ(byte[] pixels, int width, int height, double noise)
         {
             byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
             int stride = width;//一行のbyte数、Gray8は1ピクセルあたりのbyte数は1byteなのでwidthとおなじになる
@@ -183,27 +206,14 @@ namespace _20190521_ノイズ付加_正規乱数
                 {
                     int p = y * stride + x;
                     filtered[p] = pixels[p];
-                    if (random.NextDouble() < rate)
+                    if (random.NextDouble() <= noise)
                     {
-                        if (random.NextDouble() < 0.5)
-                        {
-                            filtered[p] = 0;
-                        }
                         filtered[p] = random.NextDouble() < 0.5 ? (byte)0 : (byte)255;
                     }
                 }
             }
             return (filtered, BitmapSource.Create(
                 width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
-
-            //乱数生成、ボックス=ミュラー法
-            double MakeRandom()
-            {
-                var x = random.NextDouble();
-                var y = random.NextDouble();
-
-                return Math.Sqrt(-2 * Math.Log(x)) * Math.Cos(2 * Math.PI * y);
-            }
         }
 
 
@@ -218,14 +228,17 @@ namespace _20190521_ノイズ付加_正規乱数
                 total += pixels[i];
             }
             average = total / pixels.Length;
-            double variance;//分散
+
+            //分散
             total = 0;
             for (int i = 0; i < pixels.Length; i++)
             {
                 total += Math.Pow(pixels[i] - average, 2.0);
             }
-            variance = total / pixels.Length;
-            double stdev = Math.Sqrt(variance);//標準偏差
+            double variance = total / pixels.Length;
+            //標準偏差
+            double stdev = Math.Sqrt(variance);
+            //表示
             MessageBox.Show($"平均＝{ average}\n分散＝{variance}\n標準偏差＝{ stdev}");
         }
 
@@ -411,6 +424,19 @@ namespace _20190521_ノイズ付加_正規乱数
                 MyBitmapOrigin.PixelWidth,
                 MyBitmapOrigin.PixelHeight,
                 SliderSTDEV.Value / SliderSTDEV.Maximum);
+
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
+        }
+
+        private void Button_Click_8(object sender, RoutedEventArgs e)
+        {
+            if (MyPixels == null) { return; }
+            (byte[] pixels, BitmapSource bitmap) = AddNoise(
+                MyPixels,
+                MyBitmapOrigin.PixelWidth,
+                MyBitmapOrigin.PixelHeight,
+                (int)SliderSTDEV.Value);
 
             MyImage.Source = bitmap;
             MyPixels = pixels;
