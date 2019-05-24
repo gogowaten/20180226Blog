@@ -12,6 +12,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+//画像にノイズ付加するアプリ、カラー版(ソフトウェア ) - 午後わてんのブログ - Yahoo!ブログ
+//https://blogs.yahoo.co.jp/gogowaten/15962326.html
 
 namespace _20190523_ノイズ付加_正規乱数_カラー版
 {
