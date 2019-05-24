@@ -205,7 +205,7 @@ namespace _20190523_ノイズ付加_正規乱数_カラー版
 
 
 
-
+        // 画像にノイズ付加、RGBの3要素に別々のノイズ付加
         //一様分布乱数(普通の乱数)、noiseは1～255で指定
         private (byte[] pixels, BitmapSource bitmap) AddNoise(byte[] pixels, int width, int height, int noise)
         {
@@ -228,6 +228,7 @@ namespace _20190523_ノイズ付加_正規乱数_カラー版
                 width, height, 96, 96, PixelFormats.Rgb24, null, filtered, stride));
         }
 
+        //RGBの3要素に同じ値のノイズ付加
         //一様分布乱数(普通の乱数)、noiseは1～255で指定
         private (byte[] pixels, BitmapSource bitmap) AddNoise2(byte[] pixels, int width, int height, int noise)
         {
@@ -254,14 +255,14 @@ namespace _20190523_ノイズ付加_正規乱数_カラー版
 
 
         /// <summary>
-        /// 
+        /// 画像にノイズ付加、RGBの3要素に別々のごま塩ノイズ付加
         /// </summary>
-        /// <param name="pixels"></param>
-        /// <param name="width"></param>
-        /// <param name="height"></param>
+        /// <param name="pixels">ピクセルフォーマットRgb24画像のbyte配列専用</param>
+        /// <param name="width">画像の横ピクセル数</param>
+        /// <param name="height">縦</param>
         /// <param name="noise">ノイズの割合、0.0～1.0で指定</param>
         /// <returns></returns>
-        private (byte[] pixels, BitmapSource bitmap) Addごま塩ノイズ(byte[] pixels, int width, int height, double noise)
+        private (byte[] pixels, BitmapSource bitmap) Addカラーごま塩ノイズ(byte[] pixels, int width, int height, double noise)
         {
             byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
             int stride = width * 3;//Rgb24は1ピクセルあたり3byteなので横ピクセル数 * 3
@@ -273,6 +274,7 @@ namespace _20190523_ノイズ付加_正規乱数_カラー版
                 {
                     int p = y * stride + x;
                     filtered[p] = pixels[p];
+                    //しきい値以下ならごま塩にする
                     if (random.NextDouble() <= noise)
                     {
                         filtered[p] = random.NextDouble() < 0.5 ? (byte)0 : (byte)255;
@@ -283,7 +285,60 @@ namespace _20190523_ノイズ付加_正規乱数_カラー版
                 width, height, 96, 96, PixelFormats.Rgb24, null, filtered, stride));
         }
 
+        //RGBの3要素に同じ値のごま塩ノイズ付加
+        private (byte[] pixels, BitmapSource bitmap) Addごま塩ノイズ(byte[] pixels, int width, int height, double noise)
+        {
+            byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
+            int stride = width * 3;//Rgb24は1ピクセルあたり3byteなので横ピクセル数 * 3
 
+            var random = new Random();
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < stride; x += 3)
+                {
+                    int p = y * stride + x;
+                    filtered[p] = pixels[p];
+                    filtered[p + 1] = pixels[p + 1];
+                    filtered[p + 2] = pixels[p + 2];
+                    if (random.NextDouble() <= noise)
+                    {
+                        double z = random.NextDouble();
+                        byte zz = z < 0.5 ? (byte)0 : (byte)255;
+                        filtered[p] = zz;
+                        filtered[p + 1] = zz;
+                        filtered[p + 2] = zz;
+                    }
+                }
+            }
+            return (filtered, BitmapSource.Create(
+                width, height, 96, 96, PixelFormats.Rgb24, null, filtered, stride));
+        }
+
+        private (byte[] pixels, BitmapSource bitmap) Addカラーごま塩ノイズ2(byte[] pixels, int width, int height, double noise)
+        {
+            byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
+            int stride = width * 3;//Rgb24は1ピクセルあたり3byteなので横ピクセル数 * 3
+
+            var random = new Random();
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < stride; x += 3)
+                {
+                    int p = y * stride + x;
+                    filtered[p] = pixels[p];
+                    filtered[p + 1] = pixels[p + 1];
+                    filtered[p + 2] = pixels[p + 2];
+                    if (random.NextDouble() <= noise)
+                    {
+                        filtered[p] = random.NextDouble() < 0.5 ? (byte)0 : (byte)255;
+                        filtered[p + 1] = random.NextDouble() < 0.5 ? (byte)0 : (byte)255;
+                        filtered[p + 2] = random.NextDouble() < 0.5 ? (byte)0 : (byte)255;                        
+                    }
+                }
+            }
+            return (filtered, BitmapSource.Create(
+                width, height, 96, 96, PixelFormats.Rgb24, null, filtered, stride));
+        }
 
 
         private void Kakunin(byte[] pixels)
@@ -481,7 +536,7 @@ namespace _20190523_ノイズ付加_正規乱数_カラー版
         private void Button_Click_7(object sender, RoutedEventArgs e)
         {
             if (MyPixels == null) { return; }
-            (byte[] pixels, BitmapSource bitmap) = Addごま塩ノイズ(
+            (byte[] pixels, BitmapSource bitmap) = Addカラーごま塩ノイズ(
                 MyPixels,
                 MyBitmapOrigin.PixelWidth,
                 MyBitmapOrigin.PixelHeight,
@@ -546,6 +601,20 @@ namespace _20190523_ノイズ付加_正規乱数_カラー版
 
         }
 
+        private void Button_Click_12(object sender, RoutedEventArgs e)
+        {
+            if (MyPixels == null) { return; }
+            (byte[] pixels, BitmapSource bitmap) = Addごま塩ノイズ(
+                MyPixels,
+                MyBitmapOrigin.PixelWidth,
+                MyBitmapOrigin.PixelHeight,
+                SliderSTDEV.Value / SliderSTDEV.Maximum);
+
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
+        }
+
+
         //表示画像をクリップボードへコピー
         private void Button_Click_10(object sender, RoutedEventArgs e)
         {
@@ -578,6 +647,19 @@ namespace _20190523_ノイズ付加_正規乱数_カラー版
                 MyImage.Source = rgb24;
                 MyImageOrigin.Source = rgb24;
             }
+        }
+
+        private void Button_Click_13(object sender, RoutedEventArgs e)
+        {
+            if (MyPixels == null) { return; }
+            (byte[] pixels, BitmapSource bitmap) = Addカラーごま塩ノイズ2(
+                MyPixels,
+                MyBitmapOrigin.PixelWidth,
+                MyBitmapOrigin.PixelHeight,
+                SliderSTDEV.Value / SliderSTDEV.Maximum);
+
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
         }
     }
 }
