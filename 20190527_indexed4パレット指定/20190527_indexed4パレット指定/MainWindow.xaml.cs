@@ -68,6 +68,7 @@ namespace _20190527_indexed4パレット指定
             }
             var temp = BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, rPixels, width);
             //パレットはnullを指定、自動で作成される
+            //このまま保存するとなぜかIndexd4になる、どうせならindexed2にして欲しい
             var converted = new FormatConvertedBitmap(temp, PixelFormats.Indexed8, null, 0);
             return (rPixels, converted);
         }
@@ -95,6 +96,7 @@ namespace _20190527_indexed4パレット指定
             }
             var temp = BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, rPixels, width);
             //パレットを減色したGray8から作成、これはnullを指定して自動作成と全く同じ結果になった
+            //このまま保存するとなぜかIndexd4になる、どうせならindexed2にして欲しい
             var palette = new BitmapPalette(temp, 4);
             var converted = new FormatConvertedBitmap(temp, PixelFormats.Indexed8, palette, 0);
             return (rPixels, converted);
@@ -125,6 +127,7 @@ namespace _20190527_indexed4パレット指定
             }
             var temp = BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, rPixels, width);
             //パレットはnullを指定、自動で作成される
+            //このまま保存するとなぜかIndexd4になる、どうせならindexed2にして欲しい
             var converted = new FormatConvertedBitmap(temp, PixelFormats.Indexed8, null, 0);
             return (rPixels, converted);
         }
@@ -154,6 +157,7 @@ namespace _20190527_indexed4パレット指定
             }
             var temp = BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, rPixels, width);
             //パレットを減色したGray8から作成、これはnullを指定して自動作成と全く同じ結果になった
+            //このまま保存するとなぜかIndexd4になる、どうせならindexed2にして欲しい
             var palette = new BitmapPalette(temp, 4);
             var converted = new FormatConvertedBitmap(temp, PixelFormats.Indexed8, palette, 0);
             return (rPixels, converted);
@@ -182,6 +186,8 @@ namespace _20190527_indexed4パレット指定
             }
             var temp = BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, rPixels, width);
             //パレットはnullを指定、自動で作成される
+            //Indexed2で返す
+            //このまま保存すると期待通りIndexd2になった
             var converted = new FormatConvertedBitmap(temp, PixelFormats.Indexed2, null, 0);
             return (rPixels, converted);
         }
@@ -209,10 +215,98 @@ namespace _20190527_indexed4パレット指定
             }
             var temp = BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, rPixels, width);
             //パレットを減色したGray8から作成、これはnullを指定して自動作成と全く同じ結果になった
+            //Indexed2で返す
+            //このまま保存すると期待通りIndexd2になった
             var palette = new BitmapPalette(temp, 4);
             var converted = new FormatConvertedBitmap(temp, PixelFormats.Indexed2, palette, 0);
             return (rPixels, converted);
         }
+
+        //8色に減色
+        //255/7=36.428571   1階調の差
+        //256/8=32          しきい値の差
+        private (byte[] pixels, BitmapSource source) Gray8To8Colors1(byte[] pixels, int width, int height)
+        {
+            byte[] rPixels = new byte[pixels.Length];
+            for (int i = 0; i < pixels.Length; i++)
+            {
+                switch (pixels[i])
+                {
+                    case byte b when b < 32:
+                        rPixels[i] = 0;
+                        break;
+                    case byte b when b < 64:
+                        rPixels[i] = 36;
+                        break;
+                    case byte b when b < 96:
+                        rPixels[i] = 73;
+                        break;
+                    case byte b when b < 128:
+                        rPixels[i] = 109;
+                        break;
+                    case byte b when b < 160:
+                        rPixels[i] = 146;
+                        break;
+                    case byte b when b < 192:
+                        rPixels[i] = 182;
+                        break;
+                    case byte b when b < 224:
+                        rPixels[i] = 219;
+                        break;
+                    
+                    default:
+                        rPixels[i] = 255;
+                        break;
+                }
+            }
+            var temp = BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, rPixels, width);
+            //パレットはnullを指定、自動で作成される
+            //このまま保存するとIndexe4になる、ちょうどいい
+            var converted = new FormatConvertedBitmap(temp, PixelFormats.Indexed8, null, 0);
+            return (rPixels, converted);
+        }
+
+        private (byte[] pixels, BitmapSource source) Gray8To8Colors2(byte[] pixels, int width, int height)
+        {
+            byte[] rPixels = new byte[pixels.Length];
+            for (int i = 0; i < pixels.Length; i++)
+            {
+                switch (pixels[i])
+                {
+                    case byte b when b < 32:
+                        rPixels[i] = 0;
+                        break;
+                    case byte b when b < 64:
+                        rPixels[i] = 36;
+                        break;
+                    case byte b when b < 96:
+                        rPixels[i] = 73;
+                        break;
+                    case byte b when b < 128:
+                        rPixels[i] = 109;
+                        break;
+                    case byte b when b < 160:
+                        rPixels[i] = 146;
+                        break;
+                    case byte b when b < 192:
+                        rPixels[i] = 182;
+                        break;
+                    case byte b when b < 224:
+                        rPixels[i] = 219;
+                        break;
+
+                    default:
+                        rPixels[i] = 255;
+                        break;
+                }
+            }
+            var temp = BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, rPixels, width);
+            //パレットを減色したGray8から作成、これはnullを指定して自動作成と全く同じ結果になった
+            var palette = new BitmapPalette(temp, 8);
+            var converted = new FormatConvertedBitmap(temp, PixelFormats.Indexed8, palette, 0);
+            return (rPixels, converted);
+        }
+
 
 
         //グレースケール画像作成
@@ -465,6 +559,29 @@ namespace _20190527_indexed4パレット指定
         {
             var v = Gray8To4Colors6(MyOriginPixels, MyOriginBitmapSource.PixelWidth, MyOriginBitmapSource.PixelHeight);
             MyImage.Source = v.source;
+        }
+
+        private void Button_Click_7(object sender, RoutedEventArgs e)
+        {
+            var v = Gray8To8Colors1(MyOriginPixels, MyOriginBitmapSource.PixelWidth, MyOriginBitmapSource.PixelHeight);
+            MyImage.Source = v.source;
+        }
+
+        private void Button_Click_8(object sender, RoutedEventArgs e)
+        {
+            var v = Gray8To8Colors2(MyOriginPixels, MyOriginBitmapSource.PixelWidth, MyOriginBitmapSource.PixelHeight);
+            MyImage.Source = v.source;
+        }
+
+        private void Button_Click_9(object sender, RoutedEventArgs e)
+        {
+            //Gray8をIndexe8に変換
+            MyImage.Source = new FormatConvertedBitmap(MyOriginBitmapSource, PixelFormats.Indexed8, null, 0);
+        }
+
+        private void Button_Click_10(object sender, RoutedEventArgs e)
+        {
+            MyImage.Source = MyOriginBitmapSource;
         }
     }
 }

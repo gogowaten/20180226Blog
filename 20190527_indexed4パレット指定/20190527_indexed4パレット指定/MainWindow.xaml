@@ -19,6 +19,10 @@
       <Button Content="test4" Click="Button_Click_4"/>
       <Button Content="test5" Click="Button_Click_5"/>
       <Button Content="test6" Click="Button_Click_6"/>
+      <Button Content="test7" Click="Button_Click_7"/>
+      <Button Content="test8" Click="Button_Click_8"/>
+      <Button Content="test9" Click="Button_Click_9"/>
+      <Button Content="test10" Click="Button_Click_10"/>
     </StackPanel>
 
     <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
