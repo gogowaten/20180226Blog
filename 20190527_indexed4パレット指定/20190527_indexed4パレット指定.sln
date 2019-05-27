@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28922.388
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "20190527_indexed4パレット指定", "20190527_indexed4パレット指定\20190527_indexed4パレット指定.csproj", "{87EB8844-8E3E-4B1D-971D-077D057DB94E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{87EB8844-8E3E-4B1D-971D-077D057DB94E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87EB8844-8E3E-4B1D-971D-077D057DB94E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87EB8844-8E3E-4B1D-971D-077D057DB94E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87EB8844-8E3E-4B1D-971D-077D057DB94E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DF960694-F43E-4888-922E-2820D04303B8}
+	EndGlobalSection
+EndGlobal
