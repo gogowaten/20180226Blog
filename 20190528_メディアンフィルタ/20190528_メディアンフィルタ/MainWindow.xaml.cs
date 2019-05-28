@@ -59,6 +59,14 @@ namespace _20190528_メディアンフィルタ
             MyPixelsOrigin = MyPixels;
         }
 
+        /// <summary>
+        /// エッジ抽出、注目ピクセル*4-上下左右、PixelFormats.Gray8専用
+        /// </summary>
+        /// <param name="pixels">画像の輝度値配列</param>
+        /// <param name="width">横ピクセル数</param>
+        /// <param name="height">縦ピクセル数</param>
+        /// <param name="absolute">trueなら絶対値で計算</param>
+        /// <returns></returns>
         private (byte[] pixels, BitmapSource bitmap) Filterラプラシアン(byte[] pixels, int width, int height, bool absolute = false)
         {
             byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
@@ -87,14 +95,6 @@ namespace _20190528_メディアンフィルタ
 
 
 
-        /// <summary>
-        /// エッジ抽出、注目ピクセル*4-上下左右、PixelFormats.Gray8専用
-        /// </summary>
-        /// <param name="pixels">画像の輝度値配列</param>
-        /// <param name="width">横ピクセル数</param>
-        /// <param name="height">縦ピクセル数</param>
-        /// <param name="absolute">trueなら絶対値で計算</param>
-        /// <returns></returns>
         private (byte[] pixels, BitmapSource bitmap) Filterメディアン(byte[] pixels, int width, int height)
         {
             byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
@@ -105,7 +105,6 @@ namespace _20190528_メディアンフィルタ
             {
                 for (int x = 1; x < width - 1; x++)
                 {
-
                     int p = x + y * stride;//注目ピクセルの位置
                     v[0] = pixels[p - stride - 1];//注目ピクセルの左上
                     v[1] = pixels[p - stride];//上
@@ -123,6 +122,90 @@ namespace _20190528_メディアンフィルタ
             return (filtered, BitmapSource.Create(
                 width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
         }
+
+        private (byte[] pixels, BitmapSource bitmap) Filterメディアン4近傍(byte[] pixels, int width, int height)
+        {
+            byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
+            int stride = width;//一行のbyte数、Gray8は1ピクセルあたりのbyte数は1byteなのでwidthとおなじになる
+            byte[] v = new byte[5];
+
+            for (int y = 1; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+                    int p = x + y * stride;//注目ピクセルの位置
+                    v[0] = pixels[p - stride];//注目ピクセルの上
+                    v[1] = pixels[p - 1];//左
+                    v[2] = pixels[p];
+                    v[3] = pixels[p + 1];//右
+                    v[4] = pixels[p + stride];//下
+
+                    //ソートして中央の値(3番目)を新しい値にする
+                    filtered[p] = v.OrderBy(z => z).ToList()[2];
+                }
+            }
+            return (filtered, BitmapSource.Create(
+                width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+        }
+
+        private (byte[] pixels, BitmapSource bitmap) Filterメディアン4近傍斜め(byte[] pixels, int width, int height)
+        {
+            byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
+            int stride = width;//一行のbyte数、Gray8は1ピクセルあたりのbyte数は1byteなのでwidthとおなじになる
+            byte[] v = new byte[5];
+
+            for (int y = 1; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+                    int p = x + y * stride;//注目ピクセルの位置
+                    v[0] = pixels[p - stride - 1];//注目ピクセルの左上
+                    v[1] = pixels[p - stride + 1];//右上
+                    v[2] = pixels[p];
+                    v[3] = pixels[p + stride - 1];//左下
+                    v[4] = pixels[p + stride + 1];//右下
+
+                    //ソートして中央の値(3番目)を新しい値にする
+                    filtered[p] = v.OrderBy(z => z).ToList()[2];
+                }
+            }
+            return (filtered, BitmapSource.Create(
+                width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+        }
+
+
+        //自身を除く8近傍のメディアン、要素数が偶数のメディアンなので中央の2つの値の平均値
+        private (byte[] pixels, BitmapSource bitmap) Filterメディアン自身を除く(byte[] pixels, int width, int height)
+        {
+            byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
+            int stride = width;//一行のbyte数、Gray8は1ピクセルあたりのbyte数は1byteなのでwidthとおなじになる
+            byte[] v = new byte[8];
+
+            for (int y = 1; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+                    int p = x + y * stride;//注目ピクセルの位置
+                    v[0] = pixels[p - stride - 1];//注目ピクセルの左上
+                    v[1] = pixels[p - stride];//上
+                    v[2] = pixels[p - stride + 1];//右上
+                    v[3] = pixels[p - 1];//左
+                    //v[4] = pixels[p];
+                    v[4] = pixels[p + 1];//右
+                    v[5] = pixels[p + stride - 1];//左下
+                    v[6] = pixels[p + stride];//下
+                    v[7] = pixels[p + stride + 1];//右下
+                    //ソートして4,5番目の平均値を四捨五入を新しい値にする
+                    var temp = v.OrderBy(z => z).ToList();
+                    byte neko = (byte)Math.Round((temp[3] + temp[4]) / 2.0, MidpointRounding.AwayFromZero);
+                    filtered[p] = (byte)Math.Round((temp[3] + temp[4]) / 2.0, MidpointRounding.AwayFromZero);
+                }
+            }
+            return (filtered, BitmapSource.Create(
+                width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+        }
+
+
 
 
 
@@ -290,10 +373,72 @@ namespace _20190528_メディアンフィルタ
 
         #endregion
 
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            var source = Clipboard.GetImage();
+            if (source == null)
+            {
+                MessageBox.Show("(クリップボードに画像は)ないです");
+            }
+            else
+            {
+                int w = source.PixelWidth;
+                int h = source.PixelHeight;
+                int stride = w;
+                var gray = new FormatConvertedBitmap(source, PixelFormats.Gray8, null, 0);
+                byte[] pixels = new byte[h * stride];
+                gray.CopyPixels(pixels, stride, 0);
+                MyPixels = pixels;
+                MyPixelsOrigin = pixels;
+                MyBitmapOrigin = gray;
+                MyImage.Source = gray;
+                MyImageOrigin.Source = gray;
+            }
+        }
+
+        private void Button_Click_4(object sender, RoutedEventArgs e)
+        {
+            Clipboard.SetImage((BitmapSource)MyImage.Source);
+        }
+
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             if (MyPixels == null) { return; }
             (byte[] pixels, BitmapSource bitmap) = Filterメディアン(
+                MyPixels,
+                MyBitmapOrigin.PixelWidth,
+                MyBitmapOrigin.PixelHeight);
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
+        }
+
+        private void Button_Click_5(object sender, RoutedEventArgs e)
+        {
+            if (MyPixels == null) { return; }
+            (byte[] pixels, BitmapSource bitmap) = Filterメディアン4近傍(
+                MyPixels,
+                MyBitmapOrigin.PixelWidth,
+                MyBitmapOrigin.PixelHeight);
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
+
+        }
+
+        private void Button_Click_6(object sender, RoutedEventArgs e)
+        {
+            if (MyPixels == null) { return; }
+            (byte[] pixels, BitmapSource bitmap) = Filterメディアン4近傍斜め(
+                MyPixels,
+                MyBitmapOrigin.PixelWidth,
+                MyBitmapOrigin.PixelHeight);
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
+        }
+
+        private void Button_Click_7(object sender, RoutedEventArgs e)
+        {
+            if (MyPixels == null) { return; }
+            (byte[] pixels, BitmapSource bitmap) = Filterメディアン自身を除く(
                 MyPixels,
                 MyBitmapOrigin.PixelWidth,
                 MyBitmapOrigin.PixelHeight);

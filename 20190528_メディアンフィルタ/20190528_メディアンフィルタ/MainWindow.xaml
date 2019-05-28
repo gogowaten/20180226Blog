@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:_20190528_メディアンフィルタ"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="300" Width="500">
   <Grid>
     <DockPanel>
       <StackPanel DockPanel.Dock="Left" Width="180">
@@ -18,9 +18,18 @@
         <Button Content="保存" Click="Button_Click_3"/>
         <Button Content="元の画像に戻す" Click="Button_Click_2"/>
         <Separator Height="20"/>
+        <DockPanel>
+          <TextBlock DockPanel.Dock="Right" Text="{Binding ElementName=SliderThreshold, Path=Value, StringFormat=000}"/>
+          <Slider Name="SliderThreshold" Minimum="0" Maximum="255" IsMoveToPointEnabled="False"/>
+        </DockPanel>
         <Button Content="メディアンフィルタ" Click="Button_Click"/>
-        
+        <Button Content="メディアンフィルタ4近傍" Click="Button_Click_5"/>
+        <Button Content="メディアンフィルタ4近傍(斜め)" Click="Button_Click_6"/>
+        <Button Content="メディアンフィルタ自身を除く" Click="Button_Click_7"/>
 
+        <Separator Height="20" Background="Red"/>
+        <Button Content="クリップボードへコピー" Click="Button_Click_4"/>
+        <Button Content="クリップボードから貼り付け" Click="Button_Click_1"/>
       </StackPanel>
       <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
         <Grid MouseLeftButtonDown="Grid_MouseLeftButtonDown" MouseLeftButtonUp="Grid_MouseLeftButtonUp">
