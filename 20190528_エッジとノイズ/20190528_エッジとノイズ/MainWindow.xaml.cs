@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace _20190513_エッジを残してぼかし
+namespace _20190528_エッジとノイズ
 {
     /// <summary>
     /// MainWindow.xaml の相互作用ロジック
@@ -59,6 +59,39 @@ namespace _20190513_エッジを残してぼかし
             MyPixelsOrigin = MyPixels;
         }
 
+        //ラプラシアンでエッジ判定、しきい値以下をメディアンフィルタ
+        private (byte[] pixels, BitmapSource bitmap) Filterメディアンしきい値(byte[] pixels, int width, int height, int threshold, bool absolute = false)
+        {
+            byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
+            int stride = width;
+            int begin = stride + 1;
+            int end = pixels.Length - stride - 1;
+            for (int i = begin; i < end; i++)
+            {
+                byte edge = MakeLaplacian8Near(pixels, i, stride, absolute);
+                filtered[i] = pixels[i];
+                if (edge <= threshold)
+                {
+                    //メディアンフィルタ
+                    var v = new byte[9];
+                    v[0] = pixels[i - stride - 1];//注目ピクセルの左上
+                    v[1] = pixels[i - stride];    //上
+                    v[2] = pixels[i - stride + 1];//右上
+                    v[3] = pixels[i - 1];         //左
+                    v[4] = pixels[i];
+                    v[5] = pixels[i + 1];         //右
+                    v[6] = pixels[i + stride - 1];//左下
+                    v[7] = pixels[i + stride];    //した
+                    v[8] = pixels[i + stride + 1];//右下
+
+                    //var neko = v.OrderBy(x => x).ToList()[4];
+                    filtered[i] = v.OrderBy(x => x).ToList()[4];
+                }
+            }
+
+            return (filtered, BitmapSource.Create(
+                width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+        }
 
         /// <summary>
         /// エッジを残してぼかし処理、ラプラシアンフィルタでエッジ取得、しきい値以下ならぼかし処理、注目ピクセル*4-上下左右、PixelFormats.Gray8専用
@@ -111,6 +144,9 @@ namespace _20190513_エッジを残してぼかし
                 width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
         }
 
+
+
+
         //近傍の値を1固定にして、中心だけ1～10にしてぼかし具合を変更する場合
         private (byte[] pixels, BitmapSource bitmap) Filterラプラシアン割合(byte[] pixels, int width, int height, bool absolute = false)
         {
@@ -145,84 +181,10 @@ namespace _20190513_エッジを残してぼかし
                 width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
         }
 
-        //近傍の値を1固定にして、中心だけ1～100にしてぼかし具合を変更する場合
-        private (byte[] pixels, BitmapSource bitmap) Filterラプラシアン割合100(byte[] pixels, int width, int height, bool absolute = false)
-        {
-            byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
-            int stride = width;//一行のbyte数、Gray8は1ピクセルあたりのbyte数は1byteなのでwidthとおなじになる
-
-            //int count = 0;
-            for (int y = 1; y < height - 1; y++)
-            {
-                for (int x = 1; x < width - 1; x++)
-                {
-                    int p = x + y * stride;//注目ピクセルの位置
-                    int total = 0;
-                    total += pixels[p - stride];//上のピクセル
-                    total += pixels[p - 1];//左
-                    total += pixels[p + 1];//右
-                    total += pixels[p + stride];//下
-                    int laplacian = total - pixels[p] * 4;//上下左右 - 注目ピクセル*4
-                    if (absolute) laplacian = Math.Abs(laplacian);//絶対値で計算
-                    //0～255の間に収める
-                    laplacian = laplacian < 0 ? 0 : laplacian > 255 ? 255 : laplacian;
-
-                    //倍率決定、エッジが強いほど中心倍率を100に近づける
-                    double rate = (laplacian / 255.0) * (100 - 1) + 1;
-                    //rate = 100;
-                    //平均値を新しい値にする
-                    filtered[p] = (byte)((total + pixels[p] * rate) / (4 + rate));
-
-                }
-            }
-            return (filtered, BitmapSource.Create(
-                width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
-        }
 
 
-        private (byte[] pixels, BitmapSource bitmap) Filterラプラシアン8近傍しきい値(byte[] pixels, int width, int height, int threshold, bool absolute = false)
-        {
-            byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
-            int stride = width;//一行のbyte数、Gray8は1ピクセルあたりのbyte数は1byteなのでwidthとおなじになる
-            int total;
-            int begin = stride + 1;
-            int end = pixels.Length - stride - 1;
-            for (int i = begin; i < end; i++)
-            {
-                if (i % stride == 0 | i % stride == stride - 1) { continue; }
-                total = 0;
-                total += pixels[i - stride - 1];//注目ピクセルの左上
-                total += pixels[i - stride];    //上
-                total += pixels[i - stride + 1];//右上
-                total += pixels[i - 1];         //左
-                total += pixels[i + 1];         //右
-                total += pixels[i + stride - 1];//左下
-                total += pixels[i + stride];    //した
-                total += pixels[i + stride + 1];//右下
-                int laplacian = total - pixels[i] * 8;
-                if (absolute) laplacian = Math.Abs(laplacian);
-
-                //0～255の間に収める
-                laplacian = laplacian < 0 ? 0 : laplacian > 255 ? 255 : laplacian;
-                //しきい値以下なら移動平均でぼかし処理
-                if (laplacian <= threshold)
-                {
-                    filtered[i] = (byte)((total + pixels[i]) / 9.0);
-                }
-                else
-                {
-                    filtered[i] = pixels[i];
-                }
-
-            }
-
-            return (filtered, BitmapSource.Create(
-                width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
-        }
-
-
-
-        private (byte[] pixels, BitmapSource bitmap) Filterラプラシアン8近傍(byte[] pixels, int width, int height,int threshold, bool absolute = false)
+        //ノイズ表示
+        private (byte[] pixels, BitmapSource bitmap) Filterラプラシアン8近傍(byte[] pixels, int width, int height, int threshold, bool absolute = false)
         {
             byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
             int stride = width;//一行のbyte数、Gray8は1ピクセルあたりのbyte数は1byteなのでwidthとおなじになる
@@ -251,12 +213,49 @@ namespace _20190513_エッジを残してぼかし
                 else
                 {
                     filtered[i] = 0;
-                }                
+                }
             }
 
             return (filtered, BitmapSource.Create(
                 width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
         }
+
+        private byte MakeLaplacian8Near(byte[] pixels, int i, int stride, bool absolute)
+        {
+            if (i % stride == 0 | i % stride == stride - 1) { return 0; }
+            int total = 0;
+            total += pixels[i - stride - 1];//注目ピクセルの左上
+            total += pixels[i - stride];    //上
+            total += pixels[i - stride + 1];//右上
+            total += pixels[i - 1];         //左
+            total += pixels[i + 1];         //右
+            total += pixels[i + stride - 1];//左下
+            total += pixels[i + stride];    //した
+            total += pixels[i + stride + 1];//右下
+            total -= pixels[i] * 8;
+            if (absolute) total = Math.Abs(total);
+            total = total < 0 ? 0 : total > 255 ? 255 : total;
+            return (byte)total;
+        }
+
+        private (byte[] pixels, BitmapSource bitmap) Filterラプラシアン8近傍2(byte[] pixels, int width, int height, int threshold, bool absolute = false)
+        {
+            byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
+            int stride = width;
+            int begin = stride + 1;
+            int end = pixels.Length - stride - 1;
+            for (int i = begin; i < end; i++)
+            {
+                var v = MakeLaplacian8Near(pixels, i, stride, absolute);
+                if (v > threshold) v = 0;
+                filtered[i] = v;
+            }
+
+            return (filtered, BitmapSource.Create(
+                width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+        }
+
+
 
         private (byte[] pixels, BitmapSource bitmap) Filterラプラシアン8近傍重みあり(byte[] pixels, int width, int height, bool absolute = false)
         {
@@ -330,35 +329,6 @@ namespace _20190513_エッジを残してぼかし
                 width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
         }
 
-        private (byte[] pixels, BitmapSource bitmap) Filterラプラシアン5x5近傍2(int[,] weight, byte[] pixels, int width, int height, bool absolute = false)
-        {
-            byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
-            int stride = width;//一行のbyte数、Gray8は1ピクセルあたりのbyte数は1byteなのでwidthとおなじになる
-            int total;
-
-            for (int y = 2; y < height - 2; y++)
-            {
-                for (int x = 2; x < width - 2; x++)
-                {
-                    int p = y * stride + x;
-                    total = 0;
-                    for (int i = 0; i < 5; i++)
-                    {
-                        int pp = p + stride * (i - 2);
-                        for (int j = 0; j < 5; j++)
-                        {
-                            total += pixels[pp + (j - 2)] * weight[i, j];
-                        }
-                    }
-                    if (absolute) total = Math.Abs(total);
-
-                    total = total < 0 ? 0 : total > 255 ? 255 : total;
-                    filtered[p] = (byte)total;
-                }
-            }
-            return (filtered, BitmapSource.Create(
-                width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
-        }
 
 
 
@@ -566,45 +536,14 @@ namespace _20190513_エッジを残してぼかし
 
         }
 
-        private void Button_Click_11(object sender, RoutedEventArgs e)
-        {
-            if (MyPixels == null) { return; }
-            int[,] weight = {
-                { -1, -4, -7, -4, -1 },
-                { -4,  0,  8,  0, -4 },
-                { -7,  8, 32,  8, -7 },
-                { -4,  0,  8,  0, -4 },
-                { -1, -4, -7, -4, -1 } };
-
-            (byte[] pixels, BitmapSource bitmap) = Filterラプラシアン5x5近傍2(
-                weight,
-                MyPixels,
-                MyBitmapOrigin.PixelWidth,
-                MyBitmapOrigin.PixelHeight,
-                (bool)CheckBoxAbsolute.IsChecked);
-            MyImage.Source = bitmap;
-            MyPixels = pixels;
-
-
-        }
-
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            //           ・空間フィルタ2 ラプラシアンフィルタ: 虹色の旋律
-            //http://nijikarasu.cocolog-nifty.com/blog/2014/07/2-4d2e.html
-
-            int[,] weight = {
-                { 0,    -128,   -128,   -128,      0 },
-                { -128,    0,    256,      0,   -128 },
-                { -128,  256,    512,    256,   -128 },
-                { -128,    0,    256,      0,   -128 },
-                { 0,    -128,   -128,   -128,      0 } };
-
-            (byte[] pixels, BitmapSource bitmap) = Filterラプラシアン5x5近傍2(
-                weight,
+            if (MyPixels == null) { return; }
+            (byte[] pixels, BitmapSource bitmap) = Filterラプラシアン8近傍2(
                 MyPixels,
                 MyBitmapOrigin.PixelWidth,
                 MyBitmapOrigin.PixelHeight,
+                (int)SliderThreshold.Value,
                 (bool)CheckBoxAbsolute.IsChecked);
             MyImage.Source = bitmap;
             MyPixels = pixels;
@@ -613,61 +552,13 @@ namespace _20190513_エッジを残してぼかし
 
         private void Button_Click_6(object sender, RoutedEventArgs e)
         {
-            int[,] weight = {
-                {  0, -1, -1, -1,  0 },
-                { -1,  0,  2,  0, -1 },
-                { -1,  2,  4,  2, -1 },
-                { -1,  0,  2,  0, -1 },
-                {  0, -1, -1, -1,  0 } };
-            (byte[] pixels, BitmapSource bitmap) = Filterラプラシアン5x5近傍2(
-                weight,
-                MyPixels,
-                MyBitmapOrigin.PixelWidth,
-                MyBitmapOrigin.PixelHeight,
-                (bool)CheckBoxAbsolute.IsChecked);
-            MyImage.Source = bitmap;
-            MyPixels = pixels;
-
+            Clipboard.SetImage((BitmapSource)MyImage.Source);
         }
 
         private void Button_Click_8(object sender, RoutedEventArgs e)
         {
-            //            convolution - When should the sum of all elements of a gaussian kernel be zero? -Signal Processing Stack Exchange
-            //https://dsp.stackexchange.com/questions/8501/when-should-the-sum-of-all-elements-of-a-gaussian-kernel-be-zero
-
-            int[,] weight = {
-                { 0, 0,  1, 0, 0 },
-                { 0, 1,  2, 1, 0 },
-                { 1, 2,-16, 2, 1 },
-                { 0, 1,  2, 1, 0 },
-                { 0, 0,  1, 0, 0 } };
-            (byte[] pixels, BitmapSource bitmap) = Filterラプラシアン5x5近傍2(
-                weight,
-                MyPixels,
-                MyBitmapOrigin.PixelWidth,
-                MyBitmapOrigin.PixelHeight,
-                (bool)CheckBoxAbsolute.IsChecked);
-            MyImage.Source = bitmap;
-            MyPixels = pixels;
-
-        }
-
-        private void Button_Click_9(object sender, RoutedEventArgs e)
-        {
             if (MyPixels == null) { return; }
-            (byte[] pixels, BitmapSource bitmap) = Filterラプラシアン割合100(
-                MyPixels,
-                MyBitmapOrigin.PixelWidth,
-                MyBitmapOrigin.PixelHeight,
-                (bool)CheckBoxAbsolute.IsChecked);
-            MyImage.Source = bitmap;
-            MyPixels = pixels;
-        }
-
-        private void Button_Click_12(object sender, RoutedEventArgs e)
-        {
-            if (MyPixels == null) { return; }
-            (byte[] pixels, BitmapSource bitmap) = Filterラプラシアン8近傍しきい値(
+            (byte[] pixels, BitmapSource bitmap) = Filterメディアンしきい値(
                 MyPixels,
                 MyBitmapOrigin.PixelWidth,
                 MyBitmapOrigin.PixelHeight,
@@ -675,11 +566,7 @@ namespace _20190513_エッジを残してぼかし
                 (bool)CheckBoxAbsolute.IsChecked);
             MyImage.Source = bitmap;
             MyPixels = pixels;
-        }
 
-        private void Button_Click_13(object sender, RoutedEventArgs e)
-        {
-            Clipboard.SetImage((BitmapSource)MyImage.Source);
         }
     }
 }
