@@ -31,70 +31,16 @@ namespace _20190528_メディアンフィルタ
 
             this.Drop += MainWindow_Drop;
             this.AllowDrop = true;
-            //MyTest();
 
-        }
-
-
-
-        private void MyTest()
-        {
-            //string filePath = "";
-            ImageFileFullPath = @"E:\オレ\雑誌スキャン\2003年pc雑誌\20030115_dosvmag_003.jpg";
-            //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_114.jpg";
-            //ImageFileFullPath = @" D:\ブログ用\テスト用画像\border_row.bmp";
-            //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_003_.png";
-            //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_003_重.png";
-            //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_003_重_上半分.png";
-            //ImageFileFullPath = @"D:\ブログ用\Lenna_(test_image).png";
-            //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\蓮の花.png";
-            //ImageFileFullPath = @"D:\ブログ用\テスト用画像\SIDBA\Girl.bmp";
-            //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\とり.png";
-            //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\風車.png";
-
-
-            (MyPixels, MyBitmapOrigin) = MakeBitmapSourceAndByteArray(ImageFileFullPath, PixelFormats.Gray8, 96, 96);
-
-            MyImageOrigin.Source = MyBitmapOrigin;
-            MyPixelsOrigin = MyPixels;
         }
 
         /// <summary>
-        /// エッジ抽出、注目ピクセル*4-上下左右、PixelFormats.Gray8専用
+        /// ピクセルフォーマットGray8専用
         /// </summary>
-        /// <param name="pixels">画像の輝度値配列</param>
-        /// <param name="width">横ピクセル数</param>
-        /// <param name="height">縦ピクセル数</param>
-        /// <param name="absolute">trueなら絶対値で計算</param>
+        /// <param name="pixels">ピクセルの値の配列</param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
         /// <returns></returns>
-        private (byte[] pixels, BitmapSource bitmap) Filterラプラシアン(byte[] pixels, int width, int height, bool absolute = false)
-        {
-            byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
-            int stride = width;//一行のbyte数、Gray8は1ピクセルあたりのbyte数は1byteなのでwidthとおなじになる
-            int total;
-            int begin = stride + 1;
-            int end = pixels.Length - stride - 1;
-            for (int i = begin; i < end; i++)
-            {
-                total = 0;
-                total += pixels[i - stride];
-                total += pixels[i - 1];
-                total += pixels[i + 1];
-                total += pixels[i + stride];
-                total -= pixels[i] * 4;
-                total = (absolute) ? Math.Abs(total) : total;
-                total = total < 0 ? 0 : total > 255 ? 255 : total;
-                filtered[i] = (byte)total;
-            }
-
-            return (filtered, BitmapSource.Create(
-                width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
-        }
-
-
-
-
-
         private (byte[] pixels, BitmapSource bitmap) Filterメディアン(byte[] pixels, int width, int height)
         {
             byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
@@ -126,7 +72,7 @@ namespace _20190528_メディアンフィルタ
         private (byte[] pixels, BitmapSource bitmap) Filterメディアン4近傍(byte[] pixels, int width, int height)
         {
             byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
-            int stride = width;//一行のbyte数、Gray8は1ピクセルあたりのbyte数は1byteなのでwidthとおなじになる
+            int stride = width;
             byte[] v = new byte[5];
 
             for (int y = 1; y < height - 1; y++)
@@ -178,7 +124,7 @@ namespace _20190528_メディアンフィルタ
         private (byte[] pixels, BitmapSource bitmap) Filterメディアン自身を除く(byte[] pixels, int width, int height)
         {
             byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
-            int stride = width;//一行のbyte数、Gray8は1ピクセルあたりのbyte数は1byteなのでwidthとおなじになる
+            int stride = width;
             byte[] v = new byte[8];
 
             for (int y = 1; y < height - 1; y++)
@@ -197,7 +143,7 @@ namespace _20190528_メディアンフィルタ
                     v[7] = pixels[p + stride + 1];//右下
                     //ソートして4,5番目の平均値を四捨五入を新しい値にする
                     var temp = v.OrderBy(z => z).ToList();
-                    byte neko = (byte)Math.Round((temp[3] + temp[4]) / 2.0, MidpointRounding.AwayFromZero);
+                    //byte neko = (byte)Math.Round((temp[3] + temp[4]) / 2.0, MidpointRounding.AwayFromZero);
                     filtered[p] = (byte)Math.Round((temp[3] + temp[4]) / 2.0, MidpointRounding.AwayFromZero);
                 }
             }
@@ -205,38 +151,33 @@ namespace _20190528_メディアンフィルタ
                 width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
         }
 
-
-
-
-
-        //多少高速化？→変化なし
-        private (byte[] pixels, BitmapSource bitmap) Filterラプラシアン2(byte[] pixels, int width, int height, bool absolute = false)
+        private (byte[] pixels, BitmapSource bitmap) Filterメディアン24近傍(byte[] pixels, int width, int height)
         {
             byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
-            int stride = width;//一行のbyte数、Gray8は1ピクセルあたりのbyte数は1byteなのでwidthとおなじになる
-            int total;
-            int begin = stride + 1;
-            int end = pixels.Length - stride - 1;
-            for (int i = begin; i < end; i++)
-            {
-                total = 0;
-                total += pixels[i - stride];
-                total += pixels[i - 1];
-                total += pixels[i + 1];
-                total += pixels[i + stride];
-                total -= pixels[i] * 4;
-                total = (absolute) ? Math.Abs(total) : total;
-                total = total < 0 ? 0 : total > 255 ? 255 : total;
-                filtered[i] = (byte)total;
-            }
+            int stride = width;
+            byte[] v = new byte[25];//注目ピクセルとその近傍24ピクセルの輝度値用
 
+            for (int y = 2; y < height - 2; y++)
+            {
+                for (int x = 2; x < width - 2; x++)
+                {
+                    //24近傍と注目ピクセルの輝度値収集
+                    for (int i = 0; i < 5; i++)
+                    {
+                        int pp = (y + i - 2) * stride + x - 2;
+                        for (int j = 0; j < 5; j++)
+                        {
+                            v[i * 5 + j] = pixels[pp + j];
+                        }
+                    }
+                    var neko = v.OrderBy(z => z).ToList()[12];
+                    //輝度値をソートして中央値(13番目)を新しい値にする
+                    filtered[y * stride + x] = v.OrderBy(z => z).ToList()[12];
+                }
+            }
             return (filtered, BitmapSource.Create(
                 width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
         }
-
-
-
-
 
 
 
@@ -375,6 +316,7 @@ namespace _20190528_メディアンフィルタ
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
+            //クリップボードから画像を貼り付け
             var source = Clipboard.GetImage();
             if (source == null)
             {
@@ -382,6 +324,7 @@ namespace _20190528_メディアンフィルタ
             }
             else
             {
+                //クリップボードに画像があったらピクセルフォーマットをGray8に変換して取り込む
                 int w = source.PixelWidth;
                 int h = source.PixelHeight;
                 int stride = w;
@@ -398,6 +341,7 @@ namespace _20190528_メディアンフィルタ
 
         private void Button_Click_4(object sender, RoutedEventArgs e)
         {
+            //クリップボードに画像をコピー
             Clipboard.SetImage((BitmapSource)MyImage.Source);
         }
 
@@ -439,6 +383,17 @@ namespace _20190528_メディアンフィルタ
         {
             if (MyPixels == null) { return; }
             (byte[] pixels, BitmapSource bitmap) = Filterメディアン自身を除く(
+                MyPixels,
+                MyBitmapOrigin.PixelWidth,
+                MyBitmapOrigin.PixelHeight);
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
+        }
+
+        private void Button_Click_8(object sender, RoutedEventArgs e)
+        {
+            if (MyPixels == null) { return; }
+            (byte[] pixels, BitmapSource bitmap) = Filterメディアン24近傍(
                 MyPixels,
                 MyBitmapOrigin.PixelWidth,
                 MyBitmapOrigin.PixelHeight);

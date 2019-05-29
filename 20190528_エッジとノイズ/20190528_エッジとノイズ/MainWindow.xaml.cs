@@ -31,34 +31,12 @@ namespace _20190528_エッジとノイズ
 
             this.Drop += MainWindow_Drop;
             this.AllowDrop = true;
-            //MyTest();
+           
 
         }
 
 
-
-        private void MyTest()
-        {
-            //string filePath = "";
-            ImageFileFullPath = @"E:\オレ\雑誌スキャン\2003年pc雑誌\20030115_dosvmag_003.jpg";
-            //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_114.jpg";
-            //ImageFileFullPath = @" D:\ブログ用\テスト用画像\border_row.bmp";
-            //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_003_.png";
-            //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_003_重.png";
-            //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\20030115_dosvmag_003_重_上半分.png";
-            //ImageFileFullPath = @"D:\ブログ用\Lenna_(test_image).png";
-            //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\蓮の花.png";
-            //ImageFileFullPath = @"D:\ブログ用\テスト用画像\SIDBA\Girl.bmp";
-            //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\とり.png";
-            //ImageFileFullPath = @"D:\ブログ用\テスト用画像\ノイズ除去\風車.png";
-
-
-            (MyPixels, MyBitmapOrigin) = MakeBitmapSourceAndByteArray(ImageFileFullPath, PixelFormats.Gray8, 96, 96);
-
-            MyImageOrigin.Source = MyBitmapOrigin;
-            MyPixelsOrigin = MyPixels;
-        }
-
+        
         //ラプラシアンでエッジ判定、しきい値以下をメディアンフィルタ
         private (byte[] pixels, BitmapSource bitmap) Filterメディアンしきい値(byte[] pixels, int width, int height, int threshold, bool absolute = false)
         {
