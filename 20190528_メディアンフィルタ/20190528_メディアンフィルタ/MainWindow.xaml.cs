@@ -13,6 +13,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
+//メディアンフィルタで画像のノイズ除去試してみた、WPF、C# ( ソフトウェア ) - 午後わてんのブログ - Yahoo!ブログ
+//https://blogs.yahoo.co.jp/gogowaten/15965377.html
 
 namespace _20190528_メディアンフィルタ
 {
