@@ -22,6 +22,7 @@
         <Button Content="メディアンフィルタ" Click="Button_Click"/>
         <TextBlock Name="MyTextBlock1" Text="normal"/>
         <Button Content="メディアンフィルタ高速化" Click="Button_Click_10"/>
+        <Button Content="メディアンフィルタ高速化2" Click="Button_Click_5"/>
         <TextBlock Name="MyTextBlock2" Text="fast"/>
         <Separator Height="20" Background="Red"/>
         <Button Content="クリップボードへコピー" Click="Button_Click_4"/>
