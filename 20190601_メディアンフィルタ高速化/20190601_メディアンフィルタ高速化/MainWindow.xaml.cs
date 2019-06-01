@@ -20,6 +20,10 @@ using System.Diagnostics;
 //浜村倫行† 　入江文平†
 //            参照渡し - C# によるプログラミング入門 | ++C++; // 未確認飛行 C
 //https://ufcpp.net/study/csharp/sp_ref.html
+
+//    3x3のメディアンフィルタの高速化をC#で書いてみた ( ソフトウェア ) - 午後わてんのブログ - Yahoo!ブログ
+//https://blogs.yahoo.co.jp/gogowaten/15967500.html
+
 namespace _20190601_メディアンフィルタ高速化
 {
     /// <summary>
