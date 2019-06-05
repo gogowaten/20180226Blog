@@ -5,14 +5,24 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:_20190604_平方根"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="540">
     <Grid>
     <StackPanel>
       <Label Content="{Binding ElementName=MySlider, Path=Value}"/>
       <Slider Name="MySlider" Value="3" Minimum="1" Maximum="10" SmallChange="1" TickFrequency="1" IsSnapToTickEnabled="True"/>
       <Button Content="button1" Click="Button_Click"/>
       <Button Content="button2" Click="Button_Click_1"/>
-      <Label Name="MyLabel" Content="label"/>
+      <Label Name="MyLabelMySqrt" Content="label"/>
+      <Label Name="MyLabelSqrt" Content="sqrt"/>
+      <Label Name="MyLabelDiff" Content="diff"/>
+      <TextBox Name="MyTextBox" Text="65535"/>
+      <Button Content="button3" Click="Button_Click_2"/>
+      <Button Content="MySqrtTime" Click="Button_Click_3"/>
+      <Label Name="MyLabelMySqrtTime" Content="time1"/>
+      
+      <Button Content="SqrtTime" Click="Button_Click_4"/>
+      <Label Name="MyLabelSqrtTime" Content="time2"/>
+
     </StackPanel>
   </Grid>
 </Window>
