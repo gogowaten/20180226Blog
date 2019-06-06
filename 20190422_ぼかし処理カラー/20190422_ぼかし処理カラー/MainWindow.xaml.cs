@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Diagnostics;
 
 //画像ぼかし処理、普通のぼかし処理では画像によってイマイチな結果になる(ソフトウェア ) - 午後わてんのブログ - Yahoo!ブログ
 //https://blogs.yahoo.co.jp/gogowaten/15940003.html
@@ -111,6 +112,9 @@ namespace _20190422_ぼかし処理カラー
         /// <returns></returns>
         private (byte[] pixels, BitmapSource bitmap) Filter上下左右補正あり(byte[] pixels, int width, int height)
         {
+            var sw = new Stopwatch();
+            sw.Start();
+
             byte[] filtered = new byte[pixels.Length];//処理結果用
             int stride = width * 3;//一行のbyte数
             //上下左右1ラインは処理しない(めんどくさい)
@@ -136,13 +140,56 @@ namespace _20190422_ぼかし処理カラー
                 total += Math.Pow(pixels[p], 2);         //注目ピクセル
                 total += Math.Pow(pixels[p + 3], 2);     //右
                 total += Math.Pow(pixels[p + stride], 2);//下
-                return (int)Math.Sqrt(total / 5);
+                //return MySqrtInt((int)(total / 5));// 1.6秒
+                //return (int)MySqrt1(total / 5);//     1.4秒
+                //return (int)MySqrt1(total / 5, 1);//  1.3秒
+                return (int)Math.Sqrt(total / 5);//     1.1秒
             }
+
+            sw.Stop();
+            MyTextBlock.Text = $"time = {sw.Elapsed.TotalSeconds.ToString("0.000")}秒";
+
             return (filtered, BitmapSource.Create(
                 width, height, 96, 96, PixelFormats.Rgb24, null, filtered, stride));
         }
 
+        /// <summary>
+        /// 平方根の近似値を求める
+        /// </summary>
+        /// <param name="v">平方根を求める対象の数値</param>
+        /// <param name="acceptable">0より大きい数値で指定、誤差の許容値、これ以下になったら返す</param>
+        /// <returns></returns>
+        private double MySqrt1(double v, double acceptable = 0.0001)
+        {
+            double x = 127.5;//初期値
+            double x2;
+            while (true)
+            {
+                x2 = (x + (v / x)) / 2.0;
+                if (Math.Abs(x2 - x) <= acceptable) break;
+                x = x2;
+            }
+            return x2;
+        }
 
+        /// <summary>
+        /// 整数だけで計算する平方根
+        /// </summary>
+        /// <param name="v">平方根を求める対象の数値</param>
+        /// <param name="acceptable">1以上で指定、誤差の許容値、これ以下になったら返す</param>
+        /// <returns></returns>
+        private int MySqrtInt(int v, int acceptable = 1)
+        {
+            int x = 127;
+            int x2;
+            while (true)
+            {
+                x2 = (x + (v / x)) >> 1;//>> 1はビットシフト、意味は/2
+                if (Math.Abs(x2 - x) <= acceptable) break;
+                x = x2;
+            }
+            return x2;
+        }
 
         #region その他
 

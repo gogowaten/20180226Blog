@@ -19,6 +19,7 @@
         <Button Content="元の画像に戻す" Click="Button_Click_2"/>
         <Button Content="ぼかし上下左右(補正無し)" Click="Button_Click"/>
         <Button Content="ぼかし上下左右(補正あり)" Click="Button_Click_1"/>
+        <TextBlock Name="MyTextBlock"/>
       </StackPanel>
       <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
         <Grid MouseLeftButtonDown="Grid_MouseLeftButtonDown" MouseLeftButtonUp="Grid_MouseLeftButtonUp">

@@ -42,7 +42,7 @@ namespace _20190604_平方根
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            var x1 = MySqrt1(MySlider.Value);
+            var x1 = MySqrt(MySlider.Value);
             var x2= Math.Sqrt(MySlider.Value);
             MyLabelMySqrt.Content = x1;
             MyLabelSqrt.Content = x2;
@@ -55,8 +55,9 @@ namespace _20190604_平方根
         /// <param name="v">平方根を求める対象の数値</param>
         /// <param name="acceptable">0より大きい数値で指定、誤差の許容値、これ以下になったら返す</param>
         /// <returns></returns>
-        private double MySqrt1(double v, double acceptable = 0.0001)
+        private double MySqrt(double v, double acceptable = 0.0001)
         {
+            if (v < 0) { return double.NaN; }
             double x = 1.0;//初期値
             double x2;
             while (true)
@@ -76,6 +77,7 @@ namespace _20190604_平方根
         /// <returns></returns>
         private int MySqrtInt(int v, int acceptable = 1)
         {
+            if (v < 0) v = -v;
             int x = 1;
             int x2;
             while (true)
@@ -98,10 +100,10 @@ namespace _20190604_平方根
         {
             var sw = new Stopwatch();
             sw.Start();
-            var v = 2000000;
+            var v = -20;
             for (int i = 0; i < 1000000; i++)
             {
-                MySqrt1(v);
+                MySqrtInt(v);
             }
             sw.Stop();
             MyLabelMySqrtTime.Content = $"time = {sw.Elapsed.TotalSeconds.ToString("00.0000")}秒";
@@ -112,7 +114,7 @@ namespace _20190604_平方根
         {
             var sw = new Stopwatch();
             sw.Start();
-            var v = 2000000;
+            var v = 20;
             for (int i = 0; i < 1000000; i++)
             {
                 Math.Sqrt(v);
