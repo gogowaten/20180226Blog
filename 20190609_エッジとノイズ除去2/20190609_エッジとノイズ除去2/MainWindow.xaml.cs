@@ -35,41 +35,245 @@ namespace _20190609_エッジとノイズ除去2
 
         }
 
-
-
-        //ラプラシアンでエッジ判定、しきい値以下をメディアンフィルタ
-        private (byte[] pixels, BitmapSource bitmap) Filterメディアンしきい値(byte[] pixels, int width, int height, int threshold)
+        #region メディアンフィルタ高速化1
+        /// <summary>
+        /// 3x3byteの配列の並べ替え、3つごとで並べ替える
+        ///  0  1  2    ←列番号
+        /// [0][3][6]   []はインデックス
+        /// [1][4][7]
+        /// [2][5][8]
+        /// この配置で見立てて、列の中を並べ替える
+        /// </summary>
+        /// <param name="pixels"></param>
+        private void MedianSort3x3Byte(ref byte[] pixels)
         {
-            byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
-            int stride = width;
-            int begin = stride + 1;
-            int end = pixels.Length - stride - 1;
-            for (int i = begin; i < end; i++)
+            byte temp;
+            for (int i = 0; i < 9; i += 3)
             {
-                byte edge = MakeLaplacian8Near(pixels, i, stride);
-                filtered[i] = pixels[i];
-                if (edge <= threshold)
+                if (pixels[i] >= pixels[i + 1])
                 {
-                    //メディアンフィルタ
-                    var v = new byte[9];
-                    v[0] = pixels[i - stride - 1];//注目ピクセルの左上
-                    v[1] = pixels[i - stride];    //上
-                    v[2] = pixels[i - stride + 1];//右上
-                    v[3] = pixels[i - 1];         //左
-                    v[4] = pixels[i];
-                    v[5] = pixels[i + 1];         //右
-                    v[6] = pixels[i + stride - 1];//左下
-                    v[7] = pixels[i + stride];    //した
-                    v[8] = pixels[i + stride + 1];//右下
+                    // 0 1
 
-                    //var neko = v.OrderBy(x => x).ToList()[4];
-                    filtered[i] = v.OrderBy(x => x).ToList()[4];
+                    if (pixels[i + 1] >= pixels[i + 2])
+                    {
+                        // 0 1 2
+                        //順番そのまま
+                    }
+                    else if (pixels[i + 0] >= pixels[i + 2])// 0 >= 1 and 2 >= 1
+                    {
+                        // 0 2 1
+                        temp = pixels[i + 1];
+                        pixels[i + 1] = pixels[i + 2];
+                        pixels[i + 2] = temp;
+                    }
+                    else
+                    {
+                        // 2 0 1
+                        temp = pixels[i + 2];
+                        pixels[i + 2] = pixels[i + 1];
+                        pixels[i + 1] = pixels[i];
+                        pixels[i] = temp;
+                    }
+                }
+                else
+                {
+                    // 1 0
+                    if (pixels[i + 2] >= pixels[i + 1])
+                    {
+                        // 2 1 0
+                        temp = pixels[i];
+                        pixels[i] = pixels[i + 2];
+                        pixels[i + 2] = temp;
+                    }
+                    else if (pixels[i + 0] >= pixels[i + 2])// 1 0 and 1 2
+                    {
+                        // 1 0 2
+                        temp = pixels[i];
+                        pixels[i] = pixels[i + 1];
+                        pixels[i + 1] = temp;
+                    }
+                    else
+                    {
+                        // 1 2 0
+                        temp = pixels[i];
+                        pixels[i] = pixels[i + 1];
+                        pixels[i + 1] = pixels[i + 2];
+                        pixels[i + 2] = temp;
+                    }
                 }
             }
+        }
 
+
+        /// <summary>
+        ///  0  1  2    ←列番号
+        /// [0][3][6]
+        /// [1][4][7]
+        /// [2][5][8]
+        /// この配置で列を並べ替え、左から大きい順
+        /// インデックス[1][4][7]を比較して並べ替え
+        /// </summary>
+        /// <param name="v"></param>
+        private void MedianSortUnit(ref byte[] v)
+        {
+            byte t1, t2, t3;
+            if (v[1] >= v[4])
+            {
+                // 0 > 1
+                if (v[4] >= v[7])
+                {
+                    // 0 1 2 入れ替えなし
+                }
+                else if (v[1] >= v[7])
+                {
+                    // 0 2 1 は1と2を入れ替え
+                    t1 = v[3];
+                    t2 = v[4];
+                    t3 = v[5];
+                    v[3] = v[6];
+                    v[4] = v[7];
+                    v[5] = v[8];
+                    v[6] = t1;
+                    v[7] = t2;
+                    v[8] = t3;
+                }
+                else
+                {
+                    // 2 0 1
+                    t1 = v[3];
+                    t2 = v[4];
+                    t3 = v[5];
+                    v[3] = v[0];
+                    v[4] = v[1];
+                    v[5] = v[2];
+                    v[0] = v[6];
+                    v[1] = v[7];
+                    v[2] = v[8];
+                    v[6] = t1;
+                    v[7] = t2;
+                    v[8] = t3;
+                }
+            }
+            else
+            {
+                // 1 > 0
+                if (v[7] >= v[4])
+                {
+                    // 2 1 0
+                    t1 = v[0];
+                    t2 = v[1];
+                    t3 = v[2];
+                    v[0] = v[6];
+                    v[1] = v[7];
+                    v[2] = v[8];
+                    v[6] = t1;
+                    v[7] = t2;
+                    v[8] = t3;
+                }
+                else if (v[1] >= v[7])
+                {
+                    // 1 0 2
+                    t1 = v[3];
+                    t2 = v[4];
+                    t3 = v[5];
+                    v[3] = v[0];
+                    v[4] = v[1];
+                    v[5] = v[2];
+                    v[0] = t1;
+                    v[1] = t2;
+                    v[2] = t3;
+                }
+                else
+                {
+                    // 1 2 0
+                    t1 = v[3];
+                    t2 = v[4];
+                    t3 = v[5];
+                    v[3] = v[6];
+                    v[4] = v[7];
+                    v[5] = v[8];
+                    v[6] = v[0];
+                    v[7] = v[1];
+                    v[8] = v[2];
+                    v[0] = t1;
+                    v[1] = t2;
+                    v[2] = t3;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 中央値を取得
+        /// </summary>
+        /// <param name="v">並べ替え済みの配列</param>
+        /// <returns></returns>
+        private byte MedianFind(byte[] v)
+        {
+            if ((v[2] >= v[4] && v[4] >= v[6]) || (v[6] >= v[4] && v[4] >= v[2]))
+            {
+                return v[4];
+            }
+            else if (v[2] >= v[4] && v[6] >= v[4])
+            {
+                return Math.Min(v[2], Math.Min(v[3], v[6]));
+            }
+            else
+            {
+                return Math.Max(v[2], Math.Max(v[5], v[6]));
+            }
+        }
+        #endregion
+
+        /// <summary>
+        /// ラプラシアンでエッジ判定、しきい値以下をメディアンフィルタ
+        /// BitmapSourcクラスのCopyPixelsで得られるbyte型配列に
+        /// メディアンフィルタをかける
+        /// ピクセルフォーマットGray8(グレースケール画像)専用
+        /// </summary>
+        /// <param name="pixels">画像の輝度値配列</param>
+        /// <param name="width">画像の横ピクセル数</param>
+        /// <param name="height">画像の縦ピクセル数</param>
+        /// <returns></returns>
+        private (byte[] pixels, BitmapSource bitmap) Filterメディアン高速化1(
+            byte[] pixels, int width, int height, int threshold)
+        {
+            byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
+            //一行のbyte数、Gray8は1ピクセルあたり1byteなのでwidthとおなじ
+            int stride = width;
+            byte[] v = new byte[9];
+
+            for (int y = 1; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+                    int p = x + y * stride;//注目ピクセルの位置
+                    byte edge = GetLaplacian8Near(pixels, p, stride);
+                    filtered[p] = pixels[p];
+                    if (edge <= threshold)
+                    {
+                        v[0] = pixels[p - stride - 1];//注目ピクセルの左上
+                        v[1] = pixels[p - 1];//左
+                        v[2] = pixels[p + stride - 1];//左下
+                        v[3] = pixels[p - stride];//上
+                        v[4] = pixels[p];
+                        v[5] = pixels[p + stride];//下
+                        v[6] = pixels[p - stride + 1];//右上
+                        v[7] = pixels[p + 1];//右
+                        v[8] = pixels[p + stride + 1];//右下
+
+                        //ソートして中央値(5番目)を新しい値にする                    
+                        MedianSort3x3Byte(ref v);//数値ソート                    
+                        MedianSortUnit(ref v);//unitソート                                              
+                        filtered[p] = MedianFind(v);//中央値取得して新しい値にする
+                    }
+                }
+            }
             return (filtered, BitmapSource.Create(
                 width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
         }
+
+
+
 
         /// <summary>
         /// エッジを残してぼかし処理、ラプラシアンフィルタでエッジ取得、しきい値以下ならぼかし処理、注目ピクセル*4-上下左右、PixelFormats.Gray8専用
@@ -80,89 +284,16 @@ namespace _20190609_エッジとノイズ除去2
         /// <param name="threshold">エッジ判定用のしきい値、-1~255で指定、以下でぼかし処理</param>
         /// <param name="absolute">trueなら絶対値で計算</param>
         /// <returns></returns>
-        private (byte[] pixels, BitmapSource bitmap) Filterラプラシアンしきい値(byte[] pixels, int width, int height, int threshold, bool absolute = false)
-        {
-            byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
-            int stride = width;//一行のbyte数、Gray8は1ピクセルあたりのbyte数は1byteなのでwidthとおなじになる
-
-            //int count = 0;
-            for (int y = 1; y < height - 1; y++)
-            {
-                for (int x = 1; x < width - 1; x++)
-                {
-                    int p = x + y * stride;//注目ピクセルの位置
-                    int total = 0;
-                    total += pixels[p - stride];//上のピクセル
-                    total += pixels[p - 1];//左
-                    total += pixels[p + 1];//右
-                    total += pixels[p + stride];//下
-                    int laplacian = total - pixels[p] * 4;//上下左右 - 注目ピクセル*4
-                    if (absolute) laplacian = Math.Abs(laplacian);//絶対値で計算
-
-                    //0～255の間に収める
-                    laplacian = laplacian < 0 ? 0 : laplacian > 255 ? 255 : laplacian;
-                    //しきい値以下ならぼかし処理
-                    if (laplacian <= threshold)
-                    {
-                        //count++;
-                        //double average = (total + pixels[p]) / 5.0;
-                        //byte neko = (byte)average;
-                        //byte neko2 = (byte)((total + pixels[p]) / 5.0);
-                        //if (neko != neko2) { var uma = 0; }
-                        filtered[p] = (byte)((total + pixels[p]) / 5.0);
-                    }
-                    else
-                    {
-                        filtered[p] = pixels[p];
-                    }
-
-                }
-            }
-            return (filtered, BitmapSource.Create(
-                width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
-        }
 
 
 
 
-        //近傍の値を1固定にして、中心だけ1～10にしてぼかし具合を変更する場合
-        private (byte[] pixels, BitmapSource bitmap) Filterラプラシアン割合(byte[] pixels, int width, int height, bool absolute = false)
-        {
-            byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
-            int stride = width;//一行のbyte数、Gray8は1ピクセルあたりのbyte数は1byteなのでwidthとおなじになる
 
-            //int count = 0;
-            for (int y = 1; y < height - 1; y++)
-            {
-                for (int x = 1; x < width - 1; x++)
-                {
-                    int p = x + y * stride;//注目ピクセルの位置
-                    int total = 0;
-                    total += pixels[p - stride];//上のピクセル
-                    total += pixels[p - 1];//左
-                    total += pixels[p + 1];//右
-                    total += pixels[p + stride];//下
-                    int laplacian = total - pixels[p] * 4;//上下左右 - 注目ピクセル*4
-                    if (absolute) laplacian = Math.Abs(laplacian);//絶対値で計算
-                    //0～255の間に収める
-                    laplacian = laplacian < 0 ? 0 : laplacian > 255 ? 255 : laplacian;
-
-                    //倍率決定、エッジが強いほど中心倍率を10に近づける
-                    double rate = (laplacian / 255.0) * (10 - 1) + 1;
-                    //rate = 100;
-                    //平均値を新しい値にする
-                    filtered[p] = (byte)((total + pixels[p] * rate) / (4 + rate));
-
-                }
-            }
-            return (filtered, BitmapSource.Create(
-                width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
-        }
 
 
 
         //ノイズ表示
-        private (byte[] pixels, BitmapSource bitmap) Filterラプラシアン8近傍(byte[] pixels, int width, int height, int threshold, bool absolute = false)
+        private (byte[] pixels, BitmapSource bitmap) Filterラプラシアン8近傍(byte[] pixels, int width, int height, int threshold)
         {
             byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
             int stride = width;//一行のbyte数、Gray8は1ピクセルあたりのbyte数は1byteなのでwidthとおなじになる
@@ -182,7 +313,7 @@ namespace _20190609_エッジとノイズ除去2
                 total += pixels[i + stride];    //した
                 total += pixels[i + stride + 1];//右下
                 total -= pixels[i] * 8;
-                if (absolute) total = Math.Abs(total);
+                total = Math.Abs(total);
                 if (total > threshold)
                 {
                     total = total < 0 ? 0 : total > 255 ? 255 : total;
@@ -198,7 +329,7 @@ namespace _20190609_エッジとノイズ除去2
                 width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
         }
 
-        private byte MakeLaplacian8Near(byte[] pixels, int i, int stride)
+        private byte GetLaplacian8Near(byte[] pixels, int i, int stride)
         {
             if (i % stride == 0 | i % stride == stride - 1) { return 0; }
             int total = 0;
@@ -216,6 +347,67 @@ namespace _20190609_エッジとノイズ除去2
             return (byte)total;
         }
 
+
+
+        private byte GetLaplacian8Near2(byte[] pixels, int i, int stride)
+        {
+            if (i % stride == 0 | i % stride == stride - 1) { return 0; }
+            int total = 0;
+            total += pixels[i - stride - 1];//注目ピクセルの左上
+            total += pixels[i - stride] * 2;    //上
+            total += pixels[i - stride + 1];//右上
+            total += pixels[i - 1] * 2;         //左
+            total += pixels[i + 1] * 2;         //右
+            total += pixels[i + stride - 1];//左下
+            total += pixels[i + stride] * 2;    //した
+            total += pixels[i + stride + 1];//右下
+            total -= pixels[i] * 12;
+            total = Math.Abs(total);
+            total = total < 0 ? 0 : total > 255 ? 255 : total;
+            return (byte)total;
+        }
+        private (byte[] pixels, BitmapSource bitmap) Filterメディアン2高速化1(
+            byte[] pixels, int width, int height, int threshold)
+        {
+            byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
+            //一行のbyte数、Gray8は1ピクセルあたり1byteなのでwidthとおなじ
+            int stride = width;
+            byte[] v = new byte[9];
+
+            for (int y = 1; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+                    int p = x + y * stride;//注目ピクセルの位置
+                    byte edge = GetLaplacian8Near2(pixels, p, stride);
+                    filtered[p] = pixels[p];
+                    if (edge <= threshold)
+                    {
+                        v[0] = pixels[p - stride - 1];//注目ピクセルの左上
+                        v[1] = pixels[p - 1];//左
+                        v[2] = pixels[p + stride - 1];//左下
+                        v[3] = pixels[p - stride];//上
+                        v[4] = pixels[p];
+                        v[5] = pixels[p + stride];//下
+                        v[6] = pixels[p - stride + 1];//右上
+                        v[7] = pixels[p + 1];//右
+                        v[8] = pixels[p + stride + 1];//右下
+
+                        //ソートして中央値(5番目)を新しい値にする                    
+                        MedianSort3x3Byte(ref v);//数値ソート                    
+                        MedianSortUnit(ref v);//unitソート                                              
+                        filtered[p] = MedianFind(v);//中央値取得して新しい値にする
+                    }
+                }
+            }
+            return (filtered, BitmapSource.Create(
+                width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
+        }
+
+
+
+
+
         private (byte[] pixels, BitmapSource bitmap) Filterラプラシアン8近傍2(byte[] pixels, int width, int height, int threshold)
         {
             byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
@@ -224,7 +416,7 @@ namespace _20190609_エッジとノイズ除去2
             int end = pixels.Length - stride - 1;
             for (int i = begin; i < end; i++)
             {
-                var v = MakeLaplacian8Near(pixels, i, stride);
+                var v = GetLaplacian8Near(pixels, i, stride);
                 if (v > threshold) v = 0;
                 filtered[i] = v;
             }
@@ -401,28 +593,6 @@ namespace _20190609_エッジとノイズ除去2
             SaveImage((BitmapSource)MyImage.Source);
         }
 
-        #endregion
-
-
-        private void Button_Click_6(object sender, RoutedEventArgs e)
-        {
-            Clipboard.SetImage((BitmapSource)MyImage.Source);
-        }
-
-
-        private void Button_Click_8(object sender, RoutedEventArgs e)
-        {
-            if (MyPixels == null) { return; }
-            (byte[] pixels, BitmapSource bitmap) = Filterメディアンしきい値(
-                MyPixels,
-                MyBitmapOrigin.PixelWidth,
-                MyBitmapOrigin.PixelHeight,
-                (int)SliderThreshold.Value);
-            MyImage.Source = bitmap;
-            MyPixels = pixels;
-
-        }
-
         private void Button_Click_9(object sender, RoutedEventArgs e)
         {
             //クリップボードから画像を貼り付け
@@ -446,6 +616,45 @@ namespace _20190609_エッジとノイズ除去2
                 MyImage.Source = gray;
                 MyImageOrigin.Source = gray;
             }
+        }
+
+
+        private void Button_Click_6(object sender, RoutedEventArgs e)
+        {
+            Clipboard.SetImage((BitmapSource)MyImage.Source);
+        }
+
+
+        #endregion
+
+
+
+        private void Button_Click_8(object sender, RoutedEventArgs e)
+        {
+            if (MyPixels == null) { return; }
+            (byte[] pixels, BitmapSource bitmap) = Filterメディアン高速化1(
+                MyPixels,
+                MyBitmapOrigin.PixelWidth,
+                MyBitmapOrigin.PixelHeight,
+                (int)SliderThreshold.Value);
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
+
+        }
+
+
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            if (MyPixels == null) { return; }
+            (byte[] pixels, BitmapSource bitmap) = Filterメディアン2高速化1(
+                MyPixels,
+                MyBitmapOrigin.PixelWidth,
+                MyBitmapOrigin.PixelHeight,
+                (int)SliderThreshold.Value);
+            MyImage.Source = bitmap;
+            MyPixels = pixels;
+
         }
     }
 }

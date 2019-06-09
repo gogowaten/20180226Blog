@@ -24,12 +24,9 @@
           <Slider Name="SliderThreshold" Minimum="-1" Maximum="255" IsMoveToPointEnabled="False"/>
         </DockPanel>
         <Button Content="しきい値以下をメディアン" Click="Button_Click_8"/>
+        <Button Content="しきい値以下をメディアン2" Click="Button_Click"/>
         <Separator Height="20"/>
-
-        <DockPanel>
-          <TextBlock DockPanel.Dock="Right" Text="{Binding ElementName=SliderThreshold2, Path=Value, StringFormat=000}"/>
-          <Slider Name="SliderThreshold2" Minimum="0" Maximum="2040" IsMoveToPointEnabled="False"/>
-        </DockPanel>
+      
         <Separator Height="20"/>
 
         <Button Content="クリップボードにコピー" Click="Button_Click_6"/>
