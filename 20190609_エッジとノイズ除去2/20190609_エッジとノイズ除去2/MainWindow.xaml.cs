@@ -247,7 +247,7 @@ namespace _20190609_エッジとノイズ除去2
                 for (int x = 1; x < width - 1; x++)
                 {
                     int p = x + y * stride;//注目ピクセルの位置
-                    byte edge = GetLaplacian8Near(pixels, p, stride);
+                    int edge = GetLaplacian8Near(pixels, p, stride);
                     filtered[p] = pixels[p];
                     if (edge <= threshold)
                     {
@@ -273,63 +273,11 @@ namespace _20190609_エッジとノイズ除去2
         }
 
 
-
-
-        /// <summary>
-        /// エッジを残してぼかし処理、ラプラシアンフィルタでエッジ取得、しきい値以下ならぼかし処理、注目ピクセル*4-上下左右、PixelFormats.Gray8専用
-        /// </summary>
-        /// <param name="pixels">画像の輝度値配列</param>
-        /// <param name="width">横ピクセル数</param>
-        /// <param name="height">縦ピクセル数</param>
-        /// <param name="threshold">エッジ判定用のしきい値、-1~255で指定、以下でぼかし処理</param>
-        /// <param name="absolute">trueなら絶対値で計算</param>
-        /// <returns></returns>
+ 
 
 
 
-
-
-
-
-
-        //ノイズ表示
-        private (byte[] pixels, BitmapSource bitmap) Filterラプラシアン8近傍(byte[] pixels, int width, int height, int threshold)
-        {
-            byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
-            int stride = width;//一行のbyte数、Gray8は1ピクセルあたりのbyte数は1byteなのでwidthとおなじになる
-            int total;
-            int begin = stride + 1;
-            int end = pixels.Length - stride - 1;
-            for (int i = begin; i < end; i++)
-            {
-                if (i % stride == 0 | i % stride == stride - 1) { continue; }
-                total = 0;
-                total += pixels[i - stride - 1];//注目ピクセルの左上
-                total += pixels[i - stride];    //上
-                total += pixels[i - stride + 1];//右上
-                total += pixels[i - 1];         //左
-                total += pixels[i + 1];         //右
-                total += pixels[i + stride - 1];//左下
-                total += pixels[i + stride];    //した
-                total += pixels[i + stride + 1];//右下
-                total -= pixels[i] * 8;
-                total = Math.Abs(total);
-                if (total > threshold)
-                {
-                    total = total < 0 ? 0 : total > 255 ? 255 : total;
-                    filtered[i] = (byte)total;
-                }
-                else
-                {
-                    filtered[i] = 0;
-                }
-            }
-
-            return (filtered, BitmapSource.Create(
-                width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
-        }
-
-        private byte GetLaplacian8Near(byte[] pixels, int i, int stride)
+        private int GetLaplacian8Near(byte[] pixels, int i, int stride)
         {
             if (i % stride == 0 | i % stride == stride - 1) { return 0; }
             int total = 0;
@@ -343,13 +291,13 @@ namespace _20190609_エッジとノイズ除去2
             total += pixels[i + stride + 1];//右下
             total -= pixels[i] * 8;
             total = Math.Abs(total);
-            total = total < 0 ? 0 : total > 255 ? 255 : total;
-            return (byte)total;
+            //total = total > 255 ? 255 : total;
+            return total;
         }
 
 
 
-        private byte GetLaplacian8Near2(byte[] pixels, int i, int stride)
+        private int GetLaplacian8NearWeight(byte[] pixels, int i, int stride)
         {
             if (i % stride == 0 | i % stride == stride - 1) { return 0; }
             int total = 0;
@@ -363,9 +311,10 @@ namespace _20190609_エッジとノイズ除去2
             total += pixels[i + stride + 1];//右下
             total -= pixels[i] * 12;
             total = Math.Abs(total);
-            total = total < 0 ? 0 : total > 255 ? 255 : total;
-            return (byte)total;
+            //total = total < 0 ? 0 : total > 255 ? 255 : total;
+            return total;
         }
+
         private (byte[] pixels, BitmapSource bitmap) Filterメディアン2高速化1(
             byte[] pixels, int width, int height, int threshold)
         {
@@ -379,7 +328,7 @@ namespace _20190609_エッジとノイズ除去2
                 for (int x = 1; x < width - 1; x++)
                 {
                     int p = x + y * stride;//注目ピクセルの位置
-                    byte edge = GetLaplacian8Near2(pixels, p, stride);
+                    int edge = GetLaplacian8NearWeight(pixels, p, stride);
                     filtered[p] = pixels[p];
                     if (edge <= threshold)
                     {
@@ -405,56 +354,6 @@ namespace _20190609_エッジとノイズ除去2
         }
 
 
-
-
-
-        private (byte[] pixels, BitmapSource bitmap) Filterラプラシアン8近傍2(byte[] pixels, int width, int height, int threshold)
-        {
-            byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
-            int stride = width;
-            int begin = stride + 1;
-            int end = pixels.Length - stride - 1;
-            for (int i = begin; i < end; i++)
-            {
-                var v = GetLaplacian8Near(pixels, i, stride);
-                if (v > threshold) v = 0;
-                filtered[i] = v;
-            }
-
-            return (filtered, BitmapSource.Create(
-                width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
-        }
-
-
-
-        private (byte[] pixels, BitmapSource bitmap) Filterラプラシアン8近傍重みあり(byte[] pixels, int width, int height, bool absolute = false)
-        {
-            byte[] filtered = new byte[pixels.Length];//処理後の輝度値用
-            int stride = width;//一行のbyte数、Gray8は1ピクセルあたりのbyte数は1byteなのでwidthとおなじになる
-            int total;
-            int begin = stride + 1;
-            int end = pixels.Length - stride - 1;
-            for (int i = begin; i < end; i++)
-            {
-                total = 0;
-                total += pixels[i - stride - 1];
-                total += pixels[i - stride] * 2;
-                total += pixels[i - stride + 1];
-                total += pixels[i - 1] * 2;
-                total += pixels[i + 1] * 2;
-                total += pixels[i + stride - 1];
-                total += pixels[i + stride] * 2;
-                total += pixels[i + stride + 1];
-                total -= pixels[i] * 12;
-                if (absolute) total = Math.Abs(total);
-
-                total = total < 0 ? 0 : total > 255 ? 255 : total;
-                filtered[i] = (byte)total;
-            }
-
-            return (filtered, BitmapSource.Create(
-                width, height, 96, 96, PixelFormats.Gray8, null, filtered, width));
-        }
 
 
 

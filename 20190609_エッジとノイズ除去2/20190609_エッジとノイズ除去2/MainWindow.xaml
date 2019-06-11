@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:_20190609_エッジとノイズ除去2"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="350" Width="540">
   <Grid>
     <DockPanel>
       <StackPanel DockPanel.Dock="Left" Width="180">
@@ -21,7 +21,7 @@
         
         <DockPanel>
           <TextBlock DockPanel.Dock="Right" Text="{Binding ElementName=SliderThreshold, Path=Value, StringFormat=000}"/>
-          <Slider Name="SliderThreshold" Minimum="-1" Maximum="255" IsMoveToPointEnabled="False"/>
+          <Slider Name="SliderThreshold" Minimum="-1" Maximum="2040" IsMoveToPointEnabled="False" Value="254"/>
         </DockPanel>
         <Button Content="しきい値以下をメディアン" Click="Button_Click_8"/>
         <Button Content="しきい値以下をメディアン2" Click="Button_Click"/>
